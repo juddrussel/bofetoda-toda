@@ -4,8 +4,13 @@ require_once __DIR__ . '/config.php';
 
 if (isset($_GET['logout'])) {
     if (!empty($_SESSION['officer_id'])) {
-        get_pdo()->prepare('INSERT INTO access_logs (officer_id, action, role) VALUES (:oid, "Logout", :role)')
-            ->execute(['oid' => $_SESSION['officer_id'], 'role' => $_SESSION['role'] ?? 'unknown']);
+        try {
+            get_pdo()->prepare('INSERT INTO access_logs (officer_id, action, role) VALUES (:oid, :action, :role)')
+                ->execute(['oid' => $_SESSION['officer_id'], 'action' => 'Logout', 'role' => $_SESSION['role'] ?? 'unknown']);
+        } catch (PDOException $e) {
+            // Log error but don't prevent logout
+            error_log('Failed to log access: ' . $e->getMessage());
+        }
     }
     $_SESSION = [];
     session_destroy();
