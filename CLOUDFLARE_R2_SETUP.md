@@ -8,7 +8,14 @@ Render's free tier uses ephemeral storage, meaning uploaded files are lost on ea
 - **Free tier**: 10 GB storage, 10 million Class A operations, 100 million Class B operations per month
 - **No egress fees**: Unlike AWS S3, R2 doesn't charge for data transfer
 - **S3 compatibility**: Works with AWS SDK
-- **Global CDN**: Fast image delivery worldwide
+- **Global CDN**: Fast file delivery worldwide
+
+**What's stored in R2:**
+- ✅ Announcement images (events, reminders, updates)
+- ✅ Driver renewal documents (license, OR/CR, receipts, 1x1 photos)
+- ✅ Driver profile avatars
+
+See [R2_FOLDER_STRUCTURE.md](R2_FOLDER_STRUCTURE.md) for detailed folder organization.
 
 ---
 

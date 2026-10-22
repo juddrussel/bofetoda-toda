@@ -179,34 +179,17 @@ function driver_avatar_url(string $driverId): ?string {
  * one. Only JPG/PNG up to MAX_UPLOAD_BYTES are accepted.
  */
 function save_driver_avatar(string $driverId, array $file): bool {
-    $allowedExt = ['jpg', 'jpeg', 'png'];
-
-    if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-        return false;
+    // Use R2 storage with fallback to local
+    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    
+    $uploadResult = upload_driver_avatar_r2($driverId, $file);
+    
+    if ($uploadResult) {
+        // Avatar uploaded successfully (either to R2 or local storage)
+        return true;
     }
-    if ($file['size'] > MAX_UPLOAD_BYTES) {
-        return false;
-    }
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, $allowedExt, true)) {
-        return false;
-    }
-
-    $dir = __DIR__ . '/uploads/avatars/';
-    if (!is_dir($dir)) {
-        mkdir($dir, 0755, true);
-    }
-
-    // Only one photo per driver at a time — clear any previous file
-    // even if it was saved with a different extension.
-    foreach ($allowedExt as $e) {
-        $old = $dir . $driverId . '.' . $e;
-        if (is_file($old)) {
-            unlink($old);
-        }
-    }
-
-    return move_uploaded_file($file['tmp_name'], $dir . $driverId . '.' . $ext);
+    
+    return false;
 }
 
 function get_renewal_history($driver_id = null) {
@@ -1081,27 +1064,18 @@ function format_event_date($dateTime) {
  * @return string Full URL to the image
  */
 function get_announcement_image_url($imagePath) {
-    // If it's already a full URL (R2), return as-is
-    if (strpos($imagePath, 'https://') === 0 || strpos($imagePath, 'http://') === 0) {
-        return $imagePath;
-    }
-    
-    // Check if it's an R2 key (starts with announcements/)
-    if (strpos($imagePath, 'announcements/') === 0) {
-        $publicUrl = getenv('R2_PUBLIC_URL');
-        if ($publicUrl) {
-            return rtrim($publicUrl, '/') . '/' . $imagePath;
-        }
-    }
-    
-    // Fallback to local path (relative to Driver_BOFETODA directory)
-    // Remove leading slash if present
-    $imagePath = ltrim($imagePath, '/');
-    
-    // If path starts with 'uploads/', navigate up one directory
-    if (strpos($imagePath, 'uploads/') === 0) {
-        return '../' . $imagePath;
-    }
-    
-    return $imagePath;
+    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    return get_file_url($imagePath);
+}
+
+/**
+ * Get the full URL for a driver document or avatar
+ * Handles both R2 URLs and local paths
+ * 
+ * @param string $filePath File path from database
+ * @return string Full URL to the file
+ */
+function get_driver_file_url($filePath) {
+    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    return get_file_url($filePath);
 }

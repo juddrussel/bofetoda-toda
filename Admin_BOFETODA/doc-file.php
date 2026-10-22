@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/r2-storage.php';
 require_login();
 
 $officer = current_officer();
@@ -22,7 +23,21 @@ if (!$doc || empty($doc['file_path'])) {
     exit('No document on file.');
 }
 
-$path = resolve_document_path($doc['file_path']);
+// Check if file is in R2 storage
+$filePath = $doc['file_path'];
+
+// If it's an R2 key (documents/, avatars/, announcements/), redirect to R2 URL
+if (preg_match('#^(documents|avatars|announcements)/#', $filePath)) {
+    $publicUrl = getenv('R2_PUBLIC_URL');
+    if ($publicUrl) {
+        $r2Url = rtrim($publicUrl, '/') . '/' . $filePath;
+        header('Location: ' . $r2Url);
+        exit;
+    }
+}
+
+// Otherwise, serve from local storage
+$path = resolve_document_path($filePath);
 if (!$path || !is_file($path)) {
     http_response_code(404);
     exit('File is missing on disk. Check DRIVER_UPLOADS_DIR in admin-documents.php.');

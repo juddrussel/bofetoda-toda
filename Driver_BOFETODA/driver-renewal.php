@@ -2,6 +2,7 @@
 
 require 'driver-database.php';
 require 'driver-template.php';
+require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
 
 $driver = require_driver();
 $existingAppNo = get_current_application($driver['driver_id']);
@@ -118,54 +119,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
     }
 
     if ($ok) {
-        $uploadDir = __DIR__ . '/uploads/documents/' . $driver['driver_id'] . '/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
+        // Use R2 batch upload with fallback to local storage
+        $uploadResult = batch_upload_driver_documents($driver['driver_id'], [
+            'drivers_license' => $_FILES['drivers_license'],
+            'payment_receipt' => $_FILES['payment_receipt'],
+            'or_cr' => $_FILES['or_cr'],
+            'picture_1x1' => $_FILES['picture_1x1']
+        ]);
 
-        $allowedExt = ['jpg', 'jpeg', 'png', 'pdf'];
-        $paths = [];
-        $tooLarge = false;
-        $badType  = false;
-
-        foreach ($fields as $f) {
-            $origName = $_FILES[$f]['name'];
-            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowedExt, true)) {
-                $ok = false;
-                $badType = true;
-                break;
-            }
-            if ($_FILES[$f]['size'] > MAX_UPLOAD_BYTES) {
-                $ok = false;
-                $tooLarge = true;
-                break;
-            }
-            $destName = $f . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-            $destPath = $uploadDir . $destName;
-
-            if (!move_uploaded_file($_FILES[$f]['tmp_name'], $destPath)) {
-                $ok = false;
-                break;
-            }
-            $paths[$f] = 'uploads/documents/' . $driver['driver_id'] . '/' . $destName;
-        }
-
-        if ($ok) {
+        if ($uploadResult['success']) {
             try {
-                submit_renewal_application($driver, $paths);
+                submit_renewal_application($driver, $uploadResult['paths']);
                 header('Location: driver-home.php?state=submitted');
                 exit;
             } catch (Throwable $e) {
                 error_log('submit_renewal_application failed: ' . $e->getMessage());
                 $upload_error = 'Something went wrong while submitting. Please try again.';
             }
-        } elseif ($tooLarge) {
-            $maxMb = round(MAX_UPLOAD_BYTES / 1024 / 1024);
-            $upload_error = "File exceeds the maximum allowed size ({$maxMb}MB). Please upload a smaller file.";
-        } elseif ($badType) {
-            $upload_error = 'Only JPG, PNG, or PDF files are accepted.';
         } else {
+            // Log specific errors
+            foreach ($uploadResult['errors'] as $docType => $error) {
+                error_log("Upload failed for $docType: $error");
+            }
             $upload_error = 'Something went wrong while saving your documents. Please try again.';
         }
     } else {
