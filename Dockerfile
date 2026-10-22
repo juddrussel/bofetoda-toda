@@ -1,14 +1,28 @@
 # Use official PHP with Apache
 FROM php:8.2-apache
 
-# Install PDO MySQL extension (required for database)
-RUN docker-php-ext-install pdo pdo_mysql
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
 # Set working directory
 WORKDIR /var/www/html
+
+# Copy composer files first for better caching
+COPY composer.json composer.lock* /var/www/html/
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Copy application files
 COPY . /var/www/html/

@@ -4,21 +4,40 @@
 
 # Documentation
 *.md
-README.md
-DEPLOYMENT_GUIDE.md
-QUICK_START.md
-AIVEN_DEPLOYMENT_GUIDE.md
-AIVEN_QUICK_START.md
-DATABASE_COMPARISON.md
-WHY_AIVEN_IS_BETTER.md
-START_HERE.md
+!README.md
 
-# Environment files (don't copy .env if it exists)
+# Local development
 .env
+.env.local
+.env.*.local
 
-# Render config (not needed inside container)
-render.yaml
+# IDE
+.vscode
+.idea
+*.sublime-*
 
-# Uploaded documents (will be stored in persistent volume)
-Driver_BOFETODA/uploads/documents/*
-!Driver_BOFETODA/uploads/documents/.gitkeep
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules
+
+# Composer vendor (will be installed in Docker)
+vendor
+composer.lock

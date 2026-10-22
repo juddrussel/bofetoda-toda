@@ -11,10 +11,20 @@
  * - admin/                   Admin-uploaded files
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
+// Load AWS SDK if available
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+} else {
+    // Log warning but don't fail - will use local storage fallback
+    error_log('AWS SDK not installed. R2 storage will not be available. Run: composer install');
+}
 
-use Aws\S3\S3Client;
-use Aws\Exception\AwsException;
+// Only import classes if SDK is loaded
+if (class_exists('Aws\S3\S3Client')) {
+    use Aws\S3\S3Client;
+    use Aws\Exception\AwsException;
+}
 
 /**
  * Get configured R2 client
@@ -24,6 +34,12 @@ function get_r2_client() {
     
     if ($client !== null) {
         return $client;
+    }
+    
+    // Check if AWS SDK is available
+    if (!class_exists('Aws\S3\S3Client')) {
+        error_log('AWS SDK not loaded. R2 storage unavailable. Run: composer install');
+        return null;
     }
     
     $accessKeyId = getenv('R2_ACCESS_KEY_ID');
@@ -36,7 +52,7 @@ function get_r2_client() {
     }
     
     try {
-        $client = new S3Client([
+        $client = new \Aws\S3\S3Client([
             'version' => 'latest',
             'region' => 'auto',
             'endpoint' => 'https://' . $endpoint,
