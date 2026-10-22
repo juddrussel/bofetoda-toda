@@ -8,6 +8,9 @@
 // Include database connection
 require_once 'Admin_BOFETODA/db.php';
 
+// Get PDO connection
+$conn = get_pdo();
+
 // Set content type
 header('Content-Type: text/html; charset=utf-8');
 
