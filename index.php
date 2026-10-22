@@ -125,7 +125,7 @@
             <a href="Admin_BOFETODA/login.php" class="portal-card">
                 <div class="portal-icon">👔</div>
                 <div class="portal-title">Admin Portal</div>
-                <div class="portal-desc">For Officers & Staff</div>
+                <div class="portal-desc">For Officers</div>
             </a>
             
             <a href="Driver_BOFETODA/driver-login.php" class="portal-card">
