@@ -2,6 +2,7 @@
 
 require 'driver-database.php';
 require 'driver-template.php';
+require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
 
 $driver = require_driver();
 

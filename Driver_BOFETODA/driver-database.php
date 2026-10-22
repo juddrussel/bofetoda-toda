@@ -180,7 +180,7 @@ function driver_avatar_url(string $driverId): ?string {
  */
 function save_driver_avatar(string $driverId, array $file): bool {
     // Use R2 storage with fallback to local
-    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    // Note: r2-storage.php must be included before calling this function
     
     $uploadResult = upload_driver_avatar_r2($driverId, $file);
     
@@ -1064,7 +1064,7 @@ function format_event_date($dateTime) {
  * @return string Full URL to the image
  */
 function get_announcement_image_url($imagePath) {
-    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    // Note: r2-storage.php must be included before calling this function
     return get_file_url($imagePath);
 }
 
@@ -1076,6 +1076,6 @@ function get_announcement_image_url($imagePath) {
  * @return string Full URL to the file
  */
 function get_driver_file_url($filePath) {
-    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    // Note: r2-storage.php must be included before calling this function
     return get_file_url($filePath);
 }
