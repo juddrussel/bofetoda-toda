@@ -20,12 +20,6 @@ if (file_exists($autoloadPath)) {
     error_log('AWS SDK not installed. R2 storage will not be available. Run: composer install');
 }
 
-// Only import classes if SDK is loaded
-if (class_exists('Aws\S3\S3Client')) {
-    use Aws\S3\S3Client;
-    use Aws\Exception\AwsException;
-}
-
 /**
  * Get configured R2 client
  */
@@ -111,7 +105,7 @@ function r2_upload_file($file, $objectKey) {
             // Fallback to ObjectURL from result
             return $result['ObjectURL'] ?? false;
         }
-    } catch (AwsException $e) {
+    } catch (\Exception $e) {
         error_log('R2 upload failed: ' . $e->getMessage());
         return false;
     }
@@ -139,7 +133,7 @@ function r2_delete_file($objectKey) {
         ]);
         
         return true;
-    } catch (AwsException $e) {
+    } catch (\Exception $e) {
         error_log('R2 delete failed: ' . $e->getMessage());
         return false;
     }
