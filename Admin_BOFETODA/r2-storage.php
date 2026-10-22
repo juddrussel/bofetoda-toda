@@ -29,52 +29,56 @@ if (file_exists($autoloadPath)) {
 /**
  * Get configured R2 client
  */
-function get_r2_client() {
-    static $client = null;
-    
-    if ($client !== null) {
-        return $client;
-    }
-    
-    // Check if AWS SDK is available
-    if (!class_exists('Aws\S3\S3Client')) {
-        error_log('AWS SDK not loaded. R2 storage unavailable. Run: composer install');
-        return null;
-    }
-    
-    $accessKeyId = getenv('R2_ACCESS_KEY_ID');
-    $secretAccessKey = getenv('R2_SECRET_ACCESS_KEY');
-    $endpoint = getenv('R2_ENDPOINT');
-    
-    if (!$accessKeyId || !$secretAccessKey || !$endpoint) {
-        error_log('R2 credentials not configured. Falling back to local storage.');
-        return null;
-    }
-    
-    try {
-        $client = new \Aws\S3\S3Client([
-            'version' => 'latest',
-            'region' => 'auto',
-            'endpoint' => 'https://' . $endpoint,
-            'credentials' => [
-                'key' => $accessKeyId,
-                'secret' => $secretAccessKey,
-            ],
-            'use_path_style_endpoint' => false,
-        ]);
+if (!function_exists('get_r2_client')) {
+    function get_r2_client() {
+        static $client = null;
         
-        return $client;
-    } catch (Exception $e) {
-        error_log('Failed to initialize R2 client: ' . $e->getMessage());
-        return null;
+        if ($client !== null) {
+            return $client;
+        }
+        
+        // Check if AWS SDK is available
+        if (!class_exists('Aws\S3\S3Client')) {
+            error_log('AWS SDK not loaded. R2 storage unavailable. Run: composer install');
+            return null;
+        }
+        
+        $accessKeyId = getenv('R2_ACCESS_KEY_ID');
+        $secretAccessKey = getenv('R2_SECRET_ACCESS_KEY');
+        $endpoint = getenv('R2_ENDPOINT');
+        
+        if (!$accessKeyId || !$secretAccessKey || !$endpoint) {
+            error_log('R2 credentials not configured. Falling back to local storage.');
+            return null;
+        }
+        
+        try {
+            $client = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region' => 'auto',
+                'endpoint' => 'https://' . $endpoint,
+                'credentials' => [
+                    'key' => $accessKeyId,
+                    'secret' => $secretAccessKey,
+                ],
+                'use_path_style_endpoint' => false,
+            ]);
+            
+            return $client;
+        } catch (Exception $e) {
+            error_log('Failed to initialize R2 client: ' . $e->getMessage());
+            return null;
+        }
     }
 }
 
 /**
  * Check if R2 storage is configured and available
  */
-function is_r2_enabled() {
-    return get_r2_client() !== null;
+if (!function_exists('is_r2_enabled')) {
+    function is_r2_enabled() {
+        return get_r2_client() !== null;
+    }
 }
 
 /**

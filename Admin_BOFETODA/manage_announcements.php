@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/r2-storage.php';
 require_login();
 
 $officer = current_officer();
