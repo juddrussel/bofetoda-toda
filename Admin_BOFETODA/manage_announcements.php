@@ -692,7 +692,7 @@ $page_sub = 'Create and manage announcements for drivers';
 </div>
 
 <!-- Create/Edit Modal -->
-<div class="modal-backdrop" id="announcement-modal" <?= $editAnnouncement ? 'class="is-open"' : '' ?>>
+<div class="modal-backdrop <?= $editAnnouncement ? 'is-open' : '' ?>" id="announcement-modal">
     <div class="modal">
         <div class="modal__head">
             <h3 id="modal-title"><?= $editAnnouncement ? 'Edit Announcement' : 'Create Announcement' ?></h3>
