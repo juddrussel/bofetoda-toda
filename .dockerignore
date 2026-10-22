@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+README.md
+DEPLOYMENT_GUIDE.md
+QUICK_START.md
+AIVEN_DEPLOYMENT_GUIDE.md
+AIVEN_QUICK_START.md
+DATABASE_COMPARISON.md
+WHY_AIVEN_IS_BETTER.md
+START_HERE.md
+
+# Environment files (don't copy .env if it exists)
+.env
+
+# Render config (not needed inside container)
+render.yaml
+
+# Uploaded documents (will be stored in persistent volume)
+Driver_BOFETODA/uploads/documents/*
+!Driver_BOFETODA/uploads/documents/.gitkeep
