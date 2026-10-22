@@ -1,0 +1,14 @@
+{
+    "name": "bofetoda/toda-management",
+    "description": "BOFETODA TODA Management System",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "aws/aws-sdk-php": "^3.0"
+    },
+    "autoload": {
+        "files": [
+            "Admin_BOFETODA/r2-storage.php"
+        ]
+    }
+}

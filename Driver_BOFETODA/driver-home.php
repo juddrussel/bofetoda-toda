@@ -283,7 +283,7 @@ render_header([
                     ?>
                         <div class="gen-ann-images">
                             <?php foreach (array_slice($images, 0, 4) as $img): ?>
-                                <img src="<?= h($img['image_path']) ?>" alt="Announcement image" loading="lazy">
+                                <img src="<?= h(get_announcement_image_url($img['image_path'])) ?>" alt="Announcement image" loading="lazy">
                             <?php endforeach; ?>
                             <?php if (count($images) > 4): ?>
                                 <div style="width:80px;height:80px;border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;font-size:14px;font-weight:700;color:var(--text-muted);">

@@ -1071,3 +1071,37 @@ function format_event_date($dateTime) {
     // Otherwise, full date
     return date('M j, Y g:i A', $timestamp);
 }
+
+
+/**
+ * Get the full URL for an announcement image
+ * Handles both R2 URLs and local paths
+ * 
+ * @param string $imagePath Image path from database
+ * @return string Full URL to the image
+ */
+function get_announcement_image_url($imagePath) {
+    // If it's already a full URL (R2), return as-is
+    if (strpos($imagePath, 'https://') === 0 || strpos($imagePath, 'http://') === 0) {
+        return $imagePath;
+    }
+    
+    // Check if it's an R2 key (starts with announcements/)
+    if (strpos($imagePath, 'announcements/') === 0) {
+        $publicUrl = getenv('R2_PUBLIC_URL');
+        if ($publicUrl) {
+            return rtrim($publicUrl, '/') . '/' . $imagePath;
+        }
+    }
+    
+    // Fallback to local path (relative to Driver_BOFETODA directory)
+    // Remove leading slash if present
+    $imagePath = ltrim($imagePath, '/');
+    
+    // If path starts with 'uploads/', navigate up one directory
+    if (strpos($imagePath, 'uploads/') === 0) {
+        return '../' . $imagePath;
+    }
+    
+    return $imagePath;
+}

@@ -6,6 +6,9 @@
 # Uploaded files (don't commit user data)
 Driver_BOFETODA/uploads/documents/*
 !Driver_BOFETODA/uploads/documents/.gitkeep
+uploads/announcements/*
+!uploads/announcements/.gitkeep
+!uploads/announcements/.htaccess
 
 # Logs
 *.log

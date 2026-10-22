@@ -482,7 +482,7 @@ render_header([
                 <?php if (!empty($images)): ?>
                     <div class="ann-full-images">
                         <?php foreach ($images as $index => $img): ?>
-                            <img src="<?= h($img['image_path']) ?>" 
+                            <img src="<?= h(get_announcement_image_url($img['image_path'])) ?>" 
                                  alt="Announcement image <?= $index + 1 ?>" 
                                  class="ann-full-image"
                                  onclick="openLightbox(<?= (int)$ann['id'] ?>, <?= $index ?>)"

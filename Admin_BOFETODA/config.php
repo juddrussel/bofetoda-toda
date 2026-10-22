@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/r2-storage.php';
 
 session_start();
 date_default_timezone_set('Asia/Manila');
@@ -2120,19 +2121,6 @@ function upload_announcement_images($announcementId, $files) {
     }
     
     $pdo = get_pdo();
-    $uploadDir = __DIR__ . '/../uploads/announcements/';
-    
-    // Create directory if it doesn't exist
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-    
-    // Create .htaccess for security
-    $htaccessPath = $uploadDir . '.htaccess';
-    if (!file_exists($htaccessPath)) {
-        file_put_contents($htaccessPath, "php_flag engine off\nOptions -Indexes");
-    }
-    
     $uploaded = 0;
     $maxImages = 5;
     
@@ -2171,18 +2159,10 @@ function upload_announcement_images($announcementId, $files) {
             break;
         }
         
-        // Validate image
-        if (!validate_announcement_image($file)) {
-            continue;
-        }
+        // Upload to R2 or local storage (R2 function handles fallback)
+        $uploadResult = upload_announcement_image_r2($announcementId, $file);
         
-        // Generate unique filename
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $filename = 'announcement_' . $announcementId . '_' . time() . '_' . uniqid() . '.' . $extension;
-        $filepath = $uploadDir . $filename;
-        
-        // Move uploaded file
-        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        if ($uploadResult) {
             // Save to database
             $stmt = $pdo->prepare(
                 "INSERT INTO announcement_images (announcement_id, image_path, display_order)
@@ -2191,7 +2171,7 @@ function upload_announcement_images($announcementId, $files) {
             
             $stmt->execute([
                 'announcement_id' => $announcementId,
-                'image_path' => 'uploads/announcements/' . $filename,
+                'image_path' => $uploadResult['path'], // Store R2 key or local path
                 'display_order' => $currentCount + $uploaded
             ]);
             
@@ -2257,11 +2237,8 @@ function delete_announcement_image($imageId) {
             $stmt = $pdo->prepare("DELETE FROM announcement_images WHERE image_id = :id");
             $stmt->execute(['id' => $imageId]);
             
-            // Delete physical file
-            $filepath = __DIR__ . '/../' . $image['image_path'];
-            if (file_exists($filepath)) {
-                @unlink($filepath);
-            }
+            // Delete from R2 or local storage
+            delete_announcement_image_r2($image['image_path']);
             
             return true;
         }
