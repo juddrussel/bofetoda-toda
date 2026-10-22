@@ -51,11 +51,22 @@ function db_get_president_name(): string {
     )->fetchColumn() ?: '');
 }
 
+/**
+ * Start of the current renewal cycle = the most recent announcement that has
+ * already opened. Deliberately NOT limited to announcements whose deadline
+ * hasn't passed: once a renewal ends, its data must stay visible on the
+ * dashboard until the admin opens a new renewal.
+ */
+function db_get_cycle_start() {
+    $pdo = get_pdo();
+    return $pdo->query(
+        "SELECT created_at FROM announcements WHERE opened_date <= CURDATE() ORDER BY announcement_id DESC LIMIT 1"
+    )->fetchColumn();
+}
+
 function db_get_drivers($archived) {
     $pdo = get_pdo();
-    $cycleStart = $pdo->query(
-        "SELECT created_at FROM announcements WHERE opened_date <= CURDATE() AND deadline_date >= CURDATE() ORDER BY announcement_id DESC LIMIT 1"
-    )->fetchColumn();
+    $cycleStart = db_get_cycle_start();
     if ($cycleStart) {
         $statusExpr = "CASE
                 WHEN d.renewal_status IN ('Approved Renewal', 'Rejected Renewal')
@@ -141,10 +152,7 @@ function db_get_applications() {
 function db_get_applications_current_cycle() {
     $pdo = get_pdo();
 
-    
-    $cycleStart = $pdo->query(
-        "SELECT created_at FROM announcements WHERE opened_date <= CURDATE() AND deadline_date >= CURDATE() ORDER BY announcement_id DESC LIMIT 1"
-    )->fetchColumn();
+    $cycleStart = db_get_cycle_start();
 
     $sql = "SELECT a.app_no, a.driver_id, a.name, b.name AS barangay, a.body_no,
                 a.submitted_at, a.approved_at, a.rejected_at, a.age, a.birthday,
