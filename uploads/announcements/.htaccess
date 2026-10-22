@@ -1,0 +1,17 @@
+# Prevent PHP execution in upload directory
+php_flag engine off
+
+# Disable directory listing
+Options -Indexes
+
+# Only allow image files
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Deny access to all other files
+<FilesMatch "\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

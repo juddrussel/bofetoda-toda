@@ -777,3 +777,297 @@ function driver_reset_password($driverId, $newPassword) {
     
     return true;
 }
+
+
+// ============================================================================
+// GENERAL ANNOUNCEMENTS FUNCTIONS (DRIVER SIDE)
+// ============================================================================
+
+/**
+ * Get active general announcements for drivers
+ * 
+ * @param int|null $limit Optional limit for number of announcements
+ * @return array List of active announcements sorted by priority and date
+ */
+function get_active_general_announcements($limit = null) {
+    $pdo = get_pdo();
+    
+    $sql = "SELECT ga.*, 
+                   COUNT(ai.image_id) AS image_count
+            FROM general_announcements ga
+            LEFT JOIN announcement_images ai ON ga.id = ai.announcement_id
+            WHERE ga.is_active = 1
+            GROUP BY ga.id
+            ORDER BY 
+                CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
+                ga.created_at DESC";
+    
+    if ($limit !== null) {
+        $sql .= " LIMIT " . (int) $limit;
+    }
+    
+    $stmt = $pdo->query($sql);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Get latest announcements for homepage display
+ * 
+ * @param int $limit Number of announcements to fetch (default 3)
+ * @return array Latest announcements
+ */
+function get_latest_announcements($limit = 3) {
+    return get_active_general_announcements($limit);
+}
+
+/**
+ * Get a single announcement with full details including images
+ * 
+ * @param int $id Announcement ID
+ * @return array|null Announcement data with images, or null if not found
+ */
+function get_announcement_details($id) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare(
+        "SELECT ga.*
+         FROM general_announcements ga
+         WHERE ga.id = :id AND ga.is_active = 1"
+    );
+    $stmt->execute(['id' => $id]);
+    $announcement = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$announcement) {
+        return null;
+    }
+    
+    // Get images for this announcement
+    $announcement['images'] = get_announcement_images($id);
+    
+    return $announcement;
+}
+
+/**
+ * Get all images for an announcement (ordered by display_order)
+ * 
+ * @param int $announcementId Announcement ID
+ * @return array List of images
+ */
+function get_announcement_images($announcementId) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare(
+        "SELECT image_id, image_path, display_order, uploaded_at
+         FROM announcement_images
+         WHERE announcement_id = :announcement_id
+         ORDER BY display_order ASC, image_id ASC"
+    );
+    $stmt->execute(['announcement_id' => $announcementId]);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Search announcements by query string
+ * 
+ * @param string $query Search query
+ * @return array Matching announcements
+ */
+function search_announcements($query) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare(
+        "SELECT ga.*, 
+                COUNT(ai.image_id) AS image_count
+         FROM general_announcements ga
+         LEFT JOIN announcement_images ai ON ga.id = ai.announcement_id
+         WHERE ga.is_active = 1
+           AND (ga.title LIKE :query OR ga.message LIKE :query)
+         GROUP BY ga.id
+         ORDER BY 
+             CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
+             ga.created_at DESC"
+    );
+    
+    $searchTerm = '%' . $query . '%';
+    $stmt->execute(['query' => $searchTerm]);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Get announcements filtered by category
+ * 
+ * @param string $category Category name (Event, Reminder, Update, News, Other)
+ * @return array Announcements in that category
+ */
+function get_announcements_by_category($category) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare(
+        "SELECT ga.*, 
+                COUNT(ai.image_id) AS image_count
+         FROM general_announcements ga
+         LEFT JOIN announcement_images ai ON ga.id = ai.announcement_id
+         WHERE ga.is_active = 1 AND ga.category = :category
+         GROUP BY ga.id
+         ORDER BY 
+             CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
+             ga.created_at DESC"
+    );
+    
+    $stmt->execute(['category' => $category]);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Get paginated announcements
+ * 
+ * @param int $page Page number (1-based)
+ * @param int $perPage Items per page
+ * @param array $filters Optional filters (category, search)
+ * @return array Array with 'items' and 'total' keys
+ */
+function get_paginated_announcements($page = 1, $perPage = 10, $filters = []) {
+    $pdo = get_pdo();
+    
+    $where = ['ga.is_active = 1'];
+    $params = [];
+    
+    if (!empty($filters['category'])) {
+        $where[] = 'ga.category = :category';
+        $params['category'] = $filters['category'];
+    }
+    
+    if (!empty($filters['search'])) {
+        $where[] = '(ga.title LIKE :search OR ga.message LIKE :search)';
+        $params['search'] = '%' . $filters['search'] . '%';
+    }
+    
+    $whereClause = implode(' AND ', $where);
+    
+    // Get total count
+    $countSql = "SELECT COUNT(DISTINCT ga.id)
+                 FROM general_announcements ga
+                 WHERE {$whereClause}";
+    $stmt = $pdo->prepare($countSql);
+    $stmt->execute($params);
+    $total = (int) $stmt->fetchColumn();
+    
+    // Get paginated items
+    $offset = ($page - 1) * $perPage;
+    $itemsSql = "SELECT ga.*, 
+                        COUNT(ai.image_id) AS image_count
+                 FROM general_announcements ga
+                 LEFT JOIN announcement_images ai ON ga.id = ai.announcement_id
+                 WHERE {$whereClause}
+                 GROUP BY ga.id
+                 ORDER BY 
+                     CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
+                     ga.created_at DESC
+                 LIMIT {$perPage} OFFSET {$offset}";
+    
+    $stmt = $pdo->prepare($itemsSql);
+    $stmt->execute($params);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    return [
+        'items' => $items,
+        'total' => $total,
+        'page' => $page,
+        'per_page' => $perPage,
+        'total_pages' => ceil($total / $perPage)
+    ];
+}
+
+/**
+ * Get category color for badges
+ * 
+ * @param string $category Category name
+ * @return string Hex color code
+ */
+function get_category_color($category) {
+    $colors = [
+        'Event' => '#1d4ed8',      // Blue
+        'Reminder' => '#f97316',   // Orange
+        'Update' => '#16a34a',     // Green
+        'News' => '#7c3aed',       // Purple
+        'Other' => '#6b7280'       // Gray
+    ];
+    
+    return $colors[$category] ?? '#6b7280';
+}
+
+/**
+ * Truncate text for display
+ * 
+ * @param string $text Text to truncate
+ * @param int $length Maximum length
+ * @return array ['text' => truncated text, 'is_truncated' => boolean]
+ */
+function truncate_text($text, $length = 150) {
+    $text = strip_tags($text);
+    $isTruncated = mb_strlen($text) > $length;
+    
+    if ($isTruncated) {
+        $truncated = mb_substr($text, 0, $length);
+        // Try to truncate at last space to avoid cutting words
+        $lastSpace = mb_strrpos($truncated, ' ');
+        if ($lastSpace !== false && $lastSpace > $length * 0.8) {
+            $truncated = mb_substr($truncated, 0, $lastSpace);
+        }
+        return [
+            'text' => $truncated . '...',
+            'is_truncated' => true
+        ];
+    }
+    
+    return [
+        'text' => $text,
+        'is_truncated' => false
+    ];
+}
+
+/**
+ * Format event date for display
+ * 
+ * @param string|null $dateTime Event date/time string
+ * @return string Formatted date or empty string
+ */
+function format_event_date($dateTime) {
+    if (empty($dateTime)) {
+        return '';
+    }
+    
+    $timestamp = strtotime($dateTime);
+    if ($timestamp === false) {
+        return '';
+    }
+    
+    $now = time();
+    $diff = $timestamp - $now;
+    
+    // If event is in the past
+    if ($diff < 0) {
+        return date('M j, Y g:i A', $timestamp);
+    }
+    
+    // If event is today
+    if (date('Y-m-d', $timestamp) === date('Y-m-d', $now)) {
+        return 'Today at ' . date('g:i A', $timestamp);
+    }
+    
+    // If event is tomorrow
+    if (date('Y-m-d', $timestamp) === date('Y-m-d', $now + 86400)) {
+        return 'Tomorrow at ' . date('g:i A', $timestamp);
+    }
+    
+    // If event is within a week
+    if ($diff < 7 * 86400) {
+        return date('l \a\t g:i A', $timestamp); // e.g., "Monday at 3:00 PM"
+    }
+    
+    // Otherwise, full date
+    return date('M j, Y g:i A', $timestamp);
+}

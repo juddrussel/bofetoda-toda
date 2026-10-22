@@ -1308,13 +1308,14 @@ table.registry td.id-cell{ color:var(--navy-light); font-weight:600; }
 
 function nav_icon($name) {
     $icons = [
-        'dashboard'  => '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
-        'mail'       => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
-        'validate'   => '<path d="M21 12a9 9 0 1 1-3.5-7.1"/><path d="M21 3v6h-6"/><path d="M9 12l2 2 4-4"/>',
-        'user'       => '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
-        'check'      => '<path d="M20 6L9 17l-5-5"/>',
-        'chart'      => '<path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/>',
-        'logout'     => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+        'dashboard'   => '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+        'megaphone'   => '<path d="M3 11l18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+        'mail'        => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+        'validate'    => '<path d="M21 12a9 9 0 1 1-3.5-7.1"/><path d="M21 3v6h-6"/><path d="M9 12l2 2 4-4"/>',
+        'user'        => '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
+        'check'       => '<path d="M20 6L9 17l-5-5"/>',
+        'chart'       => '<path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/>',
+        'logout'      => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     ];
     $path = $icons[$name] ?? '';
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' . $path . '</svg>';
@@ -1335,6 +1336,7 @@ function render_sidebar($active) {
   </button>
   <nav class="sidebar__nav">
     <a class="nav-link <?= $active === 'dashboard' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/dashboard.php"><span class="nav-link__icon"><?= nav_icon('dashboard') ?></span> Dashboard</a>
+    <a class="nav-link <?= $active === 'general_announcements' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/manage_announcements.php"><span class="nav-link__icon"><?= nav_icon('megaphone') ?></span> Announcements</a>
     <a class="nav-link <?= $active === 'announcements' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/announcements.php"><span class="nav-link__icon"><?= nav_icon('mail') ?></span> Renewals</a>
     <?php if ($role === 'secretary'): ?>
       <a class="nav-link <?= $active === 'validation' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/validation_tools.php"><span class="nav-link__icon"><?= nav_icon('validate') ?></span> Validation Tools</a>
@@ -1857,4 +1859,450 @@ function reset_officer_password($officerId, $newPassword) {
     ]);
     
     return true;
+}
+
+
+// ============================================================================
+// GENERAL ANNOUNCEMENTS FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all general announcements with optional filters
+ * 
+ * @param array $filters Optional filters: category, priority, is_active, search
+ * @return array List of announcements
+ */
+function get_general_announcements($filters = []) {
+    $pdo = get_pdo();
+    
+    $where = [];
+    $params = [];
+    
+    if (isset($filters['category']) && $filters['category'] !== '') {
+        $where[] = 'ga.category = :category';
+        $params['category'] = $filters['category'];
+    }
+    
+    if (isset($filters['priority']) && $filters['priority'] !== '') {
+        $where[] = 'ga.priority = :priority';
+        $params['priority'] = $filters['priority'];
+    }
+    
+    if (isset($filters['is_active'])) {
+        $where[] = 'ga.is_active = :is_active';
+        $params['is_active'] = $filters['is_active'] ? 1 : 0;
+    }
+    
+    if (isset($filters['search']) && trim($filters['search']) !== '') {
+        $where[] = '(ga.title LIKE :search OR ga.message LIKE :search)';
+        $params['search'] = '%' . $filters['search'] . '%';
+    }
+    
+    $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+    
+    $sql = "SELECT ga.*, o.name AS created_by_name, o.role AS created_by_role,
+                   COUNT(ai.image_id) AS image_count
+            FROM general_announcements ga
+            LEFT JOIN officers o ON ga.created_by = o.officer_id
+            LEFT JOIN announcement_images ai ON ga.id = ai.announcement_id
+            {$whereClause}
+            GROUP BY ga.id
+            ORDER BY 
+                CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
+                ga.created_at DESC";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Get a single announcement by ID with all images
+ * 
+ * @param int $id Announcement ID
+ * @return array|null Announcement data with images array, or null if not found
+ */
+function get_announcement_by_id($id) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare(
+        "SELECT ga.*, o.name AS created_by_name, o.role AS created_by_role
+         FROM general_announcements ga
+         LEFT JOIN officers o ON ga.created_by = o.officer_id
+         WHERE ga.id = :id"
+    );
+    $stmt->execute(['id' => $id]);
+    $announcement = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$announcement) {
+        return null;
+    }
+    
+    // Get images
+    $announcement['images'] = get_announcement_images($id);
+    
+    return $announcement;
+}
+
+/**
+ * Get all images for an announcement
+ * 
+ * @param int $announcementId Announcement ID
+ * @return array List of images ordered by display_order
+ */
+function get_announcement_images($announcementId) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare(
+        "SELECT image_id, image_path, display_order, uploaded_at
+         FROM announcement_images
+         WHERE announcement_id = :announcement_id
+         ORDER BY display_order ASC, image_id ASC"
+    );
+    $stmt->execute(['announcement_id' => $announcementId]);
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Create a new general announcement
+ * 
+ * @param array $data Announcement data (title, message, category, event_date, event_location, priority)
+ * @param array $imageFiles Uploaded image files from $_FILES
+ * @return int|false New announcement ID or false on failure
+ */
+function create_general_announcement($data, $imageFiles = []) {
+    $pdo = get_pdo();
+    $officer = current_officer();
+    
+    try {
+        $pdo->beginTransaction();
+        
+        // Insert announcement
+        $stmt = $pdo->prepare(
+            "INSERT INTO general_announcements 
+             (title, message, category, event_date, event_location, priority, is_active, created_by)
+             VALUES (:title, :message, :category, :event_date, :event_location, :priority, 1, :created_by)"
+        );
+        
+        $stmt->execute([
+            'title' => $data['title'],
+            'message' => $data['message'],
+            'category' => $data['category'] ?? 'Other',
+            'event_date' => !empty($data['event_date']) ? $data['event_date'] : null,
+            'event_location' => !empty($data['event_location']) ? $data['event_location'] : null,
+            'priority' => $data['priority'] ?? 'normal',
+            'created_by' => $officer['officer_id'] ?? null
+        ]);
+        
+        $announcementId = $pdo->lastInsertId();
+        
+        // Upload images if provided
+        if (!empty($imageFiles)) {
+            upload_announcement_images($announcementId, $imageFiles);
+        }
+        
+        $pdo->commit();
+        return (int) $announcementId;
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log('create_general_announcement failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Update an existing announcement
+ * 
+ * @param int $id Announcement ID
+ * @param array $data Updated data
+ * @param array $imageFiles New uploaded image files (optional)
+ * @return bool Success status
+ */
+function update_general_announcement($id, $data, $imageFiles = []) {
+    $pdo = get_pdo();
+    
+    try {
+        $pdo->beginTransaction();
+        
+        // Update announcement
+        $stmt = $pdo->prepare(
+            "UPDATE general_announcements 
+             SET title = :title,
+                 message = :message,
+                 category = :category,
+                 event_date = :event_date,
+                 event_location = :event_location,
+                 priority = :priority,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = :id"
+        );
+        
+        $stmt->execute([
+            'id' => $id,
+            'title' => $data['title'],
+            'message' => $data['message'],
+            'category' => $data['category'] ?? 'Other',
+            'event_date' => !empty($data['event_date']) ? $data['event_date'] : null,
+            'event_location' => !empty($data['event_location']) ? $data['event_location'] : null,
+            'priority' => $data['priority'] ?? 'normal'
+        ]);
+        
+        // Upload new images if provided
+        if (!empty($imageFiles)) {
+            upload_announcement_images($id, $imageFiles);
+        }
+        
+        $pdo->commit();
+        return true;
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log('update_general_announcement failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Soft delete an announcement (set is_active = 0)
+ * 
+ * @param int $id Announcement ID
+ * @return bool Success status
+ */
+function delete_general_announcement($id) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE general_announcements SET is_active = 0 WHERE id = :id"
+        );
+        return $stmt->execute(['id' => $id]);
+    } catch (Exception $e) {
+        error_log('delete_general_announcement failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Toggle announcement active status
+ * 
+ * @param int $id Announcement ID
+ * @return bool Success status
+ */
+function toggle_announcement_status($id) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE general_announcements 
+             SET is_active = NOT is_active 
+             WHERE id = :id"
+        );
+        return $stmt->execute(['id' => $id]);
+    } catch (Exception $e) {
+        error_log('toggle_announcement_status failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Upload and save announcement images
+ * 
+ * @param int $announcementId Announcement ID
+ * @param array $files Uploaded files from $_FILES
+ * @return int Number of images successfully uploaded
+ */
+function upload_announcement_images($announcementId, $files) {
+    if (empty($files) || !isset($files['tmp_name'])) {
+        return 0;
+    }
+    
+    $pdo = get_pdo();
+    $uploadDir = __DIR__ . '/../uploads/announcements/';
+    
+    // Create directory if it doesn't exist
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    // Create .htaccess for security
+    $htaccessPath = $uploadDir . '.htaccess';
+    if (!file_exists($htaccessPath)) {
+        file_put_contents($htaccessPath, "php_flag engine off\nOptions -Indexes");
+    }
+    
+    $uploaded = 0;
+    $maxImages = 5;
+    
+    // Get current image count
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM announcement_images WHERE announcement_id = :id");
+    $stmt->execute(['id' => $announcementId]);
+    $currentCount = (int) $stmt->fetchColumn();
+    
+    // Handle single or multiple files
+    $fileArray = [];
+    if (is_array($files['tmp_name'])) {
+        for ($i = 0; $i < count($files['tmp_name']); $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $fileArray[] = [
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'name' => $files['name'][$i],
+                    'size' => $files['size'][$i],
+                    'type' => $files['type'][$i]
+                ];
+            }
+        }
+    } else {
+        if ($files['error'] === UPLOAD_ERR_OK) {
+            $fileArray[] = [
+                'tmp_name' => $files['tmp_name'],
+                'name' => $files['name'],
+                'size' => $files['size'],
+                'type' => $files['type']
+            ];
+        }
+    }
+    
+    foreach ($fileArray as $file) {
+        // Check limit
+        if ($currentCount + $uploaded >= $maxImages) {
+            break;
+        }
+        
+        // Validate image
+        if (!validate_announcement_image($file)) {
+            continue;
+        }
+        
+        // Generate unique filename
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = 'announcement_' . $announcementId . '_' . time() . '_' . uniqid() . '.' . $extension;
+        $filepath = $uploadDir . $filename;
+        
+        // Move uploaded file
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            // Save to database
+            $stmt = $pdo->prepare(
+                "INSERT INTO announcement_images (announcement_id, image_path, display_order)
+                 VALUES (:announcement_id, :image_path, :display_order)"
+            );
+            
+            $stmt->execute([
+                'announcement_id' => $announcementId,
+                'image_path' => 'uploads/announcements/' . $filename,
+                'display_order' => $currentCount + $uploaded
+            ]);
+            
+            $uploaded++;
+        }
+    }
+    
+    return $uploaded;
+}
+
+/**
+ * Validate an uploaded image file
+ * 
+ * @param array $file File data from $_FILES
+ * @return bool True if valid, false otherwise
+ */
+function validate_announcement_image($file) {
+    // Check file size (max 5MB)
+    $maxSize = 5 * 1024 * 1024;
+    if ($file['size'] > $maxSize) {
+        return false;
+    }
+    
+    // Check MIME type
+    $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($file['type'], $allowedMimes)) {
+        return false;
+    }
+    
+    // Verify actual image using getimagesize
+    $imageInfo = @getimagesize($file['tmp_name']);
+    if ($imageInfo === false) {
+        return false;
+    }
+    
+    // Check extension
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    if (!in_array($extension, $allowedExtensions)) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Delete a specific announcement image
+ * 
+ * @param int $imageId Image ID
+ * @return bool Success status
+ */
+function delete_announcement_image($imageId) {
+    $pdo = get_pdo();
+    
+    try {
+        // Get image path before deleting
+        $stmt = $pdo->prepare("SELECT image_path FROM announcement_images WHERE image_id = :id");
+        $stmt->execute(['id' => $imageId]);
+        $image = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($image) {
+            // Delete from database
+            $stmt = $pdo->prepare("DELETE FROM announcement_images WHERE image_id = :id");
+            $stmt->execute(['id' => $imageId]);
+            
+            // Delete physical file
+            $filepath = __DIR__ . '/../' . $image['image_path'];
+            if (file_exists($filepath)) {
+                @unlink($filepath);
+            }
+            
+            return true;
+        }
+        
+        return false;
+    } catch (Exception $e) {
+        error_log('delete_announcement_image failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get announcement category color for badges
+ * 
+ * @param string $category Category name
+ * @return string Hex color code
+ */
+function get_announcement_category_color($category) {
+    $colors = [
+        'Event' => '#1d4ed8',      // Blue
+        'Reminder' => '#f97316',   // Orange
+        'Update' => '#16a34a',     // Green
+        'News' => '#7c3aed',       // Purple
+        'Other' => '#6b7280'       // Gray
+    ];
+    
+    return $colors[$category] ?? '#6b7280';
+}
+
+/**
+ * Truncate text to specified length and add "Read more" link
+ * 
+ * @param string $text Text to truncate
+ * @param int $length Maximum length
+ * @return string Truncated text
+ */
+function truncate_announcement_text($text, $length = 150) {
+    $text = strip_tags($text);
+    if (mb_strlen($text) <= $length) {
+        return $text;
+    }
+    
+    return mb_substr($text, 0, $length) . '...';
 }
