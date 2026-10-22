@@ -1,5 +1,11 @@
 <?php
 
+// Prevent multiple inclusions
+if (defined('R2_STORAGE_LOADED')) {
+    return;
+}
+define('R2_STORAGE_LOADED', true);
+
 /**
  * Cloudflare R2 Storage Integration
  * Handles all file uploads to R2 bucket using AWS S3 SDK
