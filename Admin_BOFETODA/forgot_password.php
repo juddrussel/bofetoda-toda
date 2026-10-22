@@ -282,6 +282,7 @@ else {
         border-radius:8px;
         padding:13px 14px;
         transition:border-color .15s ease, box-shadow .15s ease;
+        position:relative;
     }
     .input-wrap:focus-within{
         border-color:var(--navy);
@@ -295,6 +296,24 @@ else {
         font-size:15px;
         width:100%;
         color:var(--text);
+    }
+    .toggle-password{
+        background:none;
+        border:none;
+        cursor:pointer;
+        padding:0;
+        display:flex;
+        align-items:center;
+        opacity:.5;
+        transition:opacity .2s ease;
+        flex-shrink:0;
+    }
+    .toggle-password:hover{
+        opacity:.8;
+    }
+    .toggle-password svg{
+        width:20px;
+        height:20px;
     }
     .question-box{
         background:#f4f5f7;
@@ -459,6 +478,16 @@ else {
                             <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
                         </svg>
                         <input type="password" id="new_password" name="new_password" placeholder="Enter new password" autocomplete="new-password" minlength="8" autofocus>
+                        <button type="button" class="toggle-password" onclick="togglePassword('new_password')" tabindex="-1">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -470,6 +499,16 @@ else {
                             <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
                         </svg>
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password" autocomplete="new-password" minlength="8">
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')" tabindex="-1">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -487,6 +526,24 @@ else {
             </form>
 
             <script>
+                // Toggle password visibility
+                function togglePassword(inputId) {
+                    var input = document.getElementById(inputId);
+                    var button = input.parentElement.querySelector('.toggle-password');
+                    var eyeIcon = button.querySelector('.eye-icon');
+                    var eyeOffIcon = button.querySelector('.eye-off-icon');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        eyeIcon.style.display = 'none';
+                        eyeOffIcon.style.display = 'block';
+                    } else {
+                        input.type = 'password';
+                        eyeIcon.style.display = 'block';
+                        eyeOffIcon.style.display = 'none';
+                    }
+                }
+                
                 document.getElementById('resetForm').addEventListener('submit', function(e) {
                     var newPass = document.getElementById('new_password').value;
                     var confirmPass = document.getElementById('confirm_password').value;
