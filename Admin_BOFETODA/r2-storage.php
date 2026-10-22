@@ -1,14 +1,12 @@
 <?php
 
-// Prevent multiple inclusions
-if (defined('R2_STORAGE_LOADED')) {
-    return;
-}
-define('R2_STORAGE_LOADED', true);
+// Prevent multiple inclusions - use unique approach
+if (!defined('R2_STORAGE_FUNCTIONS_DEFINED')) {
+    define('R2_STORAGE_FUNCTIONS_DEFINED', true);
 
 /**
  * Cloudflare R2 Storage Integration
- * Handles all file uploads to R2 bucket using AWS S3 SDK
+ * Handles all file uploads to R2 bucket using AWS SDK
  * 
  * Folder Structure:
  * - announcements/           General announcement images
@@ -486,3 +484,6 @@ function batch_upload_driver_documents($driverId, $files) {
     
     return $result;
 }
+
+
+} // End of R2_STORAGE_FUNCTIONS_DEFINED
