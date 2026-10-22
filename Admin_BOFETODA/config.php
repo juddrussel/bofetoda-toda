@@ -1010,7 +1010,24 @@ function attempt_officer_login($officerId, $password) {
     $stmt->execute(['id' => $officerId]);
     $officer = $stmt->fetch();
 
-    $ok = $officer && hash_equals($officer['password'], (string) $password);
+    // Use password_verify for hashed passwords (backward compatible with plain text during migration)
+    $ok = false;
+    if ($officer) {
+        // Check if password is hashed (starts with $2y$ for bcrypt)
+        if (strpos($officer['password'], '$2y$') === 0) {
+            $ok = password_verify($password, $officer['password']);
+        } else {
+            // Legacy plain text comparison (for migration period)
+            $ok = hash_equals($officer['password'], (string) $password);
+            
+            // Auto-upgrade to hashed password on successful login
+            if ($ok) {
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $pdo->prepare('UPDATE officers SET password = :pwd WHERE officer_id = :id')
+                    ->execute(['pwd' => $hashedPassword, 'id' => $officer['officer_id']]);
+            }
+        }
+    }
 
     $pdo->prepare('INSERT INTO access_logs (officer_id, action, role) VALUES (:oid, :action, :role)')
         ->execute([

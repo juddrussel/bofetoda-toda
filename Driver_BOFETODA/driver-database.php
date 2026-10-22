@@ -94,7 +94,28 @@ function attempt_login($driver_id, $password) {
     $stmt->execute(['id' => $driver_id]);
     $row = $stmt->fetch();
 
-    if (!$row || !hash_equals($row['password'], (string) $password)) {
+    if (!$row) {
+        return false;
+    }
+
+    // Use password_verify for hashed passwords (backward compatible with plain text during migration)
+    $passwordMatch = false;
+    if (strpos($row['password'], '$2y$') === 0) {
+        // Password is hashed
+        $passwordMatch = password_verify($password, $row['password']);
+    } else {
+        // Legacy plain text comparison
+        $passwordMatch = hash_equals($row['password'], (string) $password);
+        
+        // Auto-upgrade to hashed password on successful login
+        if ($passwordMatch) {
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $pdo->prepare('UPDATE drivers SET password = :pwd WHERE driver_id = :id')
+                ->execute(['pwd' => $hashedPassword, 'id' => $row['driver_id']]);
+        }
+    }
+
+    if (!$passwordMatch) {
         return false;
     }
 
