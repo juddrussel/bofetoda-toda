@@ -19,12 +19,26 @@ if (isset($_GET['logout'])) {
 }
 
 $error = '';
+$successMessage = '';
+
+// Check for password reset success
+if (isset($_GET['reset']) && $_GET['reset'] === 'success') {
+    $successMessage = 'Password reset successfully! Please log in with your new password.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $officerId = trim($_POST['officer_id'] ?? '');
     $password  = trim($_POST['password'] ?? '');
 
     if (attempt_officer_login($officerId, $password)) {
+        // Check if security question is set up
+        if (!has_security_question($officerId)) {
+            // Redirect to security question setup (mandatory)
+            header('Location: ' . BASE_URL . '/setup_security_question.php');
+            exit;
+        }
+        
+        // Security question is set, proceed to dashboard
         header('Location: ' . BASE_URL . '/dashboard.php');
         exit;
     } else {
@@ -50,6 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         --text-muted:#6b7280;
         --red:#d32f2f;
         --red-bg:#fdecea;
+        --green:#2e7d32;
+        --green-bg:#e8f5e9;
         --radius:10px;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -195,7 +211,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         padding:10px 12px;
         border-radius:6px;
     }
+    .success-msg{
+        color:var(--green);
+        font-size:13px;
+        margin:-8px 0 18px;
+        background:var(--green-bg);
+        padding:10px 12px;
+        border-radius:6px;
+    }
     .login-card.has-error .input-wrap{border-color:var(--red);}
+    .forgot-password-link{
+        text-align:center;
+        margin-top:16px;
+        padding-top:16px;
+        border-top:1px solid var(--border);
+    }
+    .forgot-password-link a{
+        color:var(--navy);
+        font-size:13px;
+        font-weight:600;
+        text-decoration:none;
+        transition:color .15s ease;
+    }
+    .forgot-password-link a:hover{
+        color:var(--navy-light);
+        text-decoration:underline;
+    }
     .btn-login{
         width:100%;
         background:var(--navy);
@@ -266,9 +307,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <?php if ($error): ?>
                 <div class="error-msg"><?php echo htmlspecialchars($error); ?></div>
+            <?php elseif ($successMessage): ?>
+                <div class="success-msg"><?php echo htmlspecialchars($successMessage); ?></div>
             <?php endif; ?>
 
             <button type="submit" class="btn-login">Login</button>
+            
+            <div class="forgot-password-link">
+                <a href="<?php echo BASE_URL; ?>/forgot_password.php">Forgot Password?</a>
+            </div>
         </form>
     </div>
 </div>

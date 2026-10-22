@@ -434,6 +434,24 @@ img {
   margin-bottom: 16px;
 }
 
+.forgot-password-link {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.forgot-password-link a {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.forgot-password-link a:active {
+  opacity: 0.7;
+}
+
 .form-control--plain {
   padding: 14px;
 }

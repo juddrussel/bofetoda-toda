@@ -10,14 +10,28 @@ if (!empty($_SESSION['logged_in'])) {
 
 $show_error = false;
 $driver_id_value = '';
+$success_message = '';
 $session_message = ($_GET['err'] ?? '') === 'account'
     ? 'Your account is no longer active. Please contact the office if you believe this is a mistake.'
     : '';
+
+// Check for password reset success
+if (isset($_GET['reset']) && $_GET['reset'] === 'success') {
+    $success_message = 'Password reset successfully! Please log in with your new password.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $driver_id_value = $_POST['driver_id'] ?? '';
     $password = $_POST['password'] ?? '';
     if (attempt_login($driver_id_value, $password)) {
+        // Check if security question is set up
+        if (!driver_has_security_question($driver_id_value)) {
+            // Redirect to security question setup (mandatory)
+            header('Location: driver-setup-security.php');
+            exit;
+        }
+        
+        // Security question is set, proceed to home
         header('Location: driver-home.php');
         exit;
     }
@@ -81,9 +95,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="form-error">Invalid Driver ID or password. Please try again.</p>
             <?php elseif ($session_message): ?>
             <p class="form-error"><?php echo h($session_message); ?></p>
+            <?php elseif ($success_message): ?>
+            <p class="form-success"><?php echo h($success_message); ?></p>
             <?php endif; ?>
 
             <button type="submit" class="btn btn-primary" style="margin-top: 12px;">Login</button>
+            
+            <div class="forgot-password-link">
+                <a href="driver-forgot-password.php">Forgot Password?</a>
+            </div>
         </form>
 
     </div>

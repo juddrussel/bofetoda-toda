@@ -1160,7 +1160,7 @@ button{font-family:inherit;cursor:pointer;}
 .profile-modal__role{ font-size:12px; color:var(--text-muted); text-transform:capitalize; margin-bottom:18px; }
 .profile-modal__meta{ text-align:left; font-size:13px; color:var(--text); border-top:1px solid var(--border); padding-top:16px; display:flex; flex-direction:column; gap:8px; }
 .profile-modal__meta span{ color:var(--text-muted); display:inline-block; min-width:80px; }
-.profile-modal__foot{ justify-content:center !important; padding-top:4px !important; }
+.profile-modal__foot{ justify-content:center !important; padding-top:4px !important; display:flex; gap:12px; flex-wrap:wrap; }
 .link-btn{ background:none; border:none; color:var(--navy); font-size:13px; font-weight:600; text-decoration:underline; cursor:pointer; padding:4px; }
 .link-btn:hover{ color:var(--navy-light); }
 
@@ -1382,6 +1382,7 @@ function render_sidebar($active) {
     </div>
     <div class="modal__foot profile-modal__foot">
       <button type="button" class="link-btn" data-close-modal="profile-modal" data-open-modal="change-password-modal">Change Password</button>
+      <button type="button" class="link-btn" data-close-modal="profile-modal" data-open-modal="security-question-modal">Change Security Question</button>
     </div>
   </div>
 </div>
@@ -1412,6 +1413,38 @@ function render_sidebar($active) {
     </form>
   </div>
 </div>
+
+<div class="modal-backdrop" id="security-question-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal__head"><h3>Change Security Question</h3></div>
+    <form method="post" action="<?= BASE_URL ?>/update_security_question.php">
+      <input type="hidden" name="return_to" class="js-return-to" value="">
+      <div class="modal__body">
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+          Update your security question and answer. This will be used to verify your identity if you forget your password.
+        </p>
+        <div class="field" style="margin:14px 0;">
+          <label for="sq_question">Security Question <span style="color:var(--red)">*</span></label>
+          <select id="sq_question" name="question_id" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; background:#f4f5f7;">
+            <option value="">— Select a question —</option>
+            <?php foreach (SECURITY_QUESTIONS as $qid => $qtext): ?>
+              <option value="<?= $qid ?>"><?= e($qtext) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="field" style="margin:14px 0;">
+          <label for="sq_answer">Your Answer <span style="color:var(--red)">*</span></label>
+          <input type="text" id="sq_answer" name="answer" required placeholder="Enter your answer" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; background:#f4f5f7;" autocomplete="off">
+          <span style="font-size:11.5px; color:var(--text-muted); display:block; margin-top:6px;">Answer is case-insensitive</span>
+        </div>
+      </div>
+      <div class="modal__foot">
+        <button type="button" class="btn btn-outline" data-close-modal="security-question-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
 <?php
 }
 
@@ -1435,6 +1468,22 @@ function render_topbar($crumb, $title, $sub) {
     <div class="card" style="border-color:var(--red); background:var(--red-bg); margin:20px 32px 0;">
       <div class="card__body" style="color:var(--red); font-weight:600;">
         <?= $_GET['pwerror'] === 'mismatch' ? 'New password and confirmation did not match.' : 'Current password was incorrect.' ?>
+      </div>
+    </div>
+  <?php elseif (isset($_GET['sqok'])): ?>
+    <div class="card" style="border-color:var(--green); background:var(--green-bg); margin:20px 32px 0;">
+      <div class="card__body" style="color:var(--green); font-weight:600;">Security question updated successfully.</div>
+    </div>
+  <?php elseif (isset($_GET['sqerror'])): ?>
+    <div class="card" style="border-color:var(--red); background:var(--red-bg); margin:20px 32px 0;">
+      <div class="card__body" style="color:var(--red); font-weight:600;">
+        <?php
+          $sqerror = $_GET['sqerror'];
+          if ($sqerror === 'question') echo 'Please select a valid security question.';
+          elseif ($sqerror === 'answer') echo 'Please provide an answer.';
+          elseif ($sqerror === 'short') echo 'Answer must be at least 2 characters long.';
+          else echo 'Failed to update security question. Please try again.';
+        ?>
       </div>
     </div>
   <?php endif; ?>
@@ -1530,4 +1579,282 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 <?php
+}
+
+
+// ============================================================================
+// SECURITY QUESTION FUNCTIONS - For Password Recovery
+// ============================================================================
+
+/**
+ * Available security questions for password recovery
+ */
+define('SECURITY_QUESTIONS', [
+    1 => "What is your mother's maiden name?",
+    2 => "What city were you born in?",
+    3 => "What is the name of your first pet?",
+    4 => "What was your childhood nickname?",
+    5 => "What is your favorite color?",
+]);
+
+/**
+ * Normalize security answer for case-insensitive matching
+ * Trims whitespace and converts to lowercase
+ */
+function normalize_security_answer($answer) {
+    return mb_strtolower(trim((string) $answer), 'UTF-8');
+}
+
+/**
+ * Hash a security answer (after normalizing)
+ */
+function hash_security_answer($answer) {
+    $normalized = normalize_security_answer($answer);
+    return password_hash($normalized, PASSWORD_DEFAULT);
+}
+
+/**
+ * Verify a provided security answer against the stored hash
+ * Uses case-insensitive comparison
+ */
+function verify_security_answer($providedAnswer, $hashedAnswer) {
+    $normalized = normalize_security_answer($providedAnswer);
+    return password_verify($normalized, $hashedAnswer);
+}
+
+/**
+ * Check if an officer has set up a security question
+ */
+function has_security_question($officerId) {
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare(
+        'SELECT security_question_id, security_answer_hash 
+         FROM officers 
+         WHERE officer_id = :id'
+    );
+    $stmt->execute(['id' => $officerId]);
+    $row = $stmt->fetch();
+    
+    return $row && !empty($row['security_question_id']) && !empty($row['security_answer_hash']);
+}
+
+/**
+ * Get officer's security question ID and text
+ * Returns array with 'id' and 'question', or null if not set
+ */
+function get_security_question($officerId) {
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare(
+        'SELECT security_question_id 
+         FROM officers 
+         WHERE officer_id = :id'
+    );
+    $stmt->execute(['id' => $officerId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || empty($row['security_question_id'])) {
+        return null;
+    }
+    
+    $questionId = (int) $row['security_question_id'];
+    return [
+        'id' => $questionId,
+        'question' => SECURITY_QUESTIONS[$questionId] ?? 'Unknown question'
+    ];
+}
+
+/**
+ * Save security question and answer for an officer
+ */
+function save_security_question($officerId, $questionId, $answer) {
+    $pdo = get_pdo();
+    $hashedAnswer = hash_security_answer($answer);
+    
+    $stmt = $pdo->prepare(
+        'UPDATE officers 
+         SET security_question_id = :qid, 
+             security_answer_hash = :answer 
+         WHERE officer_id = :id'
+    );
+    
+    return $stmt->execute([
+        'qid' => $questionId,
+        'answer' => $hashedAnswer,
+        'id' => $officerId
+    ]);
+}
+
+/**
+ * Check if officer is in recovery cooldown period
+ * Returns cooldown end time if active, null otherwise
+ */
+function check_recovery_cooldown($officerId) {
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare(
+        'SELECT recovery_cooldown_until 
+         FROM officers 
+         WHERE officer_id = :id'
+    );
+    $stmt->execute(['id' => $officerId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || empty($row['recovery_cooldown_until'])) {
+        return null;
+    }
+    
+    $cooldownUntil = strtotime($row['recovery_cooldown_until']);
+    $now = time();
+    
+    // If cooldown has expired, clear it
+    if ($cooldownUntil <= $now) {
+        $pdo->prepare('UPDATE officers SET recovery_cooldown_until = NULL WHERE officer_id = :id')
+            ->execute(['id' => $officerId]);
+        return null;
+    }
+    
+    return $cooldownUntil;
+}
+
+/**
+ * Increment failed recovery attempts for an officer
+ * Automatically sets cooldown if threshold is reached
+ */
+function increment_recovery_attempts($officerId) {
+    $pdo = get_pdo();
+    
+    // Increment attempts
+    $pdo->prepare(
+        'UPDATE officers 
+         SET failed_recovery_attempts = failed_recovery_attempts + 1 
+         WHERE officer_id = :id'
+    )->execute(['id' => $officerId]);
+    
+    // Get current attempt count
+    $stmt = $pdo->prepare(
+        'SELECT failed_recovery_attempts 
+         FROM officers 
+         WHERE officer_id = :id'
+    );
+    $stmt->execute(['id' => $officerId]);
+    $attempts = (int) $stmt->fetchColumn();
+    
+    // Set cooldown based on attempt count
+    if ($attempts >= 5) {
+        set_recovery_cooldown($officerId, 60); // 1 hour
+    } elseif ($attempts >= 3) {
+        set_recovery_cooldown($officerId, 15); // 15 minutes
+    }
+    
+    return $attempts;
+}
+
+/**
+ * Reset failed recovery attempts to 0 (called on successful answer)
+ */
+function reset_recovery_attempts($officerId) {
+    $pdo = get_pdo();
+    $pdo->prepare(
+        'UPDATE officers 
+         SET failed_recovery_attempts = 0, 
+             recovery_cooldown_until = NULL 
+         WHERE officer_id = :id'
+    )->execute(['id' => $officerId]);
+}
+
+/**
+ * Set recovery cooldown period
+ */
+function set_recovery_cooldown($officerId, $minutes) {
+    $pdo = get_pdo();
+    $cooldownUntil = date('Y-m-d H:i:s', time() + ($minutes * 60));
+    
+    $pdo->prepare(
+        'UPDATE officers 
+         SET recovery_cooldown_until = :until 
+         WHERE officer_id = :id'
+    )->execute([
+        'until' => $cooldownUntil,
+        'id' => $officerId
+    ]);
+}
+
+/**
+ * Get a human-readable cooldown message
+ */
+function get_cooldown_message($cooldownTimestamp) {
+    $remaining = $cooldownTimestamp - time();
+    
+    if ($remaining <= 0) {
+        return '';
+    }
+    
+    $minutes = ceil($remaining / 60);
+    
+    if ($minutes >= 60) {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+        if ($mins > 0) {
+            return "Please try again in {$hours} hour" . ($hours > 1 ? 's' : '') . " and {$mins} minute" . ($mins > 1 ? 's' : '') . ".";
+        }
+        return "Please try again in {$hours} hour" . ($hours > 1 ? 's' : '') . ".";
+    }
+    
+    return "Please try again in {$minutes} minute" . ($minutes > 1 ? 's' : '') . ".";
+}
+
+/**
+ * Verify officer's security answer and handle attempts/cooldown
+ * Returns true if answer is correct, false otherwise
+ */
+function verify_officer_security_answer($officerId, $providedAnswer) {
+    $pdo = get_pdo();
+    
+    // Check cooldown first
+    $cooldown = check_recovery_cooldown($officerId);
+    if ($cooldown !== null) {
+        return false;
+    }
+    
+    // Get stored answer hash
+    $stmt = $pdo->prepare(
+        'SELECT security_answer_hash 
+         FROM officers 
+         WHERE officer_id = :id'
+    );
+    $stmt->execute(['id' => $officerId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || empty($row['security_answer_hash'])) {
+        return false;
+    }
+    
+    // Verify answer
+    $isCorrect = verify_security_answer($providedAnswer, $row['security_answer_hash']);
+    
+    if ($isCorrect) {
+        reset_recovery_attempts($officerId);
+    } else {
+        increment_recovery_attempts($officerId);
+    }
+    
+    return $isCorrect;
+}
+
+/**
+ * Reset officer password (used in forgot password flow)
+ */
+function reset_officer_password($officerId, $newPassword) {
+    $pdo = get_pdo();
+    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+    
+    $pdo->prepare(
+        'UPDATE officers 
+         SET password = :pwd 
+         WHERE officer_id = :id'
+    )->execute([
+        'pwd' => $hashedPassword,
+        'id' => $officerId
+    ]);
+    
+    return true;
 }

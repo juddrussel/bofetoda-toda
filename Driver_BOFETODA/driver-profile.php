@@ -31,6 +31,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if (isset($_GET['pwok'])) {
     $notice = 'Password updated successfully.';
+} elseif (isset($_GET['sqok'])) {
+    $notice = 'Security question updated successfully.';
+}
+
+if (isset($_GET['sqerror'])) {
+    $sqerror = $_GET['sqerror'];
+    if ($sqerror === 'question') $error = 'Please select a valid security question.';
+    elseif ($sqerror === 'answer') $error = 'Please provide an answer.';
+    elseif ($sqerror === 'short') $error = 'Answer must be at least 2 characters long.';
+    else $error = 'Failed to update security question. Please try again.';
 }
 
 $avatarUrl = driver_avatar_url($driver['driver_id']);
@@ -39,7 +49,6 @@ render_header([
     'title'          => 'Profile',
     'topbar_mode'    => 'simple',
     'topbar_heading' => 'Profile',
-    'topbar_action'  => ['label' => 'Change Password', 'modal' => 'modal-change-password'],
 ]);
 ?>
 
@@ -111,6 +120,11 @@ render_header([
         </div>
     </div>
 
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <button type="button" class="btn btn-outline" data-modal-open="modal-change-password" style="flex:1;">Change Password</button>
+        <button type="button" class="btn btn-outline" data-modal-open="modal-security-question" style="flex:1;">Security Question</button>
+    </div>
+
     <a href="#" class="logout-link" data-modal-open="modal-logout">Logout</a>
 </div>
 
@@ -149,6 +163,38 @@ render_header([
     </div>
 </div>
 
+<div class="modal-overlay" id="modal-security-question">
+    <div class="modal-box" style="text-align:left;">
+        <p class="modal-title" style="text-align:center;margin-bottom:20px;">Change Security Question</p>
+        <form method="post" action="driver-update-security.php" id="securityQuestionForm" novalidate>
+            <input type="hidden" name="return_to" value="driver-profile.php">
+            <p style="font-size:12px; color:var(--color-text-muted); margin-bottom:16px; text-align:center;">
+                Update your security question and answer for password recovery.
+            </p>
+            <div class="form-group">
+                <label class="form-label" for="sq_question">Security Question</label>
+                <select class="form-control form-control--plain" id="sq_question" name="question_id" required>
+                    <option value="">— Select a question —</option>
+                    <?php foreach (SECURITY_QUESTIONS as $qid => $qtext): ?>
+                        <option value="<?php echo $qid; ?>"><?php echo h($qtext); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="field-error" id="err-sq_question">Please select a question.</span>
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+                <label class="form-label" for="sq_answer">Your Answer</label>
+                <input class="form-control form-control--plain" type="text" id="sq_answer" name="answer" placeholder="Enter your answer" autocomplete="off" required>
+                <span class="field-error" id="err-sq_answer">Answer is required.</span>
+                <span style="font-size:11px; color:var(--color-text-muted); display:block; margin-top:6px;">Answer is case-insensitive</span>
+            </div>
+            <div class="btn-row" style="margin-top:14px;">
+                <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var avatarInput = document.getElementById('avatarInput');
@@ -174,6 +220,25 @@ document.addEventListener('DOMContentLoaded', function () {
       var mismatch = confirmPass.value.length < 8 || confirmPass.value !== newPass.value;
       confirmGroup.classList.toggle('has-error', mismatch);
       if (mismatch) ok = false;
+
+      if (!ok) e.preventDefault();
+    });
+  }
+
+  var sqForm = document.getElementById('securityQuestionForm');
+  if (sqForm) {
+    sqForm.addEventListener('submit', function (e) {
+      var question = document.getElementById('sq_question');
+      var answer = document.getElementById('sq_answer');
+      var questionGroup = question.closest('.form-group');
+      var answerGroup = answer.closest('.form-group');
+      var ok = true;
+
+      questionGroup.classList.toggle('has-error', !question.value || question.value === '');
+      if (!question.value || question.value === '') ok = false;
+
+      answerGroup.classList.toggle('has-error', answer.value.trim().length < 2);
+      if (answer.value.trim().length < 2) ok = false;
 
       if (!ok) e.preventDefault();
     });

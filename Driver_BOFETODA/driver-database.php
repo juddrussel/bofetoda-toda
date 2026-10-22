@@ -499,3 +499,281 @@ function submit_renewal_application(array $driver, array $documentPaths): string
         throw $e;
     }
 }
+
+
+// ============================================================================
+// SECURITY QUESTION FUNCTIONS - For Password Recovery
+// ============================================================================
+
+/**
+ * Available security questions for password recovery
+ */
+define('SECURITY_QUESTIONS', [
+    1 => "What is your mother's maiden name?",
+    2 => "What city were you born in?",
+    3 => "What is the name of your first pet?",
+    4 => "What was your childhood nickname?",
+    5 => "What is your favorite color?",
+]);
+
+/**
+ * Normalize security answer for case-insensitive matching
+ * Trims whitespace and converts to lowercase
+ */
+function driver_normalize_security_answer($answer) {
+    return mb_strtolower(trim((string) $answer), 'UTF-8');
+}
+
+/**
+ * Hash a security answer (after normalizing)
+ */
+function driver_hash_security_answer($answer) {
+    $normalized = driver_normalize_security_answer($answer);
+    return password_hash($normalized, PASSWORD_DEFAULT);
+}
+
+/**
+ * Verify a provided security answer against the stored hash
+ * Uses case-insensitive comparison
+ */
+function driver_verify_security_answer_hash($providedAnswer, $hashedAnswer) {
+    $normalized = driver_normalize_security_answer($providedAnswer);
+    return password_verify($normalized, $hashedAnswer);
+}
+
+/**
+ * Check if a driver has set up a security question
+ */
+function driver_has_security_question($driverId) {
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare(
+        'SELECT security_question_id, security_answer_hash 
+         FROM drivers 
+         WHERE driver_id = :id'
+    );
+    $stmt->execute(['id' => $driverId]);
+    $row = $stmt->fetch();
+    
+    return $row && !empty($row['security_question_id']) && !empty($row['security_answer_hash']);
+}
+
+/**
+ * Get driver's security question ID and text
+ * Returns array with 'id' and 'question', or null if not set
+ */
+function driver_get_security_question($driverId) {
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare(
+        'SELECT security_question_id 
+         FROM drivers 
+         WHERE driver_id = :id'
+    );
+    $stmt->execute(['id' => $driverId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || empty($row['security_question_id'])) {
+        return null;
+    }
+    
+    $questionId = (int) $row['security_question_id'];
+    return [
+        'id' => $questionId,
+        'question' => SECURITY_QUESTIONS[$questionId] ?? 'Unknown question'
+    ];
+}
+
+/**
+ * Save security question and answer for a driver
+ */
+function driver_save_security_question($driverId, $questionId, $answer) {
+    $pdo = get_pdo();
+    $hashedAnswer = driver_hash_security_answer($answer);
+    
+    $stmt = $pdo->prepare(
+        'UPDATE drivers 
+         SET security_question_id = :qid, 
+             security_answer_hash = :answer 
+         WHERE driver_id = :id'
+    );
+    
+    return $stmt->execute([
+        'qid' => $questionId,
+        'answer' => $hashedAnswer,
+        'id' => $driverId
+    ]);
+}
+
+/**
+ * Check if driver is in recovery cooldown period
+ * Returns cooldown end time if active, null otherwise
+ */
+function driver_check_recovery_cooldown($driverId) {
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare(
+        'SELECT recovery_cooldown_until 
+         FROM drivers 
+         WHERE driver_id = :id'
+    );
+    $stmt->execute(['id' => $driverId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || empty($row['recovery_cooldown_until'])) {
+        return null;
+    }
+    
+    $cooldownUntil = strtotime($row['recovery_cooldown_until']);
+    $now = time();
+    
+    // If cooldown has expired, clear it
+    if ($cooldownUntil <= $now) {
+        $pdo->prepare('UPDATE drivers SET recovery_cooldown_until = NULL WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        return null;
+    }
+    
+    return $cooldownUntil;
+}
+
+/**
+ * Increment failed recovery attempts for a driver
+ * Automatically sets cooldown if threshold is reached
+ */
+function driver_increment_recovery_attempts($driverId) {
+    $pdo = get_pdo();
+    
+    // Increment attempts
+    $pdo->prepare(
+        'UPDATE drivers 
+         SET failed_recovery_attempts = failed_recovery_attempts + 1 
+         WHERE driver_id = :id'
+    )->execute(['id' => $driverId]);
+    
+    // Get current attempt count
+    $stmt = $pdo->prepare(
+        'SELECT failed_recovery_attempts 
+         FROM drivers 
+         WHERE driver_id = :id'
+    );
+    $stmt->execute(['id' => $driverId]);
+    $attempts = (int) $stmt->fetchColumn();
+    
+    // Set cooldown based on attempt count
+    if ($attempts >= 5) {
+        driver_set_recovery_cooldown($driverId, 60); // 1 hour
+    } elseif ($attempts >= 3) {
+        driver_set_recovery_cooldown($driverId, 15); // 15 minutes
+    }
+    
+    return $attempts;
+}
+
+/**
+ * Reset failed recovery attempts to 0 (called on successful answer)
+ */
+function driver_reset_recovery_attempts($driverId) {
+    $pdo = get_pdo();
+    $pdo->prepare(
+        'UPDATE drivers 
+         SET failed_recovery_attempts = 0, 
+             recovery_cooldown_until = NULL 
+         WHERE driver_id = :id'
+    )->execute(['id' => $driverId]);
+}
+
+/**
+ * Set recovery cooldown period
+ */
+function driver_set_recovery_cooldown($driverId, $minutes) {
+    $pdo = get_pdo();
+    $cooldownUntil = date('Y-m-d H:i:s', time() + ($minutes * 60));
+    
+    $pdo->prepare(
+        'UPDATE drivers 
+         SET recovery_cooldown_until = :until 
+         WHERE driver_id = :id'
+    )->execute([
+        'until' => $cooldownUntil,
+        'id' => $driverId
+    ]);
+}
+
+/**
+ * Get a human-readable cooldown message
+ */
+function driver_get_cooldown_message($cooldownTimestamp) {
+    $remaining = $cooldownTimestamp - time();
+    
+    if ($remaining <= 0) {
+        return '';
+    }
+    
+    $minutes = ceil($remaining / 60);
+    
+    if ($minutes >= 60) {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+        if ($mins > 0) {
+            return "Please try again in {$hours} hour" . ($hours > 1 ? 's' : '') . " and {$mins} minute" . ($mins > 1 ? 's' : '') . ".";
+        }
+        return "Please try again in {$hours} hour" . ($hours > 1 ? 's' : '') . ".";
+    }
+    
+    return "Please try again in {$minutes} minute" . ($minutes > 1 ? 's' : '') . ".";
+}
+
+/**
+ * Verify driver's security answer and handle attempts/cooldown
+ * Returns true if answer is correct, false otherwise
+ */
+function driver_verify_security_answer($driverId, $providedAnswer) {
+    $pdo = get_pdo();
+    
+    // Check cooldown first
+    $cooldown = driver_check_recovery_cooldown($driverId);
+    if ($cooldown !== null) {
+        return false;
+    }
+    
+    // Get stored answer hash
+    $stmt = $pdo->prepare(
+        'SELECT security_answer_hash 
+         FROM drivers 
+         WHERE driver_id = :id'
+    );
+    $stmt->execute(['id' => $driverId]);
+    $row = $stmt->fetch();
+    
+    if (!$row || empty($row['security_answer_hash'])) {
+        return false;
+    }
+    
+    // Verify answer
+    $isCorrect = driver_verify_security_answer_hash($providedAnswer, $row['security_answer_hash']);
+    
+    if ($isCorrect) {
+        driver_reset_recovery_attempts($driverId);
+    } else {
+        driver_increment_recovery_attempts($driverId);
+    }
+    
+    return $isCorrect;
+}
+
+/**
+ * Reset driver password (used in forgot password flow)
+ */
+function driver_reset_password($driverId, $newPassword) {
+    $pdo = get_pdo();
+    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+    
+    $pdo->prepare(
+        'UPDATE drivers 
+         SET password = :pwd 
+         WHERE driver_id = :id'
+    )->execute([
+        'pwd' => $hashedPassword,
+        'id' => $driverId
+    ]);
+    
+    return true;
+}
