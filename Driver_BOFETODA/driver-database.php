@@ -1120,14 +1120,20 @@ function send_message_to_officers($driverId, $messageText, $files = null) {
     $driver = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$driver) {
-        return false;
+        return ['success' => false, 'error' => 'Driver not found'];
     }
     
     // For driver messages, sender_id can be a hash of driver_id or just use driver_id
     // Since driver_id is VARCHAR, we'll use crc32 to get an integer
     $senderId = crc32($driverId);
     
-    return send_driver_message($driverId, 'driver', $senderId, $messageText, $files);
+    $result = send_driver_message($driverId, 'driver', $senderId, $messageText, $files);
+    
+    if ($result === false) {
+        return ['success' => false, 'error' => 'Failed to send message'];
+    }
+    
+    return ['success' => true, 'message_id' => $result];
 }
 
 /**
