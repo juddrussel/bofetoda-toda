@@ -486,10 +486,6 @@ function batch_upload_driver_documents($driverId, $files) {
     return $result;
 }
 
-
-} // End of R2_STORAGE_FUNCTIONS_DEFINED
-
-
 /**
  * Validate message attachment file
  * 
