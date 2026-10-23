@@ -1,9 +1,10 @@
 <?php
 
-// Prevent multiple inclusions
-if (!defined('R2_STORAGE_FUNCTIONS_DEFINED')) {
-    define('R2_STORAGE_FUNCTIONS_DEFINED', true);
+// Prevent multiple inclusions - return early if already loaded
+if (defined('R2_STORAGE_FUNCTIONS_DEFINED')) {
+    return;
 }
+define('R2_STORAGE_FUNCTIONS_DEFINED', true);
 
 /**
  * Cloudflare R2 Storage Integration
