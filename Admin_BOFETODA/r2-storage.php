@@ -487,3 +487,173 @@ function batch_upload_driver_documents($driverId, $files) {
 
 
 } // End of R2_STORAGE_FUNCTIONS_DEFINED
+
+
+/**
+ * Validate message attachment file
+ * 
+ * @param array $file File data from $_FILES
+ * @return bool True if valid, false otherwise
+ */
+function validate_message_attachment($file) {
+    // Check file upload errors
+    if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        return false;
+    }
+    
+    // Check file size (max 5MB)
+    $maxSize = 5 * 1024 * 1024;
+    if ($file['size'] > $maxSize) {
+        error_log("Message attachment too large: {$file['size']} bytes");
+        return false;
+    }
+    
+    // Check file type
+    $allowedExt = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    
+    if (!in_array($extension, $allowedExt, true)) {
+        error_log("Invalid message attachment type: $extension");
+        return false;
+    }
+    
+    // Additional MIME type check
+    $allowedMimes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+    ];
+    
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    
+    if (!in_array($mimeType, $allowedMimes, true)) {
+        error_log("Invalid message attachment MIME type: $mimeType");
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Upload message attachment to R2 or local storage (fallback)
+ * 
+ * @param string $driverId Driver ID
+ * @param int $messageId Message ID
+ * @param array $file File data from $_FILES
+ * @return array|false ['url' => string, 'path' => string, 'storage' => 'r2'|'local'] or false on failure
+ */
+function upload_message_attachment_r2($driverId, $messageId, $file) {
+    // Validate file first
+    if (!validate_message_attachment($file)) {
+        return false;
+    }
+    
+    // Generate unique filename
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $filename = 'msg_' . $messageId . '_' . time() . '_' . uniqid() . '.' . $extension;
+    $r2Key = 'messages/' . $driverId . '/' . $filename;
+    
+    // Try R2 first
+    if (is_r2_enabled()) {
+        $url = r2_upload_file($file, $r2Key);
+        
+        if ($url) {
+            return [
+                'url' => $url,
+                'path' => $r2Key, // Store R2 key for database
+                'storage' => 'r2'
+            ];
+        }
+        
+        error_log('R2 upload failed for message attachment, falling back to local storage');
+    }
+    
+    // Fallback to local storage
+    $uploadDir = __DIR__ . '/../uploads/messages/' . $driverId . '/';
+    
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    $localFilename = 'msg_' . $messageId . '_' . time() . '_' . uniqid() . '.' . $extension;
+    $filepath = $uploadDir . $localFilename;
+    
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        return [
+            'url' => 'uploads/messages/' . $driverId . '/' . $localFilename,
+            'path' => 'uploads/messages/' . $driverId . '/' . $localFilename,
+            'storage' => 'local'
+        ];
+    }
+    
+    return false;
+}
+
+/**
+ * Delete message attachment from R2 or local storage
+ * 
+ * @param string $filePath Path or key of the attachment
+ * @return bool Success status
+ */
+function delete_message_attachment_r2($filePath) {
+    // Check if it's an R2 URL
+    $publicUrl = getenv('R2_PUBLIC_URL');
+    
+    if ($publicUrl && strpos($filePath, $publicUrl) === 0) {
+        // Extract key from URL
+        $objectKey = str_replace(rtrim($publicUrl, '/') . '/', '', $filePath);
+        return r2_delete_file($objectKey);
+    }
+    
+    // Check if it's an R2 key (starts with messages/)
+    if (strpos($filePath, 'messages/') === 0) {
+        if (is_r2_enabled()) {
+            return r2_delete_file($filePath);
+        }
+    }
+    
+    // Fallback to local deletion
+    $filepath = __DIR__ . '/../' . $filePath;
+    if (file_exists($filepath)) {
+        return @unlink($filepath);
+    }
+    
+    return false;
+}
+
+/**
+ * Get full URL for message attachment
+ * Handles both R2 URLs and local paths
+ * 
+ * @param string $filePath File path from database
+ * @return string Full URL to the file
+ */
+function get_message_attachment_url($filePath) {
+    // If it's already a full URL (R2), return as-is
+    if (strpos($filePath, 'https://') === 0 || strpos($filePath, 'http://') === 0) {
+        return $filePath;
+    }
+    
+    // Check if it's an R2 key (starts with messages/)
+    if (strpos($filePath, 'messages/') === 0) {
+        $publicUrl = getenv('R2_PUBLIC_URL');
+        if ($publicUrl) {
+            return rtrim($publicUrl, '/') . '/' . $filePath;
+        }
+    }
+    
+    // Fallback to local path
+    $filePath = ltrim($filePath, '/');
+    
+    // For message attachments, navigate up from admin or driver directory
+    if (strpos($filePath, 'uploads/messages/') === 0) {
+        return '../' . $filePath;
+    }
+    
+    return $filePath;
+}

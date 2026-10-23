@@ -1,0 +1,80 @@
+<?php
+/**
+ * Secure attachment download handler for admin/officer side
+ * Verifies officer authentication and provides access to all message attachments
+ */
+
+require_once __DIR__ . '/config.php';
+require_login();
+
+$officer = current_officer();
+
+// Get attachment ID
+$attachment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if ($attachment_id <= 0) {
+    http_response_code(400);
+    die('Invalid attachment ID');
+}
+
+// Get attachment details
+global $pdo;
+try {
+    $stmt = $pdo->prepare("
+        SELECT ma.*, dm.driver_id 
+        FROM message_attachments ma
+        INNER JOIN driver_messages dm ON ma.message_id = dm.id
+        WHERE ma.id = ?
+    ");
+    $stmt->execute([$attachment_id]);
+    $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$attachment) {
+        http_response_code(404);
+        die('Attachment not found');
+    }
+    
+    // Log access for security audit
+    error_log("Officer {$officer['id']} downloaded attachment {$attachment_id} from driver {$attachment['driver_id']}");
+    
+    // Determine if file is in R2 or local storage
+    $is_r2 = !empty($attachment['r2_key']);
+    
+    if ($is_r2) {
+        // Redirect to R2 URL
+        require_once __DIR__ . '/r2-storage.php';
+        $download_url = get_message_attachment_url($attachment['r2_key']);
+        
+        if ($download_url) {
+            header('Location: ' . $download_url);
+            exit;
+        } else {
+            http_response_code(500);
+            die('Failed to generate download URL');
+        }
+    } else {
+        // Serve from local storage
+        $file_path = __DIR__ . '/../' . $attachment['file_path'];
+        
+        if (!file_exists($file_path)) {
+            http_response_code(404);
+            die('File not found on server');
+        }
+        
+        // Set headers for download
+        header('Content-Type: ' . $attachment['file_type']);
+        header('Content-Disposition: attachment; filename="' . $attachment['file_name'] . '"');
+        header('Content-Length: ' . filesize($file_path));
+        header('Cache-Control: private, max-age=3600');
+        header('X-Content-Type-Options: nosniff');
+        
+        // Output file
+        readfile($file_path);
+        exit;
+    }
+    
+} catch (PDOException $e) {
+    error_log("Attachment download error: " . $e->getMessage());
+    http_response_code(500);
+    die('Database error occurred');
+}

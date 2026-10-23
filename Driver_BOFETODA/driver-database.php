@@ -1079,3 +1079,177 @@ function get_driver_file_url($filePath) {
     // Note: r2-storage.php must be included before calling this function
     return get_file_url($filePath);
 }
+
+
+// ============================================================================
+// DRIVER-TO-OFFICER MESSAGING FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all messages for the current driver
+ * Returns the conversation with officers
+ * 
+ * @param string $driverId Driver ID
+ * @return array Array of messages with sender info
+ */
+function get_my_messages($driverId) {
+    require_once __DIR__ . '/../Admin_BOFETODA/config.php';
+    return get_driver_messages($driverId);
+}
+
+/**
+ * Send a message from driver to officers
+ * 
+ * @param string $driverId Driver ID
+ * @param string $messageText Message content
+ * @param array|null $files Files from $_FILES (optional)
+ * @return int|false Message ID if successful, false on failure
+ */
+function send_message_to_officers($driverId, $messageText, $files = null) {
+    require_once __DIR__ . '/../Admin_BOFETODA/config.php';
+    require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+    
+    // Get driver's numeric ID for sender_id
+    $pdo = get_pdo();
+    $stmt = $pdo->prepare("SELECT driver_id FROM drivers WHERE driver_id = :driver_id");
+    $stmt->execute(['driver_id' => $driverId]);
+    $driver = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$driver) {
+        return false;
+    }
+    
+    // For driver messages, sender_id can be a hash of driver_id or just use driver_id
+    // Since driver_id is VARCHAR, we'll use crc32 to get an integer
+    $senderId = crc32($driverId);
+    
+    return send_driver_message($driverId, 'driver', $senderId, $messageText, $files);
+}
+
+/**
+ * Get count of driver's messages that haven't been replied to by officers
+ * For badge counter
+ * 
+ * @param string $driverId Driver ID
+ * @return int Number of unreplied messages
+ */
+function get_my_unread_reply_count($driverId) {
+    require_once __DIR__ . '/../Admin_BOFETODA/config.php';
+    return get_driver_unreplied_count($driverId);
+}
+
+/**
+ * Check if driver has any messages in the conversation
+ * 
+ * @param string $driverId Driver ID
+ * @return bool True if driver has messages
+ */
+function has_messages($driverId) {
+    require_once __DIR__ . '/../Admin_BOFETODA/config.php';
+    return driver_has_messages($driverId);
+}
+
+/**
+ * Format message timestamp for display
+ * Shows "Just now", "5 minutes ago", "Today at 2:30 PM", etc.
+ * 
+ * @param string $timestamp Message timestamp
+ * @return string Formatted time string
+ */
+function format_message_time($timestamp) {
+    $time = strtotime($timestamp);
+    $now = time();
+    $diff = $now - $time;
+    
+    // Less than 1 minute
+    if ($diff < 60) {
+        return 'Just now';
+    }
+    
+    // Less than 1 hour
+    if ($diff < 3600) {
+        $minutes = floor($diff / 60);
+        return $minutes . ' minute' . ($minutes > 1 ? 's' : '') . ' ago';
+    }
+    
+    // Less than 24 hours (same day)
+    if ($diff < 86400 && date('Y-m-d', $time) === date('Y-m-d', $now)) {
+        return 'Today at ' . date('g:i A', $time);
+    }
+    
+    // Yesterday
+    if ($diff < 172800 && date('Y-m-d', $time) === date('Y-m-d', $now - 86400)) {
+        return 'Yesterday at ' . date('g:i A', $time);
+    }
+    
+    // Less than 7 days
+    if ($diff < 604800) {
+        return date('l \a\t g:i A', $time); // "Monday at 2:30 PM"
+    }
+    
+    // More than 7 days
+    return date('M j, Y \a\t g:i A', $time); // "Oct 23, 2026 at 2:30 PM"
+}
+
+/**
+ * Get file icon based on file type
+ * Returns emoji or icon for file display
+ * 
+ * @param string $filename Filename
+ * @return string Icon/emoji
+ */
+function get_file_icon($filename) {
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    
+    switch ($extension) {
+        case 'pdf':
+            return '📄';
+        case 'doc':
+        case 'docx':
+            return '📝';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+            return '🖼️';
+        default:
+            return '📎';
+    }
+}
+
+/**
+ * Format file size for display
+ * 
+ * @param int $bytes File size in bytes
+ * @return string Formatted size (e.g., "1.5 MB")
+ */
+function format_file_size($bytes) {
+    if ($bytes < 1024) {
+        return $bytes . ' B';
+    } elseif ($bytes < 1048576) {
+        return round($bytes / 1024, 1) . ' KB';
+    } else {
+        return round($bytes / 1048576, 1) . ' MB';
+    }
+}
+
+/**
+ * Mark all officer messages as read for a driver
+ */
+function mark_messages_as_read($driverId) {
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE driver_messages 
+            SET is_read = 1 
+            WHERE driver_id = ? 
+            AND sender_type = 'officer' 
+            AND is_read = 0
+        ");
+        
+        return $stmt->execute([$driverId]);
+    } catch (PDOException $e) {
+        error_log("Error marking messages as read: " . $e->getMessage());
+        return false;
+    }
+}

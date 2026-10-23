@@ -1145,11 +1145,12 @@ button{font-family:inherit;cursor:pointer;}
 .sidebar__officer-name{ font-size:13.5px; font-weight:600; }
 .sidebar__officer-role{ font-size:11.5px; color:rgba(255,255,255,.55); text-transform:capitalize; }
 .sidebar__nav{ flex:1; padding:16px 14px; display:flex; flex-direction:column; gap:4px; overflow-y:auto; }
-.nav-link{ display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; color:rgba(255,255,255,.7); text-decoration:none; font-size:13.8px; font-weight:500; transition:background .15s ease, color .15s ease; }
+.nav-link{ display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; color:rgba(255,255,255,.7); text-decoration:none; font-size:13.8px; font-weight:500; transition:background .15s ease, color .15s ease; position:relative; }
 .nav-link:hover{ background:rgba(255,255,255,.08); color:#fff; }
 .nav-link.is-active{ background:rgba(255,255,255,.14); color:#fff; font-weight:700; }
 .nav-link__icon{ width:18px; height:18px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; }
 .nav-link__icon svg{ width:100%; height:100%; }
+.nav-link__badge{ position:absolute; top:6px; right:8px; min-width:18px; height:18px; background:#dc2626; color:#fff; font-size:10px; font-weight:800; border-radius:999px; display:flex; align-items:center; justify-content:center; padding:0 4px; pointer-events:none; line-height:1; }
 .nav-link--logout{ margin-top:auto; border-top:1px solid rgba(255,255,255,.1); padding-top:11px; }
 
 .profile-modal__head{ display:flex; align-items:center; justify-content:space-between; }
@@ -1316,6 +1317,7 @@ function nav_icon($name) {
         'user'        => '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
         'check'       => '<path d="M20 6L9 17l-5-5"/>',
         'chart'       => '<path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/>',
+        'message'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
         'logout'      => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     ];
     $path = $icons[$name] ?? '';
@@ -1346,6 +1348,13 @@ function render_sidebar($active) {
       <a class="nav-link <?= $active === 'approval' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/approval_workflow.php"><span class="nav-link__icon"><?= nav_icon('check') ?></span> Approval Workflow</a>
     <?php endif; ?>
     <a class="nav-link <?= $active === 'driverlist' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/driver_list.php"><span class="nav-link__icon"><?= nav_icon('user') ?></span> Driver List</a>
+    <a class="nav-link <?= $active === 'driver_inbox' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/driver_inbox.php">
+      <span class="nav-link__icon"><?= nav_icon('message') ?></span> Driver Inbox
+      <?php $unread_count = get_unread_message_count(); ?>
+      <?php if ($unread_count > 0): ?>
+        <span class="nav-link__badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span>
+      <?php endif; ?>
+    </a>
     <?php if ($role === 'president'): ?>
       <a class="nav-link <?= $active === 'reports' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/reports.php"><span class="nav-link__icon"><?= nav_icon('chart') ?></span> Reports</a>
     <?php endif; ?>
@@ -1579,6 +1588,41 @@ document.addEventListener('DOMContentLoaded', function () {
       if (confirmPass) confirmPass.setCustomValidity('');
     });
   });
+
+  // Badge counter polling for driver messages
+  function updateInboxBadge() {
+    fetch('<?= BASE_URL ?>/api-message-count.php')
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data.success) {
+          var badge = document.querySelector('.nav-link[href*="driver_inbox.php"] .nav-link__badge');
+          if (data.count > 0) {
+            var displayCount = data.count > 9 ? '9+' : data.count;
+            if (badge) {
+              badge.textContent = displayCount;
+            } else {
+              // Create badge if it doesn't exist
+              var inboxLink = document.querySelector('.nav-link[href*="driver_inbox.php"]');
+              if (inboxLink) {
+                var newBadge = document.createElement('span');
+                newBadge.className = 'nav-link__badge';
+                newBadge.textContent = displayCount;
+                inboxLink.appendChild(newBadge);
+              }
+            }
+          } else if (badge) {
+            // Remove badge if count is 0
+            badge.remove();
+          }
+        }
+      })
+      .catch(function(error) {
+        console.error('Error updating inbox badge:', error);
+      });
+  }
+
+  // Update badge every 30 seconds
+  setInterval(updateInboxBadge, 30000);
 });
 </script>
 <?php
@@ -2282,4 +2326,488 @@ function truncate_announcement_text($text, $length = 150) {
     }
     
     return mb_substr($text, 0, $length) . '...';
+}
+
+
+// ============================================================================
+// DRIVER-TO-OFFICER MESSAGING FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all messages for a specific driver (conversation thread)
+ * Returns messages in chronological order (oldest first)
+ * 
+ * @param string $driverId Driver ID
+ * @return array Array of messages with sender info
+ */
+function get_driver_messages($driverId) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare("
+        SELECT 
+            m.*,
+            CASE 
+                WHEN m.sender_type = 'officer' THEN o.name
+                WHEN m.sender_type = 'driver' THEN d.name
+            END as sender_name,
+            CASE 
+                WHEN m.sender_type = 'officer' THEN o.role
+                ELSE NULL
+            END as sender_role
+        FROM driver_messages m
+        LEFT JOIN officers o ON m.sender_type = 'officer' AND m.sender_id = o.officer_id
+        LEFT JOIN drivers d ON m.sender_type = 'driver' AND m.sender_id = d.driver_id
+        WHERE m.driver_id = :driver_id
+        ORDER BY m.created_at ASC
+    ");
+    
+    $stmt->execute(['driver_id' => $driverId]);
+    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get attachments for each message
+    foreach ($messages as &$message) {
+        if ($message['has_attachments']) {
+            $message['attachments'] = get_message_attachments($message['message_id']);
+        } else {
+            $message['attachments'] = [];
+        }
+    }
+    
+    return $messages;
+}
+
+/**
+ * Get attachments for a specific message
+ * 
+ * @param int $messageId Message ID
+ * @return array Array of attachments
+ */
+function get_message_attachments($messageId) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare("
+        SELECT * FROM message_attachments 
+        WHERE message_id = :message_id 
+        ORDER BY uploaded_at ASC
+    ");
+    
+    $stmt->execute(['message_id' => $messageId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Send a new message in a driver-officer conversation
+ * 
+ * @param string $driverId Driver ID
+ * @param string $senderType 'driver' or 'officer'
+ * @param int $senderId Driver ID (as int) or Officer ID
+ * @param string $messageText Message content
+ * @param array|null $files Files from $_FILES (optional)
+ * @return int|false Message ID if successful, false on failure
+ */
+function send_driver_message($driverId, $senderType, $senderId, $messageText, $files = null) {
+    $pdo = get_pdo();
+    
+    try {
+        $pdo->beginTransaction();
+        
+        // Insert message
+        $stmt = $pdo->prepare("
+            INSERT INTO driver_messages 
+            (driver_id, sender_type, sender_id, message_text, has_attachments, is_read, has_reply)
+            VALUES (:driver_id, :sender_type, :sender_id, :message_text, :has_attachments, :is_read, :has_reply)
+        ");
+        
+        $hasAttachments = !empty($files) && !empty($files['tmp_name']);
+        
+        // Set is_read based on sender (officer messages are pre-read)
+        $isRead = ($senderType === 'officer') ? 1 : 0;
+        
+        // has_reply is only relevant for driver messages, set to false initially
+        $hasReply = 0;
+        
+        $stmt->execute([
+            'driver_id' => $driverId,
+            'sender_type' => $senderType,
+            'sender_id' => $senderId,
+            'message_text' => $messageText,
+            'has_attachments' => $hasAttachments ? 1 : 0,
+            'is_read' => $isRead,
+            'has_reply' => $hasReply
+        ]);
+        
+        $messageId = (int) $pdo->lastInsertId();
+        
+        // If this is an officer reply, update has_reply on all unread driver messages
+        if ($senderType === 'officer') {
+            update_message_reply_status($driverId);
+        }
+        
+        // Handle file attachments if present
+        if ($hasAttachments && $messageId > 0) {
+            require_once __DIR__ . '/r2-storage.php';
+            
+            // Handle multiple files
+            $fileArray = [];
+            if (is_array($files['tmp_name'])) {
+                for ($i = 0; $i < count($files['tmp_name']); $i++) {
+                    if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                        $fileArray[] = [
+                            'tmp_name' => $files['tmp_name'][$i],
+                            'name' => $files['name'][$i],
+                            'size' => $files['size'][$i],
+                            'type' => $files['type'][$i]
+                        ];
+                    }
+                }
+            } else {
+                if ($files['error'] === UPLOAD_ERR_OK) {
+                    $fileArray[] = [
+                        'tmp_name' => $files['tmp_name'],
+                        'name' => $files['name'],
+                        'size' => $files['size'],
+                        'type' => $files['type']
+                    ];
+                }
+            }
+            
+            // Upload each file (max 3)
+            $uploadedCount = 0;
+            foreach (array_slice($fileArray, 0, 3) as $file) {
+                if (function_exists('upload_message_attachment_r2')) {
+                    $result = upload_message_attachment_r2($driverId, $messageId, $file);
+                    
+                    if ($result) {
+                        // Save attachment info to database
+                        $stmt = $pdo->prepare("
+                            INSERT INTO message_attachments 
+                            (message_id, file_name, file_path, file_size, file_type)
+                            VALUES (:message_id, :file_name, :file_path, :file_size, :file_type)
+                        ");
+                        
+                        $stmt->execute([
+                            'message_id' => $messageId,
+                            'file_name' => $file['name'],
+                            'file_path' => $result['path'],
+                            'file_size' => $file['size'],
+                            'file_type' => $file['type']
+                        ]);
+                        
+                        $uploadedCount++;
+                    }
+                }
+            }
+            
+            // If no files uploaded successfully, set has_attachments to false
+            if ($uploadedCount === 0) {
+                $stmt = $pdo->prepare("UPDATE driver_messages SET has_attachments = 0 WHERE message_id = :id");
+                $stmt->execute(['id' => $messageId]);
+            }
+        }
+        
+        $pdo->commit();
+        return $messageId;
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log('send_driver_message failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Mark all messages from a driver as read (when officer opens conversation)
+ * 
+ * @param string $driverId Driver ID
+ * @return bool Success status
+ */
+function mark_driver_messages_as_read($driverId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE driver_messages 
+            SET is_read = 1 
+            WHERE driver_id = :driver_id 
+            AND sender_type = 'driver'
+            AND is_read = 0
+        ");
+        
+        $stmt->execute(['driver_id' => $driverId]);
+        return true;
+        
+    } catch (Exception $e) {
+        error_log('mark_driver_messages_as_read failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Update has_reply status on driver messages when officer responds
+ * 
+ * @param string $driverId Driver ID
+ * @return bool Success status
+ */
+function update_message_reply_status($driverId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE driver_messages 
+            SET has_reply = 1 
+            WHERE driver_id = :driver_id 
+            AND sender_type = 'driver'
+            AND has_reply = 0
+        ");
+        
+        $stmt->execute(['driver_id' => $driverId]);
+        return true;
+        
+    } catch (Exception $e) {
+        error_log('update_message_reply_status failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get total count of unread messages from all drivers (for officer badge)
+ * 
+ * @return int Number of unread messages
+ */
+function get_unread_message_count() {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->query("
+            SELECT COUNT(*) 
+            FROM driver_messages 
+            WHERE sender_type = 'driver' 
+            AND is_read = 0
+        ");
+        
+        return (int) $stmt->fetchColumn();
+        
+    } catch (Exception $e) {
+        error_log('get_unread_message_count failed: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Get count of messages from a driver that have no officer reply (for driver badge)
+ * 
+ * @param string $driverId Driver ID
+ * @return int Number of unreplied messages
+ */
+function get_driver_unreplied_count($driverId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) 
+            FROM driver_messages 
+            WHERE driver_id = :driver_id 
+            AND sender_type = 'driver'
+            AND has_reply = 0
+        ");
+        
+        $stmt->execute(['driver_id' => $driverId]);
+        return (int) $stmt->fetchColumn();
+        
+    } catch (Exception $e) {
+        error_log('get_driver_unreplied_count failed: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Get list of drivers who have sent messages (for admin inbox)
+ * Returns drivers with their message stats
+ * 
+ * @param string $sortBy Sort order: 'newest' or 'name' (default: 'newest')
+ * @return array Array of drivers with message info
+ */
+function get_drivers_with_messages($sortBy = 'newest') {
+    $pdo = get_pdo();
+    
+    try {
+        $orderClause = ($sortBy === 'name') 
+            ? 'ORDER BY d.name ASC' 
+            : 'ORDER BY last_message_time DESC';
+        
+        $stmt = $pdo->query("
+            SELECT 
+                d.driver_id,
+                d.name,
+                d.avatar_path,
+                COUNT(DISTINCT m.message_id) as total_messages,
+                SUM(CASE WHEN m.sender_type = 'driver' AND m.is_read = 0 THEN 1 ELSE 0 END) as unread_count,
+                MAX(m.created_at) as last_message_time
+            FROM drivers d
+            INNER JOIN driver_messages m ON d.driver_id = m.driver_id
+            GROUP BY d.driver_id, d.name, d.avatar_path
+            $orderClause
+        ");
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+    } catch (Exception $e) {
+        error_log('get_drivers_with_messages failed: ' . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Get last message preview for a driver (for inbox list)
+ * 
+ * @param string $driverId Driver ID
+ * @param int $maxLength Maximum length of preview (default: 50)
+ * @return string Message preview
+ */
+function get_last_message_preview($driverId, $maxLength = 50) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT message_text, sender_type
+            FROM driver_messages 
+            WHERE driver_id = :driver_id 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        ");
+        
+        $stmt->execute(['driver_id' => $driverId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($result) {
+            $prefix = ($result['sender_type'] === 'driver') ? 'Driver: ' : 'Officer: ';
+            $text = $result['message_text'];
+            
+            if (mb_strlen($text) > $maxLength) {
+                $text = mb_substr($text, 0, $maxLength) . '...';
+            }
+            
+            return $prefix . $text;
+        }
+        
+        return 'No messages';
+        
+    } catch (Exception $e) {
+        error_log('get_last_message_preview failed: ' . $e->getMessage());
+        return '';
+    }
+}
+
+/**
+ * Get driver info by ID (for conversation header)
+ * 
+ * @param string $driverId Driver ID
+ * @return array|false Driver info or false if not found
+ */
+function get_driver_info($driverId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT driver_id, name, avatar_path, phone, email
+            FROM drivers 
+            WHERE driver_id = :driver_id
+        ");
+        
+        $stmt->execute(['driver_id' => $driverId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+        
+    } catch (Exception $e) {
+        error_log('get_driver_info failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Check if a driver has any messages
+ * 
+ * @param string $driverId Driver ID
+ * @return bool True if driver has messages
+ */
+function driver_has_messages($driverId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) 
+            FROM driver_messages 
+            WHERE driver_id = :driver_id
+        ");
+        
+        $stmt->execute(['driver_id' => $driverId]);
+        return ((int) $stmt->fetchColumn()) > 0;
+        
+    } catch (Exception $e) {
+        error_log('driver_has_messages failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+
+/**
+ * Format timestamp as relative time (e.g., "2 hours ago", "Just now")
+ */
+function format_relative_time($timestamp) {
+    $now = time();
+    $time = is_numeric($timestamp) ? $timestamp : strtotime($timestamp);
+    $diff = $now - $time;
+    
+    if ($diff < 60) {
+        return 'Just now';
+    } elseif ($diff < 3600) {
+        $minutes = floor($diff / 60);
+        return $minutes . ' minute' . ($minutes !== 1 ? 's' : '') . ' ago';
+    } elseif ($diff < 86400) {
+        $hours = floor($diff / 3600);
+        return $hours . ' hour' . ($hours !== 1 ? 's' : '') . ' ago';
+    } elseif ($diff < 604800) {
+        $days = floor($diff / 86400);
+        return $days . ' day' . ($days !== 1 ? 's' : '') . ' ago';
+    } elseif ($diff < 2592000) {
+        $weeks = floor($diff / 604800);
+        return $weeks . ' week' . ($weeks !== 1 ? 's' : '') . ' ago';
+    } else {
+        return date('M j, Y', $time);
+    }
+}
+
+
+/**
+ * Get file icon based on file extension (admin version)
+ */
+function get_file_icon_admin($filename) {
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    
+    switch ($ext) {
+        case 'pdf':
+            return '📄';
+        case 'doc':
+        case 'docx':
+            return '📝';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+            return '🖼️';
+        default:
+            return '📎';
+    }
+}
+
+/**
+ * Format file size in human-readable format (admin version)
+ */
+function format_file_size_admin($bytes) {
+    if ($bytes < 1024) {
+        return $bytes . ' B';
+    } elseif ($bytes < 1048576) {
+        return round($bytes / 1024, 1) . ' KB';
+    } else {
+        return round($bytes / 1048576, 1) . ' MB';
+    }
 }

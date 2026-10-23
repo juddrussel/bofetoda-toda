@@ -1254,6 +1254,41 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // Badge counter polling for messages
+  function updateMessageBadge() {
+    fetch('api-message-count.php')
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data.success) {
+          var badge = document.querySelector('.nav-item[href="driver-messages.php"] .notif-badge');
+          if (data.count > 0) {
+            var displayCount = data.count > 9 ? '9+' : data.count;
+            if (badge) {
+              badge.textContent = displayCount;
+            } else {
+              // Create badge if it doesn't exist
+              var messagesLink = document.querySelector('.nav-item[href="driver-messages.php"]');
+              if (messagesLink) {
+                var newBadge = document.createElement('span');
+                newBadge.className = 'notif-badge';
+                newBadge.textContent = displayCount;
+                messagesLink.insertBefore(newBadge, messagesLink.querySelector('svg'));
+              }
+            }
+          } else if (badge) {
+            // Remove badge if count is 0
+            badge.remove();
+          }
+        }
+      })
+      .catch(function(error) {
+        console.error('Error updating message badge:', error);
+      });
+  }
+
+  // Update badge every 30 seconds
+  setInterval(updateMessageBadge, 30000);
 });
 JS;
 
@@ -1327,6 +1362,14 @@ function render_bottom_nav($active_page) {
     <a href="driver-renewal.php" class="nav-item <?php echo $active_page === 'submit' ? 'active' : ''; ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h2"/></svg>
         <span>Submit</span>
+    </a>
+    <a href="driver-messages.php" class="nav-item <?php echo $active_page === 'messages' ? 'active' : ''; ?>">
+        <?php $unrepliedCount = get_my_unread_reply_count(current_driver()['id']); ?>
+        <?php if ($unrepliedCount > 0): ?>
+            <span class="notif-badge"><?php echo $unrepliedCount > 9 ? '9+' : $unrepliedCount; ?></span>
+        <?php endif; ?>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Messages</span>
     </a>
     <a href="driver-notifications.php" class="nav-item <?php echo $active_page === 'notif' ? 'active' : ''; ?>">
         <?php $unreadCount = get_unread_notification_count(); ?>

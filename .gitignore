@@ -11,6 +11,8 @@ Driver_BOFETODA/uploads/avatars/*
 uploads/announcements/*
 !uploads/announcements/.gitkeep
 !uploads/announcements/.htaccess
+uploads/messages/*
+!uploads/messages/.gitkeep
 
 # Logs
 *.log

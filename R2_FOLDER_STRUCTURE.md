@@ -23,8 +23,12 @@ bofetoda-announcements/
 │       ├── payment_receipt_{timestamp}_{uniqueid}.{ext}
 │       └── picture_1x1_{timestamp}_{uniqueid}.{ext}
 │
-└── avatars/                            # Driver profile avatars
-    └── {driver_id}.{ext}               # One avatar per driver
+├── avatars/                            # Driver profile avatars
+│   └── {driver_id}.{ext}               # One avatar per driver
+│
+└── messages/                           # Driver-to-officer message attachments
+    └── {driver_id}/                    # One folder per driver
+        └── msg_{message_id}_{timestamp}_{uniqueid}.{ext}
 ```
 
 ---
@@ -141,6 +145,58 @@ avatars/DRV-BG0351.jpeg
 **Database Reference**: Stored in `drivers.avatar_path` (if implemented) or derived from driver_id
 
 **Note**: When a driver uploads a new avatar, the old one is deleted from R2 before uploading the new one.
+
+---
+
+### 4. `/messages/{driver_id}/`
+
+**Purpose**: Store file attachments for driver-to-officer messages
+
+**Folder Naming**:
+```
+messages/{driver_id}/
+```
+Where `{driver_id}` is the driver's unique ID (e.g., `DRV-BG0001`, `DRV-BG0172`)
+
+**File Naming**:
+```
+msg_{message_id}_{timestamp}_{uniqueid}.{extension}
+```
+
+**Components**:
+- `message_id` - The message ID this attachment belongs to
+- `timestamp` - Unix timestamp when uploaded
+- `uniqueid` - Random unique identifier
+- `extension` - File extension
+
+**Examples**:
+```
+messages/DRV-BG0001/msg_45_1729684800_a1b2c3d4.pdf
+messages/DRV-BG0001/msg_45_1729684800_e5f6g7h8.jpg
+messages/DRV-BG0001/msg_46_1729685000_i9j0k1l2.docx
+
+messages/DRV-BG0172/msg_78_1729685500_m3n4o5p6.png
+messages/DRV-BG0172/msg_79_1729686000_q7r8s9t0.pdf
+```
+
+**Allowed Extensions**: `.pdf`, `.doc`, `.docx`, `.jpg`, `.jpeg`, `.png`  
+**Max File Size**: 5 MB per attachment  
+**Max Attachments per Message**: 3 attachments
+
+**Access**: Public (but requires knowing driver ID, message ID, and filename)
+
+**Database Reference**: `message_attachments.file_path`
+```sql
+SELECT attachment_id, file_name, file_path 
+FROM message_attachments 
+WHERE message_id = 45;
+
+-- Returns:
+-- 1 | document.pdf | messages/DRV-BG0001/msg_45_1729684800_a1b2c3d4.pdf
+-- 2 | photo.jpg    | messages/DRV-BG0001/msg_45_1729684800_e5f6g7h8.jpg
+```
+
+**Note**: Message attachments are organized by driver for easier management and access control.
 
 ---
 
