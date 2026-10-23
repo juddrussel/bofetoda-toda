@@ -138,6 +138,9 @@ try {
     
     echo '<h2>📋 Executing Migration...</h2>';
     
+    // Begin transaction for safety
+    $pdo->beginTransaction();
+    
     $successCount = 0;
     $errors = [];
     
@@ -153,19 +156,32 @@ try {
             // Extract table name from CREATE TABLE statement for display
             if (preg_match('/CREATE TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s+`?(\w+)`?/i', $statement, $matches)) {
                 echo '<div class="success">✓ Created table: <strong>' . htmlspecialchars($matches[1]) . '</strong></div>';
+            } elseif (preg_match('/DROP TABLE(?:\s+IF\s+EXISTS)?\s+`?(\w+)`?/i', $statement, $matches)) {
+                echo '<div class="info">🗑️ Dropped table: <strong>' . htmlspecialchars($matches[1]) . '</strong></div>';
             }
         } catch (PDOException $e) {
-            // Check if error is "table already exists"
+            // Check if error is "table already exists" or "unknown table" (for DROP)
             if (strpos($e->getMessage(), 'already exists') !== false) {
                 if (preg_match('/CREATE TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s+`?(\w+)`?/i', $statement, $matches)) {
                     echo '<div class="info">ℹ️ Table already exists: <strong>' . htmlspecialchars($matches[1]) . '</strong></div>';
                 }
+            } elseif (strpos($e->getMessage(), "doesn't exist") !== false || strpos($e->getMessage(), 'Unknown table') !== false) {
+                // Ignore "table doesn't exist" errors for DROP TABLE
+                if (preg_match('/DROP TABLE(?:\s+IF\s+EXISTS)?\s+`?(\w+)`?/i', $statement, $matches)) {
+                    echo '<div class="info">ℹ️ Table did not exist: <strong>' . htmlspecialchars($matches[1]) . '</strong></div>';
+                }
             } else {
                 $errors[] = $e->getMessage();
                 echo '<div class="error">✗ Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
+                // Rollback on error
+                $pdo->rollBack();
+                throw $e; // Re-throw to stop execution
             }
         }
     }
+    
+    // Commit transaction
+    $pdo->commit();
     
     if (empty($errors)) {
         echo '<div class="success">';
@@ -197,27 +213,33 @@ try {
     
     // First, show current database
     try {
-        $currentDb = $pdo->query("SELECT DATABASE() as db")->fetch();
-        echo '<div class="info">';
-        echo '<strong>Current Database:</strong> ' . htmlspecialchars($currentDb['db']);
-        echo '</div>';
+        $stmt = $pdo->query("SELECT DATABASE() as db");
+        if ($stmt) {
+            $currentDb = $stmt->fetch();
+            echo '<div class="info">';
+            echo '<strong>Current Database:</strong> ' . htmlspecialchars($currentDb['db'] ?? 'Unknown');
+            echo '</div>';
+        }
     } catch (PDOException $e) {
-        echo '<div class="error">Could not determine current database</div>';
+        echo '<div class="error">Could not determine current database: ' . htmlspecialchars($e->getMessage()) . '</div>';
     }
     
     // Show all tables in database
     try {
-        $allTables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
-        echo '<div class="info">';
-        echo '<strong>All Tables in Database:</strong><br>';
-        if (empty($allTables)) {
-            echo '<em>No tables found</em>';
-        } else {
-            echo '<pre>' . htmlspecialchars(implode("\n", $allTables)) . '</pre>';
+        $stmt = $pdo->query("SHOW TABLES");
+        if ($stmt) {
+            $allTables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            echo '<div class="info">';
+            echo '<strong>All Tables in Database (' . count($allTables) . '):</strong><br>';
+            if (empty($allTables)) {
+                echo '<em>No tables found</em>';
+            } else {
+                echo '<pre>' . htmlspecialchars(implode("\n", $allTables)) . '</pre>';
+            }
+            echo '</div>';
         }
-        echo '</div>';
     } catch (PDOException $e) {
-        echo '<div class="error">Could not list tables</div>';
+        echo '<div class="error">Could not list tables: ' . htmlspecialchars($e->getMessage()) . '</div>';
     }
     
     $tables = ['driver_messages', 'message_attachments'];
