@@ -195,6 +195,31 @@ try {
     // Show table verification
     echo '<h2>🔍 Table Verification</h2>';
     
+    // First, show current database
+    try {
+        $currentDb = $pdo->query("SELECT DATABASE() as db")->fetch();
+        echo '<div class="info">';
+        echo '<strong>Current Database:</strong> ' . htmlspecialchars($currentDb['db']);
+        echo '</div>';
+    } catch (PDOException $e) {
+        echo '<div class="error">Could not determine current database</div>';
+    }
+    
+    // Show all tables in database
+    try {
+        $allTables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+        echo '<div class="info">';
+        echo '<strong>All Tables in Database:</strong><br>';
+        if (empty($allTables)) {
+            echo '<em>No tables found</em>';
+        } else {
+            echo '<pre>' . htmlspecialchars(implode("\n", $allTables)) . '</pre>';
+        }
+        echo '</div>';
+    } catch (PDOException $e) {
+        echo '<div class="error">Could not list tables</div>';
+    }
+    
     $tables = ['driver_messages', 'message_attachments'];
     
     foreach ($tables as $table) {
