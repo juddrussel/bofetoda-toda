@@ -1464,7 +1464,7 @@ function render_sidebar($active) {
 <?php
 }
 
-function render_topbar($crumb, $title, $sub) {
+function render_topbar($crumb, $title, $sub = '') {
 ?>
   <div class="topbar">
     <div>
