@@ -115,11 +115,24 @@ try {
     }
     
     // Split into individual statements (separated by semicolons)
+    // Remove comments and empty lines first
+    $sqlLines = explode("\n", $sql);
+    $cleanedSql = '';
+    
+    foreach ($sqlLines as $line) {
+        $line = trim($line);
+        // Skip comment lines and empty lines
+        if (empty($line) || strpos($line, '--') === 0) {
+            continue;
+        }
+        $cleanedSql .= $line . "\n";
+    }
+    
+    // Now split by semicolons
     $statements = array_filter(
-        array_map('trim', explode(';', $sql)),
+        array_map('trim', explode(';', $cleanedSql)),
         function($stmt) {
-            // Filter out empty statements and comments
-            return !empty($stmt) && !preg_match('/^--/', $stmt);
+            return !empty($stmt) && strlen($stmt) > 10; // At least some meaningful content
         }
     );
     
