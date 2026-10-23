@@ -1,7 +1,7 @@
 <?php
 
-
-function get_pdo(): PDO {
+if (!function_exists('get_pdo')) {
+    function get_pdo(): PDO {
     static $pdo = null;
     if ($pdo !== null) {
         return $pdo;
@@ -37,4 +37,5 @@ function get_pdo(): PDO {
     }
 
     return $pdo;
+    }
 }
