@@ -2669,8 +2669,6 @@ function get_drivers_with_messages($sortBy = 'newest') {
         return [];
     }
 }
-    }
-}
 
 /**
  * Get last message preview for a driver (for inbox list)
