@@ -1240,7 +1240,7 @@ function format_file_size($bytes) {
  * Mark all officer messages as read for a driver
  */
 function mark_messages_as_read($driverId) {
-    global $pdo;
+    $pdo = get_pdo();
     
     try {
         $stmt = $pdo->prepare("
