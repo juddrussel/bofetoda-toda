@@ -151,13 +151,13 @@ try {
             $successCount++;
             
             // Extract table name from CREATE TABLE statement for display
-            if (preg_match('/CREATE TABLE.*?`?(\w+)`?/i', $statement, $matches)) {
+            if (preg_match('/CREATE TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s+`?(\w+)`?/i', $statement, $matches)) {
                 echo '<div class="success">✓ Created table: <strong>' . htmlspecialchars($matches[1]) . '</strong></div>';
             }
         } catch (PDOException $e) {
             // Check if error is "table already exists"
             if (strpos($e->getMessage(), 'already exists') !== false) {
-                if (preg_match('/CREATE TABLE.*?`?(\w+)`?/i', $statement, $matches)) {
+                if (preg_match('/CREATE TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s+`?(\w+)`?/i', $statement, $matches)) {
                     echo '<div class="info">ℹ️ Table already exists: <strong>' . htmlspecialchars($matches[1]) . '</strong></div>';
                 }
             } else {

@@ -4,7 +4,10 @@
 
 -- Table 1: driver_messages
 -- Stores all messages in driver-officer conversations
-CREATE TABLE IF NOT EXISTS driver_messages (
+DROP TABLE IF EXISTS message_attachments;
+DROP TABLE IF EXISTS driver_messages;
+
+CREATE TABLE driver_messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     driver_id VARCHAR(20) NOT NULL,
     sender_type ENUM('driver', 'officer') NOT NULL,
@@ -22,7 +25,7 @@ CREATE TABLE IF NOT EXISTS driver_messages (
 
 -- Table 2: message_attachments
 -- Stores file attachments for messages
-CREATE TABLE IF NOT EXISTS message_attachments (
+CREATE TABLE message_attachments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     message_id INT NOT NULL,
     file_name VARCHAR(255) NOT NULL,
