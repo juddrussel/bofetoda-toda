@@ -1,8 +1,9 @@
 <?php
 
-// Prevent multiple inclusions - use unique approach
+// Prevent multiple inclusions
 if (!defined('R2_STORAGE_FUNCTIONS_DEFINED')) {
     define('R2_STORAGE_FUNCTIONS_DEFINED', true);
+}
 
 /**
  * Cloudflare R2 Storage Integration
@@ -657,5 +658,3 @@ function get_message_attachment_url($filePath) {
     
     return $filePath;
 }
-
-} // End of R2_STORAGE_FUNCTIONS_DEFINED guard
