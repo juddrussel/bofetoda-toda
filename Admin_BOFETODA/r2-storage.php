@@ -657,3 +657,5 @@ function get_message_attachment_url($filePath) {
     
     return $filePath;
 }
+
+} // End of R2_STORAGE_FUNCTIONS_DEFINED guard
