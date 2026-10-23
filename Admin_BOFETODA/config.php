@@ -2643,7 +2643,7 @@ function get_drivers_with_messages($sortBy = 'newest') {
             ? 'ORDER BY d.name ASC' 
             : 'ORDER BY last_message_time DESC';
         
-        $stmt = $pdo->query("
+        $sql = "
             SELECT 
                 d.driver_id,
                 d.name,
@@ -2655,7 +2655,9 @@ function get_drivers_with_messages($sortBy = 'newest') {
             INNER JOIN driver_messages m ON d.driver_id = m.driver_id
             GROUP BY d.driver_id, d.name, d.avatar_path
             $orderClause
-        ");
+        ";
+        
+        $stmt = $pdo->query($sql);
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -2680,7 +2682,7 @@ function get_last_message_preview($driverId, $maxLength = 50) {
             SELECT message_text, sender_type
             FROM driver_messages 
             WHERE driver_id = :driver_id 
-            ORDER BY created_at DESC 
+            ORDER BY sent_at DESC 
             LIMIT 1
         ");
         
