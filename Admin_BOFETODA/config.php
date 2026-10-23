@@ -2647,7 +2647,6 @@ function get_drivers_with_messages($sortBy = 'newest') {
             SELECT 
                 d.driver_id,
                 d.name,
-                d.avatar_path,
                 COUNT(DISTINCT m.message_id) as total_messages,
                 SUM(CASE WHEN m.sender_type = 'driver' AND m.is_read = 0 THEN 1 ELSE 0 END) as unread_count,
                 MAX(m.sent_at) as last_message_time
