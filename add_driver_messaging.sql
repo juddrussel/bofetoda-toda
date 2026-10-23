@@ -5,39 +5,36 @@
 -- Table 1: driver_messages
 -- Stores all messages in driver-officer conversations
 CREATE TABLE IF NOT EXISTS driver_messages (
-    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     driver_id VARCHAR(20) NOT NULL,
     sender_type ENUM('driver', 'officer') NOT NULL,
-    sender_id INT NOT NULL COMMENT 'driver_id as INT or officer_id',
+    sender_id VARCHAR(20) NOT NULL COMMENT 'driver_id or officer_id',
     message_text TEXT NOT NULL,
-    has_attachments BOOLEAN DEFAULT FALSE,
-    is_read BOOLEAN DEFAULT FALSE COMMENT 'Whether officer has read this message',
-    has_reply BOOLEAN DEFAULT FALSE COMMENT 'Whether driver message has officer reply',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    has_attachments TINYINT(1) DEFAULT 0,
+    is_read TINYINT(1) DEFAULT 0 COMMENT 'Whether officer has read this message',
+    has_reply TINYINT(1) DEFAULT 0 COMMENT 'Whether driver message has officer reply',
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    INDEX idx_driver_id (driver_id),
-    INDEX idx_created_at (created_at),
-    INDEX idx_is_read (is_read),
-    INDEX idx_sender_type (sender_type),
-    INDEX idx_driver_unread (driver_id, is_read),
-    
-    FOREIGN KEY (driver_id) REFERENCES drivers(driver_id) ON DELETE CASCADE
+    INDEX idx_driver_messages (driver_id, sent_at),
+    INDEX idx_unread_messages (driver_id, is_read, sender_type),
+    INDEX idx_unreplied_messages (driver_id, has_reply, sender_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table 2: message_attachments
 -- Stores file attachments for messages
 CREATE TABLE IF NOT EXISTS message_attachments (
-    attachment_id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     message_id INT NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(500) NOT NULL COMMENT 'R2 key or local path',
+    file_path VARCHAR(500) NULL COMMENT 'Local path if not in R2',
     file_size INT NOT NULL COMMENT 'File size in bytes',
     file_type VARCHAR(100) NOT NULL COMMENT 'MIME type',
+    r2_key VARCHAR(500) NULL COMMENT 'R2 storage key',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    INDEX idx_message_id (message_id),
+    INDEX idx_message_attachments (message_id),
     
-    FOREIGN KEY (message_id) REFERENCES driver_messages(message_id) ON DELETE CASCADE
+    FOREIGN KEY (message_id) REFERENCES driver_messages(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Success message
