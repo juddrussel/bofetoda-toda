@@ -59,7 +59,7 @@ function current_driver() {
 
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
-        'SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no, d.address,
+        'SELECT d.driver_id AS id, d.driver_id, d.name, d.age, d.birthday, d.contact_no, d.address,
                 d.body_no, b.name AS barangay, c.name AS color_code
          FROM drivers d
          LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
