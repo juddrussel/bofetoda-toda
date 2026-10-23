@@ -838,18 +838,20 @@ function get_announcement_details($id) {
  * @param int $announcementId Announcement ID
  * @return array List of images
  */
-function get_announcement_images($announcementId) {
-    $pdo = get_pdo();
-    
-    $stmt = $pdo->prepare(
-        "SELECT image_id, image_path, display_order, uploaded_at
-         FROM announcement_images
-         WHERE announcement_id = :announcement_id
-         ORDER BY display_order ASC, image_id ASC"
-    );
-    $stmt->execute(['announcement_id' => $announcementId]);
-    
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+if (!function_exists('get_announcement_images')) {
+    function get_announcement_images($announcementId) {
+        $pdo = get_pdo();
+        
+        $stmt = $pdo->prepare(
+            "SELECT image_id, image_path, display_order, uploaded_at
+             FROM announcement_images
+             WHERE announcement_id = :announcement_id
+             ORDER BY display_order ASC, image_id ASC"
+        );
+        $stmt->execute(['announcement_id' => $announcementId]);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 /**

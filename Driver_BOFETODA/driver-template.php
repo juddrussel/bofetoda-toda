@@ -1364,7 +1364,10 @@ function render_bottom_nav($active_page) {
         <span>Submit</span>
     </a>
     <a href="driver-messages.php" class="nav-item <?php echo $active_page === 'messages' ? 'active' : ''; ?>">
-        <?php $unrepliedCount = get_my_unread_reply_count(current_driver()['id']); ?>
+        <?php 
+        $currentDriver = current_driver();
+        $unrepliedCount = !empty($currentDriver['id']) ? get_my_unread_reply_count($currentDriver['id']) : 0; 
+        ?>
         <?php if ($unrepliedCount > 0): ?>
             <span class="notif-badge"><?php echo $unrepliedCount > 9 ? '9+' : $unrepliedCount; ?></span>
         <?php endif; ?>
