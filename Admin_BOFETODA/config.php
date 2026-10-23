@@ -978,10 +978,12 @@ function db_change_officer_password($officerId, $currentPassword, $newPassword) 
     return true;
 }
 
-function require_login() {
-    if (empty($_SESSION['officer_id'])) {
-        header('Location: ' . BASE_URL . '/login.php');
-        exit;
+if (!function_exists('require_login')) {
+    function require_login() {
+        if (empty($_SESSION['officer_id'])) {
+            header('Location: ' . BASE_URL . '/login.php');
+            exit;
+        }
     }
 }
 

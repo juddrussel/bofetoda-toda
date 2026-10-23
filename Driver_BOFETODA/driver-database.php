@@ -30,10 +30,12 @@ function h($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-function require_login() {
-    if (empty($_SESSION['logged_in']) || empty($_SESSION['driver_id'])) {
-        header('Location: driver-login.php');
-        exit;
+if (!function_exists('require_login')) {
+    function require_login() {
+        if (empty($_SESSION['logged_in']) || empty($_SESSION['driver_id'])) {
+            header('Location: driver-login.php');
+            exit;
+        }
     }
 }
 

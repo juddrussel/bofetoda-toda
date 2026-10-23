@@ -4,7 +4,12 @@ require 'driver-database.php';
 require 'driver-template.php';
 
 $driver = require_driver();
-$driver_id = $driver['id'];
+$driver_id = $driver['id'] ?? null;
+
+if (!$driver_id) {
+    header('Location: driver-login.php');
+    exit;
+}
 
 // Handle form submission
 $error_message = '';
