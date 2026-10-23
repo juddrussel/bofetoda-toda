@@ -3,7 +3,9 @@
 require_once __DIR__ . '/db.php';
 // Note: r2-storage.php is included by individual pages that need it
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 date_default_timezone_set('Asia/Manila');
 
 define('APP_NAME', 'Bocaue TODA Inc.');
@@ -1638,13 +1640,15 @@ document.addEventListener('DOMContentLoaded', function () {
 /**
  * Available security questions for password recovery
  */
-define('SECURITY_QUESTIONS', [
-    1 => "What is your mother's maiden name?",
-    2 => "What city were you born in?",
-    3 => "What is the name of your first pet?",
-    4 => "What was your childhood nickname?",
-    5 => "What is your favorite color?",
-]);
+if (!defined('SECURITY_QUESTIONS')) {
+    define('SECURITY_QUESTIONS', [
+        1 => "What is your mother's maiden name?",
+        2 => "What city were you born in?",
+        3 => "What is the name of your first pet?",
+        4 => "What was your childhood nickname?",
+        5 => "What is your favorite color?",
+    ]);
+}
 
 /**
  * Normalize security answer for case-insensitive matching
@@ -2362,7 +2366,7 @@ function get_driver_messages($driverId) {
         LEFT JOIN officers o ON m.sender_type = 'officer' AND m.sender_id = o.officer_id
         LEFT JOIN drivers d ON m.sender_type = 'driver' AND m.sender_id = d.driver_id
         WHERE m.driver_id = :driver_id
-        ORDER BY m.created_at ASC
+        ORDER BY m.sent_at ASC
     ");
     
     $stmt->execute(['driver_id' => $driverId]);
@@ -2646,7 +2650,7 @@ function get_drivers_with_messages($sortBy = 'newest') {
                 d.avatar_path,
                 COUNT(DISTINCT m.message_id) as total_messages,
                 SUM(CASE WHEN m.sender_type = 'driver' AND m.is_read = 0 THEN 1 ELSE 0 END) as unread_count,
-                MAX(m.created_at) as last_message_time
+                MAX(m.sent_at) as last_message_time
             FROM drivers d
             INNER JOIN driver_messages m ON d.driver_id = m.driver_id
             GROUP BY d.driver_id, d.name, d.avatar_path
