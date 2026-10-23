@@ -207,6 +207,7 @@ try {
         $stmt = $pdo->query("SELECT DATABASE() as db");
         if ($stmt) {
             $currentDb = $stmt->fetch();
+            $stmt->closeCursor(); // Close cursor to avoid buffering issues
             echo '<div class="info">';
             echo '<strong>Current Database:</strong> ' . htmlspecialchars($currentDb['db'] ?? 'Unknown');
             echo '</div>';
@@ -220,6 +221,7 @@ try {
         $stmt = $pdo->query("SHOW TABLES");
         if ($stmt) {
             $allTables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            $stmt->closeCursor(); // Close cursor
             echo '<div class="info">';
             echo '<strong>All Tables in Database (' . count($allTables) . '):</strong><br>';
             if (empty($allTables)) {
@@ -239,6 +241,7 @@ try {
         try {
             $stmt = $pdo->query("DESCRIBE `$table`");
             $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->closeCursor(); // Close cursor
             
             echo '<div class="success">';
             echo '<strong>✓ Table: ' . htmlspecialchars($table) . '</strong><br>';
