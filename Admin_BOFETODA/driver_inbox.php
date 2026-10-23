@@ -12,6 +12,10 @@ $drivers_with_messages = get_drivers_with_messages();
 // Get unread count for badge
 $unread_count = get_unread_message_count();
 
+// Debug: Check what we're getting
+error_log('Driver Inbox: Found ' . count($drivers_with_messages) . ' drivers with messages');
+error_log('Driver Inbox: Unread count = ' . $unread_count);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

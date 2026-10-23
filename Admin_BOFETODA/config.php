@@ -2653,17 +2653,23 @@ function get_drivers_with_messages($sortBy = 'newest') {
                 MAX(m.sent_at) as last_message_time
             FROM drivers d
             INNER JOIN driver_messages m ON d.driver_id = m.driver_id
-            GROUP BY d.driver_id, d.name, d.avatar_path
+            WHERE d.is_archived = 0
+            GROUP BY d.driver_id
             $orderClause
         ";
         
         $stmt = $pdo->query($sql);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        error_log('get_drivers_with_messages returned ' . count($results) . ' drivers');
+        
+        return $results;
         
     } catch (Exception $e) {
         error_log('get_drivers_with_messages failed: ' . $e->getMessage());
         return [];
+    }
+}
     }
 }
 
