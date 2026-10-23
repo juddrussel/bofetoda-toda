@@ -88,7 +88,8 @@ if (!function_exists('is_r2_enabled')) {
  * @param string $objectKey The key (path) to store the file in R2
  * @return string|false Public URL of uploaded file or false on failure
  */
-function r2_upload_file($file, $objectKey) {
+if (!function_exists('r2_upload_file')) {
+    function r2_upload_file($file, $objectKey) {
     $client = get_r2_client();
     
     if (!$client) {
@@ -119,6 +120,7 @@ function r2_upload_file($file, $objectKey) {
         error_log('R2 upload failed: ' . $e->getMessage());
         return false;
     }
+    }
 }
 
 /**
@@ -127,7 +129,8 @@ function r2_upload_file($file, $objectKey) {
  * @param string $objectKey The key (path) of the file in R2
  * @return bool Success status
  */
-function r2_delete_file($objectKey) {
+if (!function_exists('r2_delete_file')) {
+    function r2_delete_file($objectKey) {
     $client = get_r2_client();
     
     if (!$client) {
@@ -147,6 +150,7 @@ function r2_delete_file($objectKey) {
         error_log('R2 delete failed: ' . $e->getMessage());
         return false;
     }
+    }
 }
 
 /**
@@ -156,7 +160,8 @@ function r2_delete_file($objectKey) {
  * @param array $file File data from $_FILES
  * @return array|false ['url' => string, 'path' => string] or false on failure
  */
-function upload_announcement_image_r2($announcementId, $file) {
+if (!function_exists('upload_announcement_image_r2')) {
+    function upload_announcement_image_r2($announcementId, $file) {
     // Validate image first
     if (!validate_announcement_image($file)) {
         return false;
@@ -200,6 +205,7 @@ function upload_announcement_image_r2($announcementId, $file) {
     }
     
     return false;
+    }
 }
 
 /**
@@ -208,7 +214,8 @@ function upload_announcement_image_r2($announcementId, $file) {
  * @param string $imagePath Path or key of the image
  * @return bool Success status
  */
-function delete_announcement_image_r2($imagePath) {
+if (!function_exists('delete_announcement_image_r2')) {
+    function delete_announcement_image_r2($imagePath) {
     // Check if it's an R2 URL
     $publicUrl = getenv('R2_PUBLIC_URL');
     
@@ -232,6 +239,7 @@ function delete_announcement_image_r2($imagePath) {
     }
     
     return false;
+    }
 }
 
 
@@ -243,7 +251,8 @@ function delete_announcement_image_r2($imagePath) {
  * @param array $file File data from $_FILES
  * @return array|false ['url' => string, 'path' => string, 'storage' => 'r2'|'local'] or false on failure
  */
-function upload_driver_document_r2($driverId, $documentType, $file) {
+if (!function_exists('upload_driver_document_r2')) {
+    function upload_driver_document_r2($driverId, $documentType, $file) {
     // Validate file
     $allowedExt = ['jpg', 'jpeg', 'png', 'pdf'];
     $maxSize = 4 * 1024 * 1024; // 4MB
@@ -301,6 +310,7 @@ function upload_driver_document_r2($driverId, $documentType, $file) {
     }
     
     return false;
+    }
 }
 
 /**
@@ -310,7 +320,8 @@ function upload_driver_document_r2($driverId, $documentType, $file) {
  * @param array $file File data from $_FILES
  * @return array|false ['url' => string, 'path' => string, 'storage' => 'r2'|'local'] or false on failure
  */
-function upload_driver_avatar_r2($driverId, $file) {
+if (!function_exists('upload_driver_avatar_r2')) {
+    function upload_driver_avatar_r2($driverId, $file) {
     // Validate file
     $allowedExt = ['jpg', 'jpeg', 'png'];
     $maxSize = 4 * 1024 * 1024; // 4MB
@@ -378,6 +389,7 @@ function upload_driver_avatar_r2($driverId, $file) {
     }
     
     return false;
+    }
 }
 
 /**
@@ -386,7 +398,8 @@ function upload_driver_avatar_r2($driverId, $file) {
  * @param string $filePath Path or key of the file
  * @return bool Success status
  */
-function delete_driver_file_r2($filePath) {
+if (!function_exists('delete_driver_file_r2')) {
+    function delete_driver_file_r2($filePath) {
     // Check if it's an R2 URL
     $publicUrl = getenv('R2_PUBLIC_URL');
     
@@ -418,6 +431,7 @@ function delete_driver_file_r2($filePath) {
     }
     
     return false;
+    }
 }
 
 /**
@@ -427,7 +441,8 @@ function delete_driver_file_r2($filePath) {
  * @param string $filePath File path from database
  * @return string Full URL to the file
  */
-function get_file_url($filePath) {
+if (!function_exists('get_file_url')) {
+    function get_file_url($filePath) {
     // If it's already a full URL (R2), return as-is
     if (strpos($filePath, 'https://') === 0 || strpos($filePath, 'http://') === 0) {
         return $filePath;
@@ -451,6 +466,7 @@ function get_file_url($filePath) {
     }
     
     return $filePath;
+    }
 }
 
 /**
@@ -460,7 +476,8 @@ function get_file_url($filePath) {
  * @param array $files Array of files from $_FILES (e.g., ['drivers_license' => $file, 'or_cr' => $file])
  * @return array ['success' => bool, 'paths' => array, 'errors' => array]
  */
-function batch_upload_driver_documents($driverId, $files) {
+if (!function_exists('batch_upload_driver_documents')) {
+    function batch_upload_driver_documents($driverId, $files) {
     $result = [
         'success' => true,
         'paths' => [],
@@ -485,6 +502,7 @@ function batch_upload_driver_documents($driverId, $files) {
     }
     
     return $result;
+    }
 }
 
 /**
@@ -493,7 +511,8 @@ function batch_upload_driver_documents($driverId, $files) {
  * @param array $file File data from $_FILES
  * @return bool True if valid, false otherwise
  */
-function validate_message_attachment($file) {
+if (!function_exists('validate_message_attachment')) {
+    function validate_message_attachment($file) {
     // Check file upload errors
     if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
         return false;
@@ -535,6 +554,7 @@ function validate_message_attachment($file) {
     }
     
     return true;
+    }
 }
 
 /**
@@ -545,7 +565,8 @@ function validate_message_attachment($file) {
  * @param array $file File data from $_FILES
  * @return array|false ['url' => string, 'path' => string, 'storage' => 'r2'|'local'] or false on failure
  */
-function upload_message_attachment_r2($driverId, $messageId, $file) {
+if (!function_exists('upload_message_attachment_r2')) {
+    function upload_message_attachment_r2($driverId, $messageId, $file) {
     // Validate file first
     if (!validate_message_attachment($file)) {
         return false;
@@ -590,6 +611,7 @@ function upload_message_attachment_r2($driverId, $messageId, $file) {
     }
     
     return false;
+    }
 }
 
 /**
@@ -598,7 +620,8 @@ function upload_message_attachment_r2($driverId, $messageId, $file) {
  * @param string $filePath Path or key of the attachment
  * @return bool Success status
  */
-function delete_message_attachment_r2($filePath) {
+if (!function_exists('delete_message_attachment_r2')) {
+    function delete_message_attachment_r2($filePath) {
     // Check if it's an R2 URL
     $publicUrl = getenv('R2_PUBLIC_URL');
     
@@ -622,6 +645,7 @@ function delete_message_attachment_r2($filePath) {
     }
     
     return false;
+    }
 }
 
 /**
@@ -631,7 +655,8 @@ function delete_message_attachment_r2($filePath) {
  * @param string $filePath File path from database
  * @return string Full URL to the file
  */
-function get_message_attachment_url($filePath) {
+if (!function_exists('get_message_attachment_url')) {
+    function get_message_attachment_url($filePath) {
     // If it's already a full URL (R2), return as-is
     if (strpos($filePath, 'https://') === 0 || strpos($filePath, 'http://') === 0) {
         return $filePath;
@@ -654,4 +679,5 @@ function get_message_attachment_url($filePath) {
     }
     
     return $filePath;
+    }
 }
