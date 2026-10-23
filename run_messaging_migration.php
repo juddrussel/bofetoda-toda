@@ -138,9 +138,6 @@ try {
     
     echo '<h2>📋 Executing Migration...</h2>';
     
-    // Begin transaction for safety
-    $pdo->beginTransaction();
-    
     $successCount = 0;
     $errors = [];
     
@@ -173,15 +170,9 @@ try {
             } else {
                 $errors[] = $e->getMessage();
                 echo '<div class="error">✗ Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
-                // Rollback on error
-                $pdo->rollBack();
-                throw $e; // Re-throw to stop execution
             }
         }
     }
-    
-    // Commit transaction
-    $pdo->commit();
     
     if (empty($errors)) {
         echo '<div class="success">';
