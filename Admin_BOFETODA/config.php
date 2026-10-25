@@ -2431,7 +2431,19 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
             VALUES (:driver_id, :sender_type, :sender_id, :message_text, :has_attachments, :is_read, :has_reply)
         ");
         
-        $hasAttachments = !empty($files) && !empty($files['tmp_name']);
+        // Check if files were uploaded
+        $hasAttachments = false;
+        if (!empty($files)) {
+            if (is_array($files['tmp_name'])) {
+                // Multiple files
+                $hasAttachments = !empty($files['tmp_name'][0]) && $files['error'][0] === UPLOAD_ERR_OK;
+            } else {
+                // Single file
+                $hasAttachments = !empty($files['tmp_name']) && $files['error'] === UPLOAD_ERR_OK;
+            }
+        }
+        
+        error_log("send_driver_message: hasAttachments=$hasAttachments, files is " . (empty($files) ? "empty" : "not empty"));
         
         // Set is_read based on sender (officer messages are pre-read)
         $isRead = ($senderType === 'officer') ? 1 : 0;
