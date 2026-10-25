@@ -138,7 +138,10 @@ function send_push_notification($userId, $userType, $title, $body, $url = null, 
                 error_log("Push notification failed for endpoint: $reason");
                 
                 // Check if subscription is expired or invalid
-                if ($report->isSubscriptionExpired() || $report->getStatusCode() === 410) {
+                $response = $report->getResponse();
+                $statusCode = $response ? $response->getStatusCode() : null;
+                
+                if ($report->isSubscriptionExpired() || $statusCode === 410) {
                     error_log("Removing expired subscription: $endpoint");
                     $pdo->prepare("DELETE FROM push_subscriptions WHERE endpoint = ?")
                         ->execute([$endpoint]);
@@ -147,7 +150,7 @@ function send_push_notification($userId, $userType, $title, $body, $url = null, 
                 $failures[] = [
                     'endpoint' => $endpoint,
                     'error' => $reason,
-                    'status_code' => $report->getStatusCode()
+                    'status_code' => $statusCode
                 ];
             }
         }
