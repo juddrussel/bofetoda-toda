@@ -1166,7 +1166,7 @@ function paginate_array($items, $page = 1, $perPage = 25) {
     $total = count($items);
     $totalPages = max(1, (int) ceil($total / $perPage));
     $page = max(1, min($page, $totalPages));
-    $offset = ($page - 1) * $perPage);
+    $offset = ($page - 1) * $perPage;
     
     return [
         'items' => array_slice($items, $offset, $perPage),
