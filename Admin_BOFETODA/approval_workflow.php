@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$queue = get_for_approval_applications();
+$queue = get_pending_applications(); // Changed from get_for_approval_applications()
 $totalApplications = count_applications();
 $barangays_list = array_keys(d('barangays'));
 sort($barangays_list);
