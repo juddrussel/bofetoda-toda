@@ -1422,6 +1422,7 @@ function render_footer($active_page = '') {
 <script src="/assets/js/notification-settings.js"></script>
 <?php if ($pushEnabled): ?>
 <script src="/register-sw.js"></script>
+<script src="/assets/js/notification-banner.js"></script>
 <?php endif; ?>
 </body>
 </html>
