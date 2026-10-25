@@ -136,7 +136,7 @@ render_header([
         // Get documents for this application
         require_once __DIR__ . '/../Admin_BOFETODA/db.php';
         $pdo = get_pdo();
-        $docStmt = $pdo->prepare('SELECT doc_type, file_path, r2_key FROM application_documents WHERE app_no = :app_no');
+        $docStmt = $pdo->prepare('SELECT doc_type, file_path FROM application_documents WHERE app_no = :app_no');
         $docStmt->execute(['app_no' => $app_no]);
         $documents = $docStmt->fetchAll(PDO::FETCH_ASSOC);
         
