@@ -2358,6 +2358,7 @@ function get_driver_messages($driverId) {
                 WHEN m.sender_type = 'officer' THEN o.name
                 WHEN m.sender_type = 'driver' THEN d.name
             END as sender_name,
+            o.name as officer_name,
             CASE 
                 WHEN m.sender_type = 'officer' THEN o.role
                 ELSE NULL
@@ -2375,7 +2376,7 @@ function get_driver_messages($driverId) {
     // Get attachments for each message
     foreach ($messages as &$message) {
         if ($message['has_attachments']) {
-            $message['attachments'] = get_message_attachments($message['message_id']);
+            $message['attachments'] = get_message_attachments($message['id']);
         } else {
             $message['attachments'] = [];
         }
