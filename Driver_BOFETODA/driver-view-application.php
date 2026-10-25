@@ -49,7 +49,91 @@ render_header([
             </div>
         </div>
 
-        <a href="driver-renewal.php?start=1" class="btn btn-primary">Re-Apply</a>
+        <!-- Application Details -->
+        <div class="card" style="margin-top:16px;">
+            <div class="card-title">Application Details</div>
+            
+            <div class="detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+                <div class="detail-item">
+                    <div class="detail-label">Name</div>
+                    <div class="detail-value"><?php echo h($app['name']); ?></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Body Number</div>
+                    <div class="detail-value"><?php echo h($app['body_no']); ?></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Age</div>
+                    <div class="detail-value"><?php echo h($app['age']); ?></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Birthday</div>
+                    <div class="detail-value"><?php echo h(date('M j, Y', strtotime($app['birthday']))); ?></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Contact Number</div>
+                    <div class="detail-value"><?php echo h($app['contact_no']); ?></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Barangay</div>
+                    <div class="detail-value"><?php echo h($app['barangay'] ?? '—'); ?></div>
+                </div>
+                <div class="detail-item" style="grid-column:1/-1;">
+                    <div class="detail-label">Address</div>
+                    <div class="detail-value"><?php echo h($app['address']); ?></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submitted Documents -->
+        <?php
+        // Get documents for this application
+        require_once __DIR__ . '/../Admin_BOFETODA/db.php';
+        $pdo = get_pdo();
+        $docStmt = $pdo->prepare('SELECT doc_type, file_path FROM application_documents WHERE app_no = :app_no');
+        $docStmt->execute(['app_no' => $app_no]);
+        $documents = $docStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $docLabels = [
+            'license' => "Driver's License",
+            'or_cr' => 'OR/CR',
+            'receipt' => 'Payment Receipt',
+            'photo' => '1x1 Picture'
+        ];
+        ?>
+        
+        <div class="card" style="margin-top:16px;">
+            <div class="card-title">Submitted Documents</div>
+            
+            <div class="document-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+                <?php foreach ($documents as $doc): ?>
+                    <button type="button"
+                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type'])); ?>')"
+                       class="document-item" 
+                       style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);background:#fff;transition:all 0.2s ease;cursor:pointer;width:100%;text-align:left;"
+                       onmouseover="this.style.borderColor='var(--color-primary)';this.style.background='#fffdf0';"
+                       onmouseout="this.style.borderColor='var(--color-border)';this.style.background='#fff';">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:36px;height:36px;border-radius:6px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-black);">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;"><?php echo h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type'])); ?></div>
+                                <div style="font-size:11px;color:var(--color-text-muted);margin-top:2px;">Click to preview</div>
+                            </div>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-text-muted);">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <a href="driver-renewal.php?start=1" class="btn btn-primary" style="margin-top:16px;">Re-Apply</a>
 
     <?php else: ?>
         <div class="card">
