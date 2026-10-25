@@ -166,8 +166,8 @@ function forward_to_approval(string $app_no): bool {
             ->execute(['id' => $app['driver_id']]);
 
         $pdo->prepare(
-            'INSERT INTO notifications (driver_id, app_no, title, message)
-             VALUES (:driver_id, :app_no, "Application Validated", :msg)'
+            "INSERT INTO notifications (driver_id, app_no, title, message)
+             VALUES (:driver_id, :app_no, 'Application Validated', :msg)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $app_no,
