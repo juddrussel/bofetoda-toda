@@ -1328,19 +1328,19 @@ function can_submit_assisted_renewal($driver_id) {
 function get_driver_for_assisted_renewal($driver_id) {
     $pdo = get_pdo();
     
-    $stmt = $pdo->prepare('
+    $stmt = $pdo->prepare("
         SELECT 
             d.*,
             b.name AS barangay,
-            c.color_name AS color
+            c.name AS color
         FROM drivers d
         LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
         LEFT JOIN colors c ON c.color_id = d.color_id
-        WHERE d.driver_id = :id
+        WHERE d.driver_id = ?
         AND d.is_archived = 0
         LIMIT 1
-    ');
-    $stmt->execute(['id' => $driver_id]);
+    ");
+    $stmt->execute([$driver_id]);
     
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
