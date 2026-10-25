@@ -2542,26 +2542,32 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
                     $result = upload_message_attachment_r2($driverId, $messageId, $file);
                     
                     if ($result) {
-                        error_log("R2 upload successful: " . $result['path']);
+                        error_log("Upload successful. Storage: " . $result['storage'] . ", Path: " . $result['path']);
+                        
+                        // Determine which fields to set based on storage type
+                        $r2Key = ($result['storage'] === 'r2') ? $result['path'] : null;
+                        $filePath = ($result['storage'] === 'local') ? $result['path'] : null;
+                        
                         // Save attachment info to database
                         $stmt = $pdo->prepare("
                             INSERT INTO message_attachments 
-                            (message_id, file_name, file_path, file_size, file_type)
-                            VALUES (:message_id, :file_name, :file_path, :file_size, :file_type)
+                            (message_id, file_name, file_path, file_size, file_type, r2_key)
+                            VALUES (:message_id, :file_name, :file_path, :file_size, :file_type, :r2_key)
                         ");
                         
                         $stmt->execute([
                             'message_id' => $messageId,
                             'file_name' => $file['name'],
-                            'file_path' => $result['path'],
+                            'file_path' => $filePath,
                             'file_size' => $file['size'],
-                            'file_type' => $file['type']
+                            'file_type' => $file['type'],
+                            'r2_key' => $r2Key
                         ]);
                         
                         $uploadedCount++;
                         error_log("Attachment saved to DB. Total uploaded: $uploadedCount");
                     } else {
-                        error_log("R2 upload failed for file: " . $file['name']);
+                        error_log("Upload failed for file: " . $file['name']);
                     }
                 } else {
                     error_log("upload_message_attachment_r2 function not found!");
