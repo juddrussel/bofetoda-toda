@@ -2377,6 +2377,7 @@ function get_driver_messages($driverId) {
     foreach ($messages as &$message) {
         if ($message['has_attachments']) {
             $message['attachments'] = get_message_attachments($message['id']);
+            error_log("Message {$message['id']} has " . count($message['attachments']) . " attachments");
         } else {
             $message['attachments'] = [];
         }
@@ -2509,7 +2510,7 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
             
             // If no files uploaded successfully, set has_attachments to false
             if ($uploadedCount === 0) {
-                $stmt = $pdo->prepare("UPDATE driver_messages SET has_attachments = 0 WHERE message_id = :id");
+                $stmt = $pdo->prepare("UPDATE driver_messages SET has_attachments = 0 WHERE id = :id");
                 $stmt->execute(['id' => $messageId]);
             }
         }
