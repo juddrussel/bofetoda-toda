@@ -242,7 +242,7 @@ function get_notifications($driver_id = null) {
 function get_latest_cycle_start() {
     $pdo = get_pdo();
     return $pdo->query(
-        "SELECT created_at FROM announcements
+        "SELECT opened_date FROM announcements
          WHERE opened_date <= CURDATE() AND deadline_date >= CURDATE()
          ORDER BY announcement_id DESC LIMIT 1"
     )->fetchColumn() ?: null;
