@@ -1298,6 +1298,19 @@ function render_header(array $opts = []) {
     $topbar_heading = $opts['topbar_heading'] ?? '';
     $topbar_sub     = $opts['topbar_sub']     ?? '';
     $topbar_action  = $opts['topbar_action']  ?? null;
+    
+    // Get VAPID public key for push notifications
+    require_once __DIR__ . '/../Admin_BOFETODA/config.php';
+    $vapidConfig = get_vapid_config();
+    $vapidPublicKey = $vapidConfig['publicKey'] ?? '';
+    
+    // Run reminder scheduler (executes once per day)
+    try {
+        require_once __DIR__ . '/../Admin_BOFETODA/reminder-scheduler.php';
+        check_and_send_reminders();
+    } catch (Exception $e) {
+        error_log('Reminder scheduler error in driver template: ' . $e->getMessage());
+    }
     ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1305,6 +1318,10 @@ function render_header(array $opts = []) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo h($title); ?> | BOFETODA</title>
+<?php if ($vapidPublicKey): ?>
+<meta name="vapid-public-key" content="<?php echo h($vapidPublicKey); ?>">
+<?php endif; ?>
+<link rel="stylesheet" href="/assets/css/toast-notifications.css">
 <style><?php echo APP_CSS; ?></style>
 </head>
 <body>
@@ -1394,9 +1411,18 @@ function render_footer($active_page = '') {
     if ($active_page !== '') {
         render_bottom_nav($active_page);
     }
+    
+    // Include service worker registration for push notifications
+    require_once __DIR__ . '/../Admin_BOFETODA/config.php';
+    $pushEnabled = is_push_enabled();
     ?>
 </div><!-- /.app-shell -->
 <script><?php echo APP_JS; ?></script>
+<script src="/assets/js/toast-notifications.js"></script>
+<script src="/assets/js/notification-settings.js"></script>
+<?php if ($pushEnabled): ?>
+<script src="/register-sw.js"></script>
+<?php endif; ?>
 </body>
 </html>
     <?php

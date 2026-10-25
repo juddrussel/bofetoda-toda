@@ -897,6 +897,35 @@ function db_approve_application($appNo) {
         log_activity('Approved', $app['driver_id'], $officer['id'] ?? null, $officer['role'] ?? 'president');
 
         $pdo->commit();
+        
+        // Send push notification after successful approval
+        try {
+            require_once __DIR__ . '/notification-manager.php';
+            
+            trigger_notification(
+                $app['driver_id'],
+                'driver',
+                'status_change',
+                [
+                    'title' => 'Application Approved',
+                    'message' => "Your application {$appNo} has been approved! Your renewed permit is now issued.",
+                    'url' => '/Driver_BOFETODA/driver-home.php',
+                    'appNo' => $appNo,
+                    'metadata' => [
+                        'app_no' => $appNo,
+                        'status' => 'Approved',
+                        'approved_by' => $officer['id'] ?? null
+                    ]
+                ]
+            );
+            
+            error_log("Approval notification sent for application {$appNo} to driver {$app['driver_id']}");
+            
+        } catch (Exception $e) {
+            error_log('Failed to send approval notification: ' . $e->getMessage());
+            // Don't fail the approval if notification fails
+        }
+        
         return true;
     } catch (Throwable $e) {
         $pdo->rollBack();
@@ -959,6 +988,41 @@ function db_reject_application($appNo, $reasonText, $note) {
         log_activity('Reject', $app['driver_id'], $officer['id'] ?? null, $officer['role'] ?? 'secretary');
 
         $pdo->commit();
+        
+        // Send push notification after successful rejection
+        try {
+            require_once __DIR__ . '/notification-manager.php';
+            
+            $rejectionMessage = $note 
+                ? "Your application {$appNo} was rejected. Reason: {$note}" 
+                : "Your application {$appNo} was rejected. Please review and resubmit.";
+            
+            trigger_notification(
+                $app['driver_id'],
+                'driver',
+                'status_change',
+                [
+                    'title' => 'Application Update',
+                    'message' => $rejectionMessage,
+                    'url' => '/Driver_BOFETODA/driver-view-application.php?app_no=' . urlencode($appNo),
+                    'appNo' => $appNo,
+                    'metadata' => [
+                        'app_no' => $appNo,
+                        'status' => 'Rejected',
+                        'rejected_by' => $officer['id'] ?? null,
+                        'reason' => $reasonText,
+                        'note' => $note
+                    ]
+                ]
+            );
+            
+            error_log("Rejection notification sent for application {$appNo} to driver {$app['driver_id']}");
+            
+        } catch (Exception $e) {
+            error_log('Failed to send rejection notification: ' . $e->getMessage());
+            // Don't fail the rejection if notification fails
+        }
+        
         return true;
     } catch (Throwable $e) {
         $pdo->rollBack();
@@ -1095,6 +1159,23 @@ function row_class_for_status($status) {
 function e($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 
 function render_shared_styles() {
+    // Get VAPID public key for push notifications
+    $vapidConfig = get_vapid_config();
+    $vapidPublicKey = $vapidConfig['publicKey'] ?? '';
+    
+    if ($vapidPublicKey) {
+        echo '<meta name="vapid-public-key" content="' . htmlspecialchars($vapidPublicKey) . '">' . "\n";
+    }
+    
+    echo '<link rel="stylesheet" href="/assets/css/toast-notifications.css">' . "\n";
+    
+    // Run reminder scheduler (executes once per day)
+    try {
+        require_once __DIR__ . '/reminder-scheduler.php';
+        check_and_send_reminders();
+    } catch (Exception $e) {
+        error_log('Reminder scheduler error in admin template: ' . $e->getMessage());
+    }
 ?>
 <style>
 :root{
@@ -1629,6 +1710,11 @@ document.addEventListener('DOMContentLoaded', function () {
   setInterval(updateInboxBadge, 30000);
 });
 </script>
+<script src="/assets/js/toast-notifications.js"></script>
+<script src="/assets/js/notification-settings.js"></script>
+<?php if (is_push_enabled()): ?>
+<script src="/register-sw.js"></script>
+<?php endif; ?>
 <?php
 }
 
@@ -2585,6 +2671,54 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
         }
         
         $pdo->commit();
+        
+        // Send notification after successful message insert
+        try {
+            require_once __DIR__ . '/notification-manager.php';
+            
+            if ($senderType === 'officer') {
+                // Officer replied to driver - notify the driver
+                $officerName = get_officer_name($senderId);
+                $messagePreview = substr($messageText, 0, 100) . (strlen($messageText) > 100 ? '...' : '');
+                
+                trigger_notification(
+                    $driverId,
+                    'driver',
+                    'message_reply',
+                    [
+                        'title' => 'New message from ' . $officerName,
+                        'message' => $messagePreview,
+                        'url' => '/Driver_BOFETODA/driver-messages.php',
+                        'metadata' => [
+                            'message_id' => $messageId,
+                            'sender_type' => 'officer',
+                            'sender_id' => $senderId
+                        ]
+                    ]
+                );
+                
+                error_log("Notification sent to driver $driverId for officer reply");
+                
+            } elseif ($senderType === 'driver') {
+                // Driver sent message - notify all officers
+                $driverName = get_driver_name($driverId);
+                $messagePreview = substr($messageText, 0, 100) . (strlen($messageText) > 100 ? '...' : '');
+                
+                $notifyResult = notify_all_officers(
+                    'New message from ' . $driverName,
+                    $messagePreview,
+                    '/Admin_BOFETODA/driver_conversation.php?driver_id=' . urlencode($driverId),
+                    'message_reply'
+                );
+                
+                error_log("Notification sent to " . $notifyResult['notifications_sent'] . " officers for driver message");
+            }
+            
+        } catch (Exception $e) {
+            error_log('Failed to send message notification: ' . $e->getMessage());
+            // Don't fail the message send if notification fails
+        }
+        
         return $messageId;
         
     } catch (Exception $e) {
@@ -2904,5 +3038,84 @@ function format_file_size_admin($bytes) {
         return round($bytes / 1024, 1) . ' KB';
     } else {
         return round($bytes / 1048576, 1) . ' MB';
+    }
+}
+
+/**
+ * Get VAPID configuration for web push notifications
+ * 
+ * @return array|null Array with publicKey, privateKey, and subject, or null if not configured
+ */
+function get_vapid_config() {
+    $publicKey = getenv('VAPID_PUBLIC_KEY');
+    $privateKey = getenv('VAPID_PRIVATE_KEY');
+    $subject = getenv('VAPID_SUBJECT') ?: 'mailto:admin@bofetoda.com';
+    
+    if (!$publicKey || !$privateKey) {
+        error_log('VAPID keys not configured. Push notifications will not work.');
+        return null;
+    }
+    
+    return [
+        'publicKey' => $publicKey,
+        'privateKey' => $privateKey,
+        'subject' => $subject
+    ];
+}
+
+/**
+ * Check if web push notifications are enabled
+ * 
+ * @return bool True if VAPID keys are configured
+ */
+function is_push_enabled() {
+    return get_vapid_config() !== null;
+}
+
+/**
+ * Get officer name by ID
+ * 
+ * @param int $officerId Officer ID
+ * @return string Officer name or 'Officer'
+ */
+function get_officer_name($officerId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("SELECT name FROM officers WHERE officer_id = :id");
+        $stmt->execute(['id' => $officerId]);
+        $name = $stmt->fetchColumn();
+        
+        return $name ?: 'Officer';
+        
+    } catch (Exception $e) {
+        error_log('get_officer_name error: ' . $e->getMessage());
+        return 'Officer';
+    }
+}
+
+/**
+ * Get driver name by ID
+ * 
+ * @param string $driverId Driver ID
+ * @return string Driver name or driver ID
+ */
+function get_driver_name($driverId) {
+    $pdo = get_pdo();
+    
+    try {
+        $stmt = $pdo->prepare("SELECT first_name, last_name FROM drivers WHERE driver_id = :id");
+        $stmt->execute(['id' => $driverId]);
+        $driver = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($driver) {
+            return trim($driver['first_name'] . ' ' . $driver['last_name']);
+        }
+        
+        return $driverId;
+        
+    } catch (Exception $e) {
+        error_log('get_driver_name error: ' . $e->getMessage());
+        return $driverId;
     }
 }
