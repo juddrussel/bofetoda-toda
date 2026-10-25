@@ -85,8 +85,13 @@
      */
     async function subscribeToPush(registration) {
         try {
-            // Check current permission
-            const permission = await Notification.requestPermission();
+            // Request permission if not already granted
+            let permission = Notification.permission;
+            
+            if (permission === 'default') {
+                console.log('[Push Subscribe] Requesting permission...');
+                permission = await Notification.requestPermission();
+            }
             
             if (permission !== 'granted') {
                 console.log('[Push Subscribe] Permission denied:', permission);
