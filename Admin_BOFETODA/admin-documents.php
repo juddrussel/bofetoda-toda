@@ -228,9 +228,9 @@ function reject_application(string $app_no, string $reason, string $note = ''): 
             ->execute(['id' => $app['driver_id']]);
 
         $pdo->prepare(
-            'INSERT INTO renewal_history (driver_id, app_no, renewal_year, decided_at, status)
-             VALUES (:driver_id, :app_no, :year, CURDATE(), "REJECTED")
-             ON DUPLICATE KEY UPDATE app_no = VALUES(app_no), decided_at = VALUES(decided_at), status = VALUES(status)'
+            "INSERT INTO renewal_history (driver_id, app_no, renewal_year, decided_at, status)
+             VALUES (:driver_id, :app_no, :year, CURDATE(), 'REJECTED')
+             ON DUPLICATE KEY UPDATE app_no = VALUES(app_no), decided_at = VALUES(decided_at), status = VALUES(status)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $app_no,
@@ -238,8 +238,8 @@ function reject_application(string $app_no, string $reason, string $note = ''): 
         ]);
 
         $pdo->prepare(
-            'INSERT INTO notifications (driver_id, app_no, title, message)
-             VALUES (:driver_id, :app_no, "Application Rejected", :msg)'
+            "INSERT INTO notifications (driver_id, app_no, title, message)
+             VALUES (:driver_id, :app_no, 'Application Rejected', :msg)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $app_no,
