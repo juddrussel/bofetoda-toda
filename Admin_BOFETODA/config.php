@@ -2722,9 +2722,9 @@ function get_driver_info($driverId) {
     
     try {
         $stmt = $pdo->prepare("
-            SELECT driver_id, name, avatar_path, phone, email
+            SELECT driver_id, name, contact_no, address
             FROM drivers 
-            WHERE driver_id = :driver_id
+            WHERE driver_id = :driver_id AND is_archived = 0
         ");
         
         $stmt->execute(['driver_id' => $driverId]);
