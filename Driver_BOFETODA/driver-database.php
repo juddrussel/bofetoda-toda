@@ -395,7 +395,7 @@ function get_upcoming_announcement() {
 function get_application_detail($app_no) {
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
-        'SELECT a.*, rr.reason AS reject_reason, b.barangay_name AS barangay
+        'SELECT a.*, rr.reason AS reject_reason, b.name AS barangay
          FROM applications a
          LEFT JOIN reject_reasons rr ON rr.reject_reason_id = a.reject_reason_id
          LEFT JOIN barangays b ON b.barangay_id = a.barangay_id
