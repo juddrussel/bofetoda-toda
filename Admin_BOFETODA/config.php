@@ -2373,11 +2373,14 @@ function get_driver_messages($driverId) {
     $stmt->execute(['driver_id' => $driverId]);
     $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    error_log("get_driver_messages for $driverId returned " . count($messages) . " messages");
+    
     // Get attachments for each message
     foreach ($messages as &$message) {
+        error_log("Message {$message['id']}: has_attachments={$message['has_attachments']}");
         if ($message['has_attachments']) {
             $message['attachments'] = get_message_attachments($message['id']);
-            error_log("Message {$message['id']} has " . count($message['attachments']) . " attachments");
+            error_log("Message {$message['id']} loaded " . count($message['attachments']) . " attachments");
         } else {
             $message['attachments'] = [];
         }
