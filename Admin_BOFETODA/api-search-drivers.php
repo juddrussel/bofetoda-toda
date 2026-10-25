@@ -23,9 +23,11 @@ try {
     // Add eligibility flag to each result
     foreach ($results as &$driver) {
         $driver['can_submit'] = ($driver['has_pending_app'] == 0);
-        $driver['status_message'] = $driver['has_pending_app'] > 0 
-            ? 'Already has pending application' 
-            : 'Eligible for assisted renewal';
+        if ($driver['has_pending_app'] > 0) {
+            $driver['status_message'] = 'Already has pending/approved application';
+        } else {
+            $driver['status_message'] = 'Eligible for assisted renewal';
+        }
     }
     
     echo json_encode([

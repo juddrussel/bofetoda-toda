@@ -1259,6 +1259,11 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
         return [];
     }
     
+    // Get open announcement ID
+    $openAnnStmt = $pdo->query("SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1");
+    $openAnn = $openAnnStmt->fetch();
+    $openAnnId = $openAnn ? $openAnn['announcement_id'] : null;
+    
     // Search by name, driver_id, or body_no
     $search = '%' . $query . '%';
     
@@ -1273,21 +1278,25 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             d.contact_no,
             d.renewal_status,
             d.is_archived,
-            0 AS has_pending_app
+            COUNT(a.id) AS has_pending_app
         FROM drivers d
         LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
+        LEFT JOIN applications a ON a.driver_id = d.driver_id 
+            AND a.status IN ('Pending', 'Validated', 'For Approval', 'Approved')
+            AND a.announcement_id = ?
         WHERE d.is_archived = 0
         AND (
             d.name LIKE ? 
             OR d.driver_id LIKE ? 
             OR d.body_no LIKE ?
         )
+        GROUP BY d.driver_id, d.name, d.body_no, d.age, d.barangay_id, b.name, d.contact_no, d.renewal_status, d.is_archived
         ORDER BY d.name ASC
         LIMIT ?
     ";
     
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$search, $search, $search, $limit]);
+    $stmt->execute([$openAnnId, $search, $search, $search, $limit]);
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -1313,7 +1322,7 @@ function can_submit_assisted_renewal($driver_id) {
         FROM applications a
         JOIN announcements an ON an.announcement_id = a.announcement_id
         WHERE a.driver_id = ?
-        AND a.status IN ('Pending', 'Validated', 'For Approval')
+        AND a.status IN ('Pending', 'Validated', 'For Approval', 'Approved')
         AND an.status = 'OPEN'
     ");
     $stmt->execute([$driver_id]);
