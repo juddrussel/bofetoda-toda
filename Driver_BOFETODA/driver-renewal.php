@@ -134,12 +134,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
 
         if ($uploadResult['success']) {
             try {
-                submit_renewal_application($driver, $uploadResult['paths']);
+                error_log("Attempting to submit application for driver: {$driver['driver_id']}");
+                $appNo = submit_renewal_application($driver, $uploadResult['paths']);
+                error_log("Application submitted successfully: $appNo");
                 header('Location: driver-home.php?state=submitted');
                 exit;
             } catch (Throwable $e) {
-                error_log('submit_renewal_application failed: ' . $e->getMessage());
+                error_log('submit_renewal_application FAILED: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
                 $upload_error = 'Something went wrong while submitting. Please try again.';
+                $step = 3; // Stay on step 3 to show error
             }
         } else {
             // Log specific errors
