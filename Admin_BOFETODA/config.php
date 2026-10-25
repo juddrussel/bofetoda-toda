@@ -1267,7 +1267,7 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
     $openAnn = $openAnnStmt->fetch();
     $openAnnId = $openAnn ? $openAnn['announcement_id'] : null;
     
-    $stmt = $pdo->prepare('
+    $sql = '
         SELECT 
             d.driver_id,
             d.name,
@@ -1293,14 +1293,27 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
         GROUP BY d.driver_id, d.name, d.body_no, d.age, d.barangay_id, b.name, d.contact_no, d.renewal_status, d.is_archived
         ORDER BY d.name ASC
         LIMIT :limit
-    ');
+    ';
     
-    $stmt->bindValue(':search', $search, PDO::PARAM_STR);
-    $stmt->bindValue(':annId', $openAnnId, PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
+    $stmt = $pdo->prepare($sql);
     
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt->bindValue(':search', $search, PDO::PARAM_STR);
+        if ($openAnnId !== null) {
+            $stmt->bindValue(':annId', $openAnnId, PDO::PARAM_INT);
+        } else {
+            $stmt->bindValue(':annId', null, PDO::PARAM_NULL);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Search query error: " . $e->getMessage());
+        error_log("Parameters: search=$search, annId=$openAnnId, limit=$limit");
+        error_log("SQL: " . $sql);
+        throw $e;
+    }
 }
 
 /**
