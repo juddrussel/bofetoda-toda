@@ -1262,12 +1262,7 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
     // Search by name, driver_id, or body_no
     $search = '%' . $query . '%';
     
-    // First, get the open announcement ID
-    $openAnnStmt = $pdo->query("SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1");
-    $openAnn = $openAnnStmt->fetch();
-    $openAnnId = $openAnn ? $openAnn['announcement_id'] : null;
-    
-    $sql = '
+    $sql = "
         SELECT 
             d.driver_id,
             d.name,
@@ -1278,42 +1273,23 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             d.contact_no,
             d.renewal_status,
             d.is_archived,
-            COUNT(a.id) AS has_pending_app
+            0 AS has_pending_app
         FROM drivers d
         LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
-        LEFT JOIN applications a ON a.driver_id = d.driver_id 
-            AND a.status IN (\'Pending\', \'Validated\', \'For Approval\')
-            AND a.announcement_id = :annId
         WHERE d.is_archived = 0
         AND (
-            d.name LIKE :search 
-            OR d.driver_id LIKE :search 
-            OR d.body_no LIKE :search
+            d.name LIKE ? 
+            OR d.driver_id LIKE ? 
+            OR d.body_no LIKE ?
         )
-        GROUP BY d.driver_id, d.name, d.body_no, d.age, d.barangay_id, b.name, d.contact_no, d.renewal_status, d.is_archived
         ORDER BY d.name ASC
-        LIMIT :limit
-    ';
+        LIMIT ?
+    ";
     
     $stmt = $pdo->prepare($sql);
+    $stmt->execute([$search, $search, $search, $limit]);
     
-    try {
-        $stmt->bindValue(':search', $search, PDO::PARAM_STR);
-        if ($openAnnId !== null) {
-            $stmt->bindValue(':annId', $openAnnId, PDO::PARAM_INT);
-        } else {
-            $stmt->bindValue(':annId', null, PDO::PARAM_NULL);
-        }
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("Search query error: " . $e->getMessage());
-        error_log("Parameters: search=$search, annId=$openAnnId, limit=$limit");
-        error_log("SQL: " . $sql);
-        throw $e;
-    }
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
