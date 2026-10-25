@@ -1308,15 +1308,15 @@ function can_submit_assisted_renewal($driver_id) {
     }
     
     // Check if driver already has pending application in current cycle
-    $stmt = $pdo->prepare('
+    $stmt = $pdo->prepare("
         SELECT COUNT(*) as count 
         FROM applications a
         JOIN announcements an ON an.announcement_id = a.announcement_id
-        WHERE a.driver_id = :driver_id
-        AND a.status IN ("Pending", "Validated", "For Approval")
-        AND an.status = "OPEN"
-    ');
-    $stmt->execute(['driver_id' => $driver_id]);
+        WHERE a.driver_id = ?
+        AND a.status IN ('Pending', 'Validated', 'For Approval')
+        AND an.status = 'OPEN'
+    ");
+    $stmt->execute([$driver_id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     
     return $result['count'] == 0;
