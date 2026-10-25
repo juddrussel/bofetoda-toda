@@ -2856,6 +2856,17 @@ function format_relative_time($timestamp) {
 
 
 /**
+ * Check if a file is an image based on extension (admin version)
+ * 
+ * @param string $filename Filename to check
+ * @return bool True if image file
+ */
+function is_image_file_admin($filename) {
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+}
+
+/**
  * Get file icon based on file extension (admin version)
  */
 function get_file_icon_admin($filename) {

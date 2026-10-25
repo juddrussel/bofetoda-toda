@@ -1202,6 +1202,17 @@ function format_message_time($timestamp) {
 }
 
 /**
+ * Check if a file is an image based on extension
+ * 
+ * @param string $filename Filename to check
+ * @return bool True if image file
+ */
+function is_image_file($filename) {
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+}
+
+/**
  * Get file icon based on file type
  * Returns emoji or icon for file display
  * 

@@ -257,6 +257,40 @@ if (count($nameParts) >= 2) {
     gap: 6px;
 }
 
+.attachment-image {
+    display: block;
+    max-width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.attachment-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.attachment-image img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    display: block;
+    border-radius: 8px 8px 0 0;
+}
+
+.image-filename {
+    display: block;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    word-break: break-word;
+}
+
 .attachment-item {
     display: flex;
     align-items: center;
@@ -494,16 +528,29 @@ if (count($nameParts) >= 2) {
                         
                         <?php if (!empty($msg['attachments'])): ?>
                             <div class="message-attachments">
-                                <?php foreach ($msg['attachments'] as $att): ?>
-                                    <a href="download_message_attachment.php?id=<?= $att['id'] ?>" 
-                                       class="attachment-item" 
-                                       target="_blank">
-                                        <span class="attachment-icon"><?= get_file_icon_admin($att['file_name']) ?></span>
-                                        <div class="attachment-info">
-                                            <span class="attachment-name"><?= e($att['file_name']) ?></span>
-                                            <span class="attachment-size"><?= format_file_size_admin($att['file_size']) ?></span>
-                                        </div>
-                                    </a>
+                                <?php foreach ($msg['attachments'] as $att): 
+                                    $isImage = is_image_file_admin($att['file_name']);
+                                ?>
+                                    <?php if ($isImage): ?>
+                                        <a href="download_message_attachment.php?id=<?= $att['id'] ?>" 
+                                           class="attachment-image" 
+                                           target="_blank">
+                                            <img src="download_message_attachment.php?id=<?= $att['id'] ?>" 
+                                                 alt="<?= e($att['file_name']) ?>"
+                                                 loading="lazy">
+                                            <span class="image-filename"><?= e($att['file_name']) ?></span>
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="download_message_attachment.php?id=<?= $att['id'] ?>" 
+                                           class="attachment-item" 
+                                           target="_blank">
+                                            <span class="attachment-icon"><?= get_file_icon_admin($att['file_name']) ?></span>
+                                            <div class="attachment-info">
+                                                <span class="attachment-name"><?= e($att['file_name']) ?></span>
+                                                <span class="attachment-size"><?= format_file_size_admin($att['file_size']) ?></span>
+                                            </div>
+                                        </a>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
