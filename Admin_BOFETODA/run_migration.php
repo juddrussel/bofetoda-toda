@@ -9,9 +9,9 @@ session_start();
 require_once 'config.php';
 require_once 'db.php';
 
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || !is_role(['admin', 'secretary', 'president'])) {
-    die('Access denied. Admin/Secretary/President only.');
+// Check if user is logged in and has proper role
+if (!isset($_SESSION['officer_id']) || !is_role(['secretary', 'president'])) {
+    die('Access denied. Secretary/President only.');
 }
 
 $pdo = get_pdo();
