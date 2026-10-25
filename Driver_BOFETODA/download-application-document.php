@@ -46,11 +46,12 @@ if (!$document || !$document['file_path']) {
 // The file_path is actually the R2 key for application documents
 $r2Key = $document['file_path'];
 
-// Try to get R2 download URL
-$downloadUrl = get_driver_document_url($r2Key);
+// Try to get R2 download URL using the generic function
+$downloadUrl = get_file_url($r2Key);
 
-if ($downloadUrl) {
-    // Redirect to R2 presigned URL
+// Check if it's an actual URL (not a local path)
+if ($downloadUrl && (strpos($downloadUrl, 'https://') === 0 || strpos($downloadUrl, 'http://') === 0)) {
+    // Redirect to R2 URL
     header('Location: ' . $downloadUrl);
     exit;
 }
