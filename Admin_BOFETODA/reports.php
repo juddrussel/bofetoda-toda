@@ -46,6 +46,17 @@ $totalApplicants = count($uniqueApplicants);
 $approvedCount   = count(array_filter($apps, fn($a) => $a['status'] === 'Approved'));
 $rejectedCount   = count(array_filter($apps, fn($a) => $a['status'] === 'Rejected'));
 
+// Pagination for audit trail tables
+$activityPage = max(1, (int) ($_GET['activity_page'] ?? 1));
+$accessPage = max(1, (int) ($_GET['access_page'] ?? 1));
+$perPage = 10;
+
+$allActivityLogs = d('logs');
+$allAccessLogs = d('access_logs');
+
+$paginatedActivity = paginate_array($allActivityLogs, $activityPage, $perPage);
+$paginatedAccess = paginate_array($allAccessLogs, $accessPage, $perPage);
+
 $activeDrivers = d('drivers');
 if ($filterBarangay !== '') {
     $activeDrivers = array_values(array_filter($activeDrivers, fn($d) => $d['barangay'] === $filterBarangay));
@@ -458,7 +469,7 @@ if (isset($_GET['print']) && $_GET['print'] === '1') {
             <table class="registry">
               <thead><tr><th>Action</th><th>Driver ID</th><th>Role</th><th>Date</th><th>Time</th></tr></thead>
               <tbody>
-                <?php foreach (d('logs') as $log): ?>
+                <?php foreach ($paginatedActivity['items'] as $log): ?>
                   <tr>
                     <td><?= e($log['action']) ?></td>
                     <td class="id-cell"><?= e($log['driver_id']) ?></td>
@@ -470,6 +481,14 @@ if (isset($_GET['print']) && $_GET['print'] === '1') {
               </tbody>
             </table>
           </div>
+          <?php 
+          $activityUrl = BASE_URL . '/reports.php?activity_page=';
+          if ($filterCycle !== '') $activityUrl .= '&cycle=' . urlencode($filterCycle);
+          if ($filterBarangay !== '') $activityUrl .= '&barangay=' . urlencode($filterBarangay);
+          // Remove the trailing =
+          $activityUrl = rtrim($activityUrl, '=');
+          render_pagination($paginatedActivity['page'], $paginatedActivity['total_pages'], $activityUrl); 
+          ?>
         </div>
       </div>
 
@@ -485,7 +504,7 @@ if (isset($_GET['print']) && $_GET['print'] === '1') {
             <table class="registry">
               <thead><tr><th>Action</th><th>Role</th><th>Date</th><th>Time</th></tr></thead>
               <tbody>
-                <?php foreach (d('access_logs') as $log): ?>
+                <?php foreach ($paginatedAccess['items'] as $log): ?>
                   <tr>
                     <td><?= e($log['action']) ?></td>
                     <td><?= e($log['role']) ?></td>
@@ -496,6 +515,14 @@ if (isset($_GET['print']) && $_GET['print'] === '1') {
               </tbody>
             </table>
           </div>
+          <?php 
+          $accessUrl = BASE_URL . '/reports.php?access_page=';
+          if ($filterCycle !== '') $accessUrl .= '&cycle=' . urlencode($filterCycle);
+          if ($filterBarangay !== '') $accessUrl .= '&barangay=' . urlencode($filterBarangay);
+          // Remove the trailing =
+          $accessUrl = rtrim($accessUrl, '=');
+          render_pagination($paginatedAccess['page'], $paginatedAccess['total_pages'], $accessUrl); 
+          ?>
         </div>
       </div>
     </div>

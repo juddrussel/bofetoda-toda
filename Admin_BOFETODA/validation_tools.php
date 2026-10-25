@@ -5,6 +5,12 @@ require_role('secretary');
 require_once __DIR__ . '/admin-documents.php';
 
 $pending = get_pending_applications();
+
+// Pagination
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 10; // Items per page
+$paginatedPending = paginate_array($pending, $page, $perPage);
+
 $totalApplications = count_applications();
 $barangays_list = array_keys(d('barangays'));
 sort($barangays_list);
@@ -306,7 +312,7 @@ $rejectFailed = isset($_GET['reject_failed']);
 
       <div style="margin-bottom:20px;">
         <h2 class="page-title">Validation Tool</h2>
-        <p class="page-subtitle"><?= count($pending) ?> of <?= $totalApplications ?> applications</p>
+        <p class="page-subtitle"><?= $paginatedPending['total'] ?> applications (showing <?= count($paginatedPending['items']) ?> on this page)</p>
       </div>
 
       <div class="card" style="overflow:hidden;">
@@ -333,9 +339,9 @@ $rejectFailed = isset($_GET['reject_failed']);
               </tr>
             </thead>
             <tbody>
-              <?php if (empty($pending)): ?>
+              <?php if (empty($paginatedPending['items'])): ?>
                 <tr><td colspan="7"><div class="empty-state">No applications waiting for validation.</div></td></tr>
-              <?php else: foreach ($pending as $app): ?>
+              <?php else: foreach ($paginatedPending['items'] as $app): ?>
                 <tr>
                   <td class="id-col"><?= e($app['app_no']) ?></td>
                   <td class="id-col"><?= e($app['driver_id']) ?></td>
@@ -349,6 +355,7 @@ $rejectFailed = isset($_GET['reject_failed']);
             </tbody>
           </table>
         </div>
+        <?php render_pagination($paginatedPending['page'], $paginatedPending['total_pages'], BASE_URL . '/validation_tools.php'); ?>
       </div>
 
     <?php endif; ?>
