@@ -276,7 +276,7 @@ function get_current_application($driver_id = null) {
     if ($cycleStart) {
         $stmt = $pdo->prepare(
             'SELECT app_no, status FROM applications
-             WHERE driver_id = :id AND submitted_at > :cycle_start
+             WHERE driver_id = :id AND submitted_at >= :cycle_start
              ORDER BY submitted_at DESC
              LIMIT 1'
         );
