@@ -1265,7 +1265,7 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
     // First, get the open announcement ID
     $openAnnStmt = $pdo->query("SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1");
     $openAnn = $openAnnStmt->fetch();
-    $openAnnId = $openAnn ? $openAnnId = $openAnn['announcement_id'] : null;
+    $openAnnId = $openAnn ? $openAnn['announcement_id'] : null;
     
     $stmt = $pdo->prepare('
         SELECT 
@@ -1290,7 +1290,7 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             OR d.driver_id LIKE :search 
             OR d.body_no LIKE :search
         )
-        GROUP BY d.driver_id
+        GROUP BY d.driver_id, d.name, d.body_no, d.age, d.barangay_id, b.name, d.contact_no, d.renewal_status, d.is_archived
         ORDER BY d.name ASC
         LIMIT :limit
     ');
