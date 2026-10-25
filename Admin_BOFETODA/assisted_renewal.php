@@ -122,7 +122,7 @@ if ($step < 1 || $step > 5) {
 }
 
 // Get selected driver from session
-session_start();
+// (session already started by config.php)
 $selected_driver_id = $_SESSION['assisted_renewal_driver'] ?? null;
 $selected_driver = null;
 
