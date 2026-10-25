@@ -486,9 +486,8 @@ function submit_renewal_application(array $driver, array $documentPaths): string
             ->execute(['id' => $driver['driver_id']]);
 
         $pdo->prepare(
-            'INSERT INTO notifications (driver_id, app_no, title, message)
-             VALUES (:driver_id, :app_no, "Application Submitted",
-                     :msg)'
+            "INSERT INTO notifications (driver_id, app_no, title, message)
+             VALUES (:driver_id, :app_no, 'Application Submitted', :msg)"
         )->execute([
             'driver_id' => $driver['driver_id'],
             'app_no'    => $appNo,
