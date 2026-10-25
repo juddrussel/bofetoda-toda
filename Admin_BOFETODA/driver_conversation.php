@@ -455,7 +455,7 @@ if (count($nameParts) >= 2) {
     <div class="driver-header-avatar"><?= e($initials) ?></div>
     <div class="driver-header-info">
         <div class="driver-header-name"><?= e($driver['name']) ?></div>
-        <div class="driver-header-id">Driver ID: <?= e($driver['id']) ?></div>
+        <div class="driver-header-id">Driver ID: <?= e($driver['driver_id']) ?></div>
     </div>
 </div>
 
