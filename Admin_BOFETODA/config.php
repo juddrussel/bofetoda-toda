@@ -869,16 +869,16 @@ function db_approve_application($appNo) {
     $pdo->beginTransaction();
     try {
         $pdo->prepare(
-            'UPDATE applications SET status = "Approved", approved_by = :oid, approved_at = NOW() WHERE app_no = :app'
+            "UPDATE applications SET status = 'Approved', approved_by = :oid, approved_at = NOW() WHERE app_no = :app"
         )->execute(['oid' => $officer['id'] ?? null, 'app' => $appNo]);
 
-        $pdo->prepare('UPDATE drivers SET renewal_status = "Approved Renewal" WHERE driver_id = :id')
+        $pdo->prepare("UPDATE drivers SET renewal_status = 'Approved Renewal' WHERE driver_id = :id")
             ->execute(['id' => $app['driver_id']]);
 
         $pdo->prepare(
-            'INSERT INTO renewal_history (driver_id, app_no, renewal_year, decided_at, status)
-             VALUES (:driver_id, :app_no, :year, CURDATE(), "APPROVED")
-             ON DUPLICATE KEY UPDATE app_no = VALUES(app_no), decided_at = VALUES(decided_at), status = VALUES(status)'
+            "INSERT INTO renewal_history (driver_id, app_no, renewal_year, decided_at, status)
+             VALUES (:driver_id, :app_no, :year, CURDATE(), 'APPROVED')
+             ON DUPLICATE KEY UPDATE app_no = VALUES(app_no), decided_at = VALUES(decided_at), status = VALUES(status)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $appNo,
@@ -886,8 +886,8 @@ function db_approve_application($appNo) {
         ]);
 
         $pdo->prepare(
-            'INSERT INTO notifications (driver_id, app_no, title, message)
-             VALUES (:driver_id, :app_no, "Application Approved", :msg)'
+            "INSERT INTO notifications (driver_id, app_no, title, message)
+             VALUES (:driver_id, :app_no, 'Application Approved', :msg)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $appNo,
@@ -953,9 +953,9 @@ function db_reject_application($appNo, $reasonText, $note) {
     $pdo->beginTransaction();
     try {
         $pdo->prepare(
-            'UPDATE applications SET status = "Rejected", rejected_by = :oid, rejected_at = NOW(),
+            "UPDATE applications SET status = 'Rejected', rejected_by = :oid, rejected_at = NOW(),
                                       reject_reason_id = :rid, reject_note = :note
-             WHERE app_no = :app'
+             WHERE app_no = :app"
         )->execute([
             'oid'  => $officer['id'] ?? null,
             'rid'  => $reasonId,
@@ -963,13 +963,13 @@ function db_reject_application($appNo, $reasonText, $note) {
             'app'  => $appNo,
         ]);
 
-        $pdo->prepare('UPDATE drivers SET renewal_status = "Rejected Renewal" WHERE driver_id = :id')
+        $pdo->prepare("UPDATE drivers SET renewal_status = 'Rejected Renewal' WHERE driver_id = :id")
             ->execute(['id' => $app['driver_id']]);
 
         $pdo->prepare(
-            'INSERT INTO renewal_history (driver_id, app_no, renewal_year, decided_at, status)
-             VALUES (:driver_id, :app_no, :year, CURDATE(), "REJECTED")
-             ON DUPLICATE KEY UPDATE app_no = VALUES(app_no), decided_at = VALUES(decided_at), status = VALUES(status)'
+            "INSERT INTO renewal_history (driver_id, app_no, renewal_year, decided_at, status)
+             VALUES (:driver_id, :app_no, :year, CURDATE(), 'REJECTED')
+             ON DUPLICATE KEY UPDATE app_no = VALUES(app_no), decided_at = VALUES(decided_at), status = VALUES(status)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $appNo,
@@ -977,8 +977,8 @@ function db_reject_application($appNo, $reasonText, $note) {
         ]);
 
         $pdo->prepare(
-            'INSERT INTO notifications (driver_id, app_no, title, message)
-             VALUES (:driver_id, :app_no, "Application Rejected", :msg)'
+            "INSERT INTO notifications (driver_id, app_no, title, message)
+             VALUES (:driver_id, :app_no, 'Application Rejected', :msg)"
         )->execute([
             'driver_id' => $app['driver_id'],
             'app_no'    => $appNo,
