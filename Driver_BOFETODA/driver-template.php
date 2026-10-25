@@ -1415,10 +1415,22 @@ function render_footer($active_page = '') {
     // Include service worker registration for push notifications
     require_once __DIR__ . '/../Admin_BOFETODA/config.php';
     $pushEnabled = is_push_enabled();
+    
+    // Debug output
+    $vapidDebug = [
+        'pushEnabled' => $pushEnabled,
+        'publicKeyExists' => getenv('VAPID_PUBLIC_KEY') ? 'YES' : 'NO',
+        'privateKeyExists' => getenv('VAPID_PRIVATE_KEY') ? 'YES' : 'NO',
+        'subjectExists' => getenv('VAPID_SUBJECT') ? 'YES' : 'NO'
+    ];
     ?>
 </div><!-- /.app-shell -->
 <script><?php echo APP_JS; ?></script>
 <script src="/assets/js/toast-notifications.js"></script>
+<script>
+// VAPID Debug Info
+console.log('[VAPID Debug]', <?php echo json_encode($vapidDebug); ?>);
+</script>
 <script src="/assets/js/notification-settings.js"></script>
 <?php if ($pushEnabled): ?>
 <script src="/register-sw.js"></script>
