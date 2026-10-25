@@ -569,13 +569,15 @@ function submit_renewal_application(array $driver, array $documentPaths, $office
 /**
  * Available security questions for password recovery
  */
-define('SECURITY_QUESTIONS', [
-    1 => "What is your mother's maiden name?",
-    2 => "What city were you born in?",
-    3 => "What is the name of your first pet?",
-    4 => "What was your childhood nickname?",
-    5 => "What is your favorite color?",
-]);
+if (!defined('SECURITY_QUESTIONS')) {
+    define('SECURITY_QUESTIONS', [
+        1 => "What is your mother's maiden name?",
+        2 => "What city were you born in?",
+        3 => "What is the name of your first pet?",
+        4 => "What was your childhood nickname?",
+        5 => "What is your favorite color?",
+    ]);
+}
 
 /**
  * Normalize security answer for case-insensitive matching
