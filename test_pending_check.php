@@ -9,12 +9,22 @@ echo "<pre>";
 
 $pdo = get_pdo();
 
+// Check the actual application in database
+echo "=== ACTUAL APPLICATION DATA ===\n";
+$stmt = $pdo->prepare("SELECT app_no, driver_id, status, announcement_id, submitted_at FROM applications WHERE driver_id = ? ORDER BY submitted_at DESC LIMIT 1");
+$stmt->execute([$driver_id]);
+$actualApp = $stmt->fetch();
+echo "Latest application for $driver_id:\n";
+print_r($actualApp);
+
 // Get open announcement
 $openAnnStmt = $pdo->query("SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1");
 $openAnn = $openAnnStmt->fetch();
 $openAnnId = $openAnn ? $openAnn['announcement_id'] : null;
 
-echo "Open Announcement ID: $openAnnId\n\n";
+echo "\nOpen Announcement ID: $openAnnId\n";
+echo "Application announcement_id: " . ($actualApp['announcement_id'] ?? 'NULL') . "\n";
+echo "Do they match? " . (($actualApp['announcement_id'] ?? null) == $openAnnId ? 'YES' : 'NO') . "\n\n";
 
 // Check what the search query returns
 $search = '%BG0819%';
@@ -40,7 +50,7 @@ $sql = "
     GROUP BY d.driver_id, d.name, a.app_no, a.status, a.announcement_id
 ";
 
-echo "SQL Query:\n$sql\n\n";
+echo "=== SEARCH QUERY TEST ===\n";
 echo "Parameters: openAnnId=$openAnnId, search=$search\n\n";
 
 $stmt = $pdo->prepare($sql);
