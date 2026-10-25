@@ -1351,15 +1351,21 @@ function get_driver_for_assisted_renewal($driver_id) {
 function log_assisted_renewal($officer_id, $driver_id, $app_no, $action) {
     $pdo = get_pdo();
     
-    $stmt = $pdo->prepare('
-        INSERT INTO logs (officer_id, driver_id, action, created_at)
-        VALUES (:officer_id, :driver_id, :action, NOW())
-    ');
+    // Get officer role
+    $roleStmt = $pdo->prepare("SELECT role FROM officers WHERE officer_id = ?");
+    $roleStmt->execute([$officer_id]);
+    $role = $roleStmt->fetchColumn();
+    
+    $stmt = $pdo->prepare("
+        INSERT INTO activity_logs (officer_id, driver_id, action, role, logged_at)
+        VALUES (?, ?, ?, ?, NOW())
+    ");
     
     $stmt->execute([
-        'officer_id' => $officer_id,
-        'driver_id' => $driver_id,
-        'action' => $action . ' (App: ' . $app_no . ')'
+        $officer_id,
+        $driver_id,
+        $action . ' (App: ' . $app_no . ')',
+        $role
     ]);
 }
 
