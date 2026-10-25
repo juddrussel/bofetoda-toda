@@ -440,12 +440,12 @@ function submit_renewal_application(array $driver, array $documentPaths): string
         $colorId = $colorId->fetchColumn();
 
         $insertApp = $pdo->prepare(
-            'INSERT INTO applications
+            "INSERT INTO applications
                 (app_no, driver_id, name, age, birthday, contact_no, address,
                  barangay_id, body_no, color_id, status, submitted_at)
              VALUES
                 (:app_no, :driver_id, :name, :age, :birthday, :contact_no, :address,
-                 :barangay_id, :body_no, :color_id, "Pending", NOW())'
+                 :barangay_id, :body_no, :color_id, 'Pending', NOW())"
         );
         $insertApp->execute([
             'app_no'      => $appNo,
@@ -482,7 +482,7 @@ function submit_renewal_application(array $driver, array $documentPaths): string
             ]);
         }
 
-        $pdo->prepare('UPDATE drivers SET renewal_status = "Pending Renewal" WHERE driver_id = :id')
+        $pdo->prepare("UPDATE drivers SET renewal_status = 'Pending Renewal' WHERE driver_id = :id")
             ->execute(['id' => $driver['driver_id']]);
 
         $pdo->prepare(
