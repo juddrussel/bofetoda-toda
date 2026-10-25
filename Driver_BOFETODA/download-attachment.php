@@ -53,11 +53,22 @@ try {
             die('File not found');
         }
         
-        // Set headers for download
+        // Check if it's an image for inline display
+        $is_image = preg_match('/^image\//i', $attachment['file_type']);
+        
+        // Set headers
         header('Content-Type: ' . $attachment['file_type']);
-        header('Content-Disposition: attachment; filename="' . $attachment['file_name'] . '"');
+        
+        // For images, display inline; for other files, force download
+        if ($is_image) {
+            header('Content-Disposition: inline; filename="' . $attachment['file_name'] . '"');
+        } else {
+            header('Content-Disposition: attachment; filename="' . $attachment['file_name'] . '"');
+        }
+        
         header('Content-Length: ' . filesize($file_path));
         header('Cache-Control: private, max-age=3600');
+        header('X-Content-Type-Options: nosniff');
         
         // Output file
         readfile($file_path);
