@@ -275,7 +275,7 @@ function get_current_application($driver_id = null) {
 
     if ($cycleStart) {
         $stmt = $pdo->prepare(
-            'SELECT app_no, status FROM applications
+            'SELECT app_no, status, submitted_at FROM applications
              WHERE driver_id = :id AND submitted_at >= :cycle_start
              ORDER BY submitted_at DESC
              LIMIT 1'
@@ -283,7 +283,7 @@ function get_current_application($driver_id = null) {
         $stmt->execute(['id' => $driver_id, 'cycle_start' => $cycleStart]);
     } else {
         $stmt = $pdo->prepare(
-            'SELECT app_no, status FROM applications
+            'SELECT app_no, status, submitted_at FROM applications
              WHERE driver_id = :id
              ORDER BY submitted_at DESC
              LIMIT 1'
@@ -292,7 +292,21 @@ function get_current_application($driver_id = null) {
     }
 
     $row = $stmt->fetch();
-    error_log("get_current_application: found=" . ($row ? "app_no={$row['app_no']}, status={$row['status']}" : "NULL"));
+    
+    if ($row) {
+        error_log("get_current_application: found=app_no={$row['app_no']}, status={$row['status']}, submitted_at={$row['submitted_at']}");
+    } else {
+        // Check if ANY application exists for this driver
+        $checkStmt = $pdo->prepare('SELECT app_no, status, submitted_at FROM applications WHERE driver_id = :id ORDER BY submitted_at DESC LIMIT 1');
+        $checkStmt->execute(['id' => $driver_id]);
+        $anyApp = $checkStmt->fetch();
+        
+        if ($anyApp) {
+            error_log("get_current_application: found=NULL (but application EXISTS: app_no={$anyApp['app_no']}, submitted_at={$anyApp['submitted_at']}, cycleStart=$cycleStart)");
+        } else {
+            error_log("get_current_application: found=NULL (NO applications exist for this driver)");
+        }
+    }
     
     if (!$row) {
         return null;
