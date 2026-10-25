@@ -206,26 +206,33 @@
      * Check if user should be prompted for push permission
      */
     function shouldPromptForPush() {
+        console.log('[shouldPromptForPush] Checking conditions...');
+        
         // Don't prompt if already subscribed
         if (localStorage.getItem('pushSubscribed') === 'true') {
+            console.log('[shouldPromptForPush] FALSE - Already subscribed');
             return false;
         }
         
         // Don't prompt if user denied permission
         if (localStorage.getItem('pushDenied') === 'true') {
+            console.log('[shouldPromptForPush] FALSE - User previously denied');
             return false;
         }
         
         // Don't prompt if notification permission already denied
         if (Notification.permission === 'denied') {
+            console.log('[shouldPromptForPush] FALSE - Browser permission denied');
             return false;
         }
         
         // Check if already prompted in this session
         if (sessionStorage.getItem('pushPrompted') === 'true') {
+            console.log('[shouldPromptForPush] FALSE - Already prompted this session');
             return false;
         }
         
+        console.log('[shouldPromptForPush] TRUE - All checks passed');
         return true;
     }
     
