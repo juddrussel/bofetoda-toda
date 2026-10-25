@@ -30,7 +30,7 @@ $queue = get_pending_applications(); // Changed from get_for_approval_applicatio
 
 // Pagination
 $page = max(1, (int) ($_GET['page'] ?? 1));
-$perPage = 25;
+$perPage = 10; // Items per page
 $paginatedQueue = paginate_array($queue, $page, $perPage);
 
 $totalApplications = count_applications();

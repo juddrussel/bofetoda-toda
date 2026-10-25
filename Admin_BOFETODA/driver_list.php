@@ -83,7 +83,7 @@ $archived  = d('archived_drivers');
 
 // Pagination
 $page = max(1, (int) ($_GET['page'] ?? 1));
-$perPage = 25;
+$perPage = 10; // Items per page
 $isArchived = (($_GET['view'] ?? 'active') === 'archived');
 $listToShow = $isArchived ? $archived : $drivers;
 $paginatedList = paginate_array($listToShow, $page, $perPage);
