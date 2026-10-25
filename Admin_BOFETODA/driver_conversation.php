@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_text'])) {
             // Send officer reply
             $result = send_driver_message($driver_id, 'officer', $officer_id, $message_text, $uploaded_files);
             
-            if ($result['success']) {
+            if ($result !== false) {
                 // Update reply status
                 update_message_reply_status($driver_id);
                 
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_text'])) {
                 header('Location: driver_conversation.php?driver_id=' . urlencode($driver_id) . '&sent=1');
                 exit;
             } else {
-                $error_message = $result['error'] ?? 'Failed to send reply. Please try again.';
+                $error_message = 'Failed to send reply. Please try again.';
             }
         }
     }
