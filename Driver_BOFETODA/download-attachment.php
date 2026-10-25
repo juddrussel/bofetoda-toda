@@ -13,7 +13,7 @@ if ($attachment_id <= 0) {
 }
 
 // Get attachment details and verify access
-global $pdo;
+$pdo = get_pdo();
 try {
     $stmt = $pdo->prepare("
         SELECT ma.*, dm.driver_id 
