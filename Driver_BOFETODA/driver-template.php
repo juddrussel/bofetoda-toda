@@ -780,6 +780,21 @@ img {
   color: var(--color-text-muted);
 }
 
+.detail-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
 .notif-card {
   display: flex;
   gap: 14px;
