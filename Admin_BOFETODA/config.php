@@ -2460,9 +2460,12 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
         if ($hasAttachments && $messageId > 0) {
             require_once __DIR__ . '/r2-storage.php';
             
+            error_log("Processing attachments for message $messageId. hasAttachments=$hasAttachments");
+            
             // Handle multiple files
             $fileArray = [];
             if (is_array($files['tmp_name'])) {
+                error_log("Multiple files detected: " . count($files['tmp_name']) . " files");
                 for ($i = 0; $i < count($files['tmp_name']); $i++) {
                     if ($files['error'][$i] === UPLOAD_ERR_OK) {
                         $fileArray[] = [
@@ -2471,9 +2474,12 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
                             'size' => $files['size'][$i],
                             'type' => $files['type'][$i]
                         ];
+                    } else {
+                        error_log("File $i upload error: " . $files['error'][$i]);
                     }
                 }
             } else {
+                error_log("Single file detected");
                 if ($files['error'] === UPLOAD_ERR_OK) {
                     $fileArray[] = [
                         'tmp_name' => $files['tmp_name'],
@@ -2481,16 +2487,22 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
                         'size' => $files['size'],
                         'type' => $files['type']
                     ];
+                } else {
+                    error_log("Single file upload error: " . $files['error']);
                 }
             }
+            
+            error_log("fileArray has " . count($fileArray) . " files to process");
             
             // Upload each file (max 3)
             $uploadedCount = 0;
             foreach (array_slice($fileArray, 0, 3) as $file) {
+                error_log("Uploading file: " . $file['name']);
                 if (function_exists('upload_message_attachment_r2')) {
                     $result = upload_message_attachment_r2($driverId, $messageId, $file);
                     
                     if ($result) {
+                        error_log("R2 upload successful: " . $result['path']);
                         // Save attachment info to database
                         $stmt = $pdo->prepare("
                             INSERT INTO message_attachments 
@@ -2507,12 +2519,20 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
                         ]);
                         
                         $uploadedCount++;
+                        error_log("Attachment saved to DB. Total uploaded: $uploadedCount");
+                    } else {
+                        error_log("R2 upload failed for file: " . $file['name']);
                     }
+                } else {
+                    error_log("upload_message_attachment_r2 function not found!");
                 }
             }
             
+            error_log("Final uploaded count: $uploadedCount");
+            
             // If no files uploaded successfully, set has_attachments to false
             if ($uploadedCount === 0) {
+                error_log("No files uploaded successfully, setting has_attachments=0");
                 $stmt = $pdo->prepare("UPDATE driver_messages SET has_attachments = 0 WHERE id = :id");
                 $stmt->execute(['id' => $messageId]);
             }
