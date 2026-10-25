@@ -264,11 +264,14 @@ function application_is_current_cycle(?array $app): bool {
 function get_current_application($driver_id = null) {
     $driver_id = $driver_id ?? ($_SESSION['driver_id'] ?? null);
     if (!$driver_id) {
+        error_log("get_current_application: No driver_id");
         return null;
     }
 
     $pdo = get_pdo();
     $cycleStart = get_latest_cycle_start();
+    
+    error_log("get_current_application: driver_id=$driver_id, cycleStart=$cycleStart");
 
     if ($cycleStart) {
         $stmt = $pdo->prepare(
@@ -289,6 +292,8 @@ function get_current_application($driver_id = null) {
     }
 
     $row = $stmt->fetch();
+    error_log("get_current_application: found=" . ($row ? "app_no={$row['app_no']}, status={$row['status']}" : "NULL"));
+    
     if (!$row) {
         return null;
     }
