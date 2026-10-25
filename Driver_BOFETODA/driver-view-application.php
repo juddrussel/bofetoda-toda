@@ -108,8 +108,10 @@ render_header([
             <div class="document-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
                 <?php foreach ($documents as $doc): ?>
                     <button type="button"
-                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo addslashes(h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type']))); ?>')"
                        class="document-item" 
+                       data-app-no="<?php echo h($app_no); ?>"
+                       data-doc-type="<?php echo h($doc['doc_type']); ?>"
+                       data-doc-name="<?php echo h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type'])); ?>"
                        style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);background:#fff;transition:all 0.2s ease;cursor:pointer;width:100%;text-align:left;"
                        onmouseover="this.style.borderColor='var(--color-primary)';this.style.background='#fffdf0';"
                        onmouseout="this.style.borderColor='var(--color-border)';this.style.background='#fff';">
@@ -238,8 +240,10 @@ render_header([
             <div class="document-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
                 <?php foreach ($documents as $doc): ?>
                     <button type="button"
-                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo addslashes(h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type']))); ?>')"
                        class="document-item" 
+                       data-app-no="<?php echo h($app_no); ?>"
+                       data-doc-type="<?php echo h($doc['doc_type']); ?>"
+                       data-doc-name="<?php echo h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type'])); ?>"
                        style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);background:#fff;transition:all 0.2s ease;cursor:pointer;width:100%;text-align:left;"
                        onmouseover="this.style.borderColor='var(--color-primary)';this.style.background='#fffdf0';"
                        onmouseout="this.style.borderColor='var(--color-border)';this.style.background='#fff';">
@@ -299,6 +303,17 @@ render_header([
 </div>
 
 <script>
+// Event delegation for document items
+document.addEventListener('click', function(e) {
+    const docItem = e.target.closest('.document-item');
+    if (docItem) {
+        const appNo = docItem.dataset.appNo;
+        const docType = docItem.dataset.docType;
+        const docName = docItem.dataset.docName;
+        openDocumentModal(appNo, docType, docName);
+    }
+});
+
 function openDocumentModal(appNo, docType, docName) {
     const modal = document.getElementById('documentModal');
     const modalTitle = document.getElementById('modalTitle');
