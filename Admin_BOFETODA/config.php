@@ -1286,20 +1286,11 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             OR d.driver_id LIKE :search 
             OR d.body_no LIKE :search
         )
-        ORDER BY 
-            CASE 
-                WHEN d.driver_id = :exact THEN 1
-                WHEN d.body_no = :exact THEN 2
-                WHEN d.name LIKE :starts THEN 3
-                ELSE 4
-            END,
-            d.name ASC
+        ORDER BY d.name ASC
         LIMIT :limit
     ');
     
     $stmt->bindValue(':search', $search, PDO::PARAM_STR);
-    $stmt->bindValue(':exact', $query, PDO::PARAM_STR);
-    $stmt->bindValue(':starts', $query . '%', PDO::PARAM_STR);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->execute();
     
