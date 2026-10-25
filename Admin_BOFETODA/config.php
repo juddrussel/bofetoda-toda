@@ -757,8 +757,8 @@ function db_add_announcement(array $in) {
     }
 
     $pdo->prepare(
-        'INSERT INTO announcements (title, message, status, opened_date, deadline_date, created_by)
-         VALUES (:title, :message, "OPEN", :opened, :deadline, :created_by)'
+        "INSERT INTO announcements (title, message, status, opened_date, deadline_date, created_by)
+         VALUES (:title, :message, 'OPEN', :opened, :deadline, :created_by)"
     )->execute([
         'title'      => $in['title'],
         'message'    => $in['message'],
