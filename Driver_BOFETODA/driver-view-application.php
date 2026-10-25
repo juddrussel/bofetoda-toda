@@ -108,7 +108,7 @@ render_header([
             <div class="document-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
                 <?php foreach ($documents as $doc): ?>
                     <button type="button"
-                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type'])); ?>')"
+                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo addslashes(h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type']))); ?>')"
                        class="document-item" 
                        style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);background:#fff;transition:all 0.2s ease;cursor:pointer;width:100%;text-align:left;"
                        onmouseover="this.style.borderColor='var(--color-primary)';this.style.background='#fffdf0';"
@@ -238,7 +238,7 @@ render_header([
             <div class="document-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
                 <?php foreach ($documents as $doc): ?>
                     <button type="button"
-                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type'])); ?>')"
+                       onclick="openDocumentModal('<?php echo urlencode($app_no); ?>', '<?php echo urlencode($doc['doc_type']); ?>', '<?php echo addslashes(h($docLabels[$doc['doc_type']] ?? ucfirst($doc['doc_type']))); ?>')"
                        class="document-item" 
                        style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);background:#fff;transition:all 0.2s ease;cursor:pointer;width:100%;text-align:left;"
                        onmouseover="this.style.borderColor='var(--color-primary)';this.style.background='#fffdf0';"
@@ -262,104 +262,104 @@ render_header([
                 <?php endforeach; ?>
             </div>
         </div>
-        
-        <!-- Document Preview Modal -->
-        <div id="documentModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9999;padding:20px;overflow-y:auto;">
-            <div style="max-width:900px;margin:40px auto;background:white;border-radius:12px;position:relative;">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--color-border);">
-                    <h3 id="modalTitle" style="font-size:18px;font-weight:700;color:var(--color-text);margin:0;">Document Preview</h3>
-                    <button onclick="closeDocumentModal()" style="background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-                <div id="modalContent" style="padding:24px;min-height:400px;display:flex;align-items:center;justify-content:center;">
-                    <div style="text-align:center;color:var(--color-text-muted);">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 12px;">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <p>Loading document...</p>
-                    </div>
-                </div>
-                <div style="display:flex;gap:12px;padding:20px 24px;border-top:1px solid var(--color-border);background:#fafafa;border-radius:0 0 12px 12px;">
-                    <a id="downloadBtn" href="#" download class="btn btn-accent" style="flex:1;text-align:center;text-decoration:none;padding:12px 24px;font-size:14px;font-weight:600;">
-                        Download
-                    </a>
-                    <button onclick="closeDocumentModal()" class="btn btn-outline" style="flex:1;padding:12px 24px;font-size:14px;font-weight:600;">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <script>
-        function openDocumentModal(appNo, docType, docName) {
-            const modal = document.getElementById('documentModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalContent = document.getElementById('modalContent');
-            const downloadBtn = document.getElementById('downloadBtn');
-            
-            // Set title
-            modalTitle.textContent = docName;
-            
-            // Build URL
-            const docUrl = '/Driver_BOFETODA/download-application-document.php?app_no=' + encodeURIComponent(appNo) + '&doc_type=' + encodeURIComponent(docType);
-            
-            // Set download button
-            downloadBtn.href = docUrl;
-            downloadBtn.download = docName;
-            
-            // Show loading state
-            modalContent.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10" opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" opacity="0.75"></path></svg><p>Loading document...</p></div>';
-            
-            // Show modal
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            
-            // Load document preview (image only)
-            const img = new Image();
-            img.onload = function() {
-                modalContent.innerHTML = '<img src="' + docUrl + '" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" />';
-            };
-            img.onerror = function() {
-                // Not an image, show download prompt
-                modalContent.innerHTML = '<div style="text-align:center;padding:40px;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 16px;color:var(--color-primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><p style="font-size:16px;font-weight:600;color:var(--color-text);margin-bottom:8px;">' + docName + '</p><p style="font-size:14px;color:var(--color-text-muted);">Preview not available. Click download to view this document.</p></div>';
-            };
-            img.src = docUrl;
-        }
-        
-        function closeDocumentModal() {
-            const modal = document.getElementById('documentModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }
-        
-        // Close modal when clicking outside
-        document.getElementById('documentModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDocumentModal();
-            }
-        });
-        
-        // Close modal on ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeDocumentModal();
-            }
-        });
-        </script>
-        
-        <style>
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        </style>
     <?php endif; ?>
 
 </div>
+
+<!-- Document Preview Modal (Available for all statuses) -->
+<div id="documentModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9999;padding:20px;overflow-y:auto;">
+    <div style="max-width:900px;margin:40px auto;background:white;border-radius:12px;position:relative;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--color-border);">
+            <h3 id="modalTitle" style="font-size:18px;font-weight:700;color:var(--color-text);margin:0;">Document Preview</h3>
+            <button onclick="closeDocumentModal()" style="background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div id="modalContent" style="padding:24px;min-height:400px;display:flex;align-items:center;justify-content:center;">
+            <div style="text-align:center;color:var(--color-text-muted);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 12px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <p>Loading document...</p>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;padding:20px 24px;border-top:1px solid var(--color-border);background:#fafafa;border-radius:0 0 12px 12px;">
+            <a id="downloadBtn" href="#" download class="btn btn-accent" style="flex:1;text-align:center;text-decoration:none;padding:12px 24px;font-size:14px;font-weight:600;">
+                Download
+            </a>
+            <button onclick="closeDocumentModal()" class="btn btn-outline" style="flex:1;padding:12px 24px;font-size:14px;font-weight:600;">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDocumentModal(appNo, docType, docName) {
+    const modal = document.getElementById('documentModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    // Set title
+    modalTitle.textContent = docName;
+    
+    // Build URL
+    const docUrl = '/Driver_BOFETODA/download-application-document.php?app_no=' + encodeURIComponent(appNo) + '&doc_type=' + encodeURIComponent(docType);
+    
+    // Set download button
+    downloadBtn.href = docUrl;
+    downloadBtn.download = docName;
+    
+    // Show loading state
+    modalContent.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10" opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" opacity="0.75"></path></svg><p>Loading document...</p></div>';
+    
+    // Show modal
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Load document preview (image only)
+    const img = new Image();
+    img.onload = function() {
+        modalContent.innerHTML = '<img src="' + docUrl + '" style="max-width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);" />';
+    };
+    img.onerror = function() {
+        // Not an image, show download prompt
+        modalContent.innerHTML = '<div style="text-align:center;padding:40px;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 16px;color:var(--color-primary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg><p style="font-size:16px;font-weight:600;color:var(--color-text);margin-bottom:8px;">' + docName + '</p><p style="font-size:14px;color:var(--color-text-muted);">Preview not available. Click download to view this document.</p></div>';
+    };
+    img.src = docUrl;
+}
+
+function closeDocumentModal() {
+    const modal = document.getElementById('documentModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// Close modal when clicking outside
+document.getElementById('documentModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDocumentModal();
+    }
+});
+
+// Close modal on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDocumentModal();
+    }
+});
+</script>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
 
 <?php render_footer('home'); ?>
