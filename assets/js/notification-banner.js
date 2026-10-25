@@ -10,6 +10,12 @@
     window.addEventListener('pushNotificationsReady', function() {
         console.log('[Banner] Push notifications ready event fired');
         
+        // Don't show if dismissed this page load
+        if (sessionStorage.getItem('notificationBannerDismissed') === 'true') {
+            console.log('[Banner] Banner was dismissed this session');
+            return;
+        }
+        
         // Check if we should show the banner
         const shouldPrompt = window.shouldPromptForPush ? window.shouldPromptForPush() : false;
         console.log('[Banner] shouldPromptForPush():', shouldPrompt);
@@ -100,7 +106,7 @@
         document.getElementById('dismiss-notifications-btn').addEventListener('click', function() {
             banner.remove();
             
-            // Don't ask again this session
+            // Don't show banner again until next page load
             sessionStorage.setItem('notificationBannerDismissed', 'true');
             
             if (window.Toast) {

@@ -226,12 +226,6 @@
             return false;
         }
         
-        // Check if already prompted in this session
-        if (sessionStorage.getItem('pushPrompted') === 'true') {
-            console.log('[shouldPromptForPush] FALSE - Already prompted this session');
-            return false;
-        }
-        
         console.log('[shouldPromptForPush] TRUE - All checks passed');
         return true;
     }
@@ -248,9 +242,6 @@
             window.subscribeToPush = () => subscribeToPush(registration);
             window.unsubscribeFromPush = unsubscribeFromPush;
             window.shouldPromptForPush = shouldPromptForPush;
-            
-            // Mark as prompted in session
-            sessionStorage.setItem('pushPrompted', 'true');
             
             console.log('[Push Init] Initialization complete');
             
