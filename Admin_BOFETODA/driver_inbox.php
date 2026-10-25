@@ -224,58 +224,54 @@ error_log('Driver Inbox: Unread count = ' . $unread_count);
         </div>
     <?php else: ?>
         <div class="inbox-list">
-            <?php foreach ($drivers_with_messages as $item): ?>
+            <?php foreach ($drivers_with_messages as $driver): ?>
                 <?php
-                $driver = $item['driver'];
-                $lastMessage = $item['last_message'];
-                $unreadCount = $item['unread_count'];
+                $driverId = $driver['driver_id'];
+                $driverName = $driver['name'];
+                $unreadCount = $driver['unread_count'] ?? 0;
                 $hasUnread = $unreadCount > 0;
-                $needsReply = !$lastMessage['has_reply'] && $lastMessage['sender_type'] === 'driver';
+                $totalMessages = $driver['total_messages'] ?? 0;
+                $lastMessageTime = $driver['last_message_time'] ?? null;
+                
+                // Get last message preview
+                $lastMessagePreview = get_last_message_preview($driverId);
                 
                 // Format time
-                $messageTime = format_relative_time($lastMessage['sent_at']);
+                $messageTime = $lastMessageTime ? format_relative_time($lastMessageTime) : '';
                 
                 // Get driver initials
-                $nameParts = explode(' ', $driver['name']);
+                $nameParts = explode(' ', $driverName);
                 $initials = '';
                 if (count($nameParts) >= 2) {
                     $initials = strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[count($nameParts) - 1], 0, 1));
                 } else {
-                    $initials = strtoupper(substr($driver['name'], 0, 2));
+                    $initials = strtoupper(substr($driverName, 0, 2));
                 }
                 ?>
                 
-                <a href="driver_conversation.php?driver_id=<?= e($driver['id']) ?>" 
+                <a href="driver_conversation.php?driver_id=<?= e($driverId) ?>" 
                    class="inbox-item <?= $hasUnread ? 'has-unread' : '' ?>">
                     <div class="driver-avatar"><?= e($initials) ?></div>
                     
                     <div class="driver-info">
                         <div class="driver-name">
-                            <?= e($driver['name']) ?>
+                            <?= e($driverName) ?>
                             <?php if ($hasUnread): ?>
                                 <span class="unread-badge"><?= $unreadCount > 9 ? '9+' : $unreadCount ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="message-preview">
-                            <?php if ($lastMessage['sender_type'] === 'officer'): ?>
-                                <strong>You:</strong> 
-                            <?php endif; ?>
-                            <?= e(mb_substr($lastMessage['message_text'], 0, 60)) ?>
-                            <?php if (mb_strlen($lastMessage['message_text']) > 60): ?>...<?php endif; ?>
-                            <?php if ($lastMessage['attachment_count'] > 0): ?>
-                                <span class="attachment-indicator">
-                                    📎 <?= $lastMessage['attachment_count'] ?>
-                                </span>
+                            <?php if (!empty($lastMessagePreview)): ?>
+                                <?= e($lastMessagePreview) ?>
+                            <?php else: ?>
+                                <em>No messages yet</em>
                             <?php endif; ?>
                         </div>
                     </div>
                     
                     <div class="message-meta">
-                        <span class="message-time"><?= e($messageTime) ?></span>
-                        <?php if ($needsReply): ?>
-                            <span class="status-badge needs-reply">⚠ Needs Reply</span>
-                        <?php elseif ($lastMessage['sender_type'] === 'officer'): ?>
-                            <span class="status-badge replied">✓ Replied</span>
+                        <?php if ($messageTime): ?>
+                            <span class="message-time"><?= e($messageTime) ?></span>
                         <?php endif; ?>
                     </div>
                 </a>
