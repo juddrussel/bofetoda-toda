@@ -1275,8 +1275,8 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             d.is_archived,
             (SELECT COUNT(*) FROM applications a 
              WHERE a.driver_id = d.driver_id 
-             AND a.status IN ("Pending", "Validated", "For Approval")
-             AND a.announcement_id = (SELECT announcement_id FROM announcements WHERE status = "OPEN" LIMIT 1)
+             AND a.status IN ('Pending', 'Validated', 'For Approval')
+             AND a.announcement_id = (SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1)
             ) AS has_pending_app
         FROM drivers d
         LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
