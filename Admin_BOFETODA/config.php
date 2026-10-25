@@ -1262,6 +1262,11 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
     // Search by name, driver_id, or body_no
     $search = '%' . $query . '%';
     
+    // First, get the open announcement ID
+    $openAnnStmt = $pdo->query("SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1");
+    $openAnn = $openAnnStmt->fetch();
+    $openAnnId = $openAnn ? $openAnnId = $openAnn['announcement_id'] : null;
+    
     $stmt = $pdo->prepare('
         SELECT 
             d.driver_id,
@@ -1273,24 +1278,25 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             d.contact_no,
             d.renewal_status,
             d.is_archived,
-            (SELECT COUNT(*) FROM applications a 
-             WHERE a.driver_id = d.driver_id 
-             AND a.status IN (\'Pending\', \'Validated\', \'For Approval\')
-             AND a.announcement_id = (SELECT announcement_id FROM announcements WHERE status = \'OPEN\' LIMIT 1)
-            ) AS has_pending_app
+            COUNT(a.id) AS has_pending_app
         FROM drivers d
         LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
+        LEFT JOIN applications a ON a.driver_id = d.driver_id 
+            AND a.status IN (\'Pending\', \'Validated\', \'For Approval\')
+            AND a.announcement_id = :annId
         WHERE d.is_archived = 0
         AND (
             d.name LIKE :search 
             OR d.driver_id LIKE :search 
             OR d.body_no LIKE :search
         )
+        GROUP BY d.driver_id
         ORDER BY d.name ASC
         LIMIT :limit
     ');
     
     $stmt->bindValue(':search', $search, PDO::PARAM_STR);
+    $stmt->bindValue(':annId', $openAnnId, PDO::PARAM_INT);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->execute();
     
