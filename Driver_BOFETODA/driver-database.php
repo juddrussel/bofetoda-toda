@@ -437,7 +437,7 @@ function submit_renewal_application(array $driver, array $documentPaths, $office
         $barangayId = $barangayId->fetchColumn();
 
         $colorId = $pdo->prepare('SELECT color_id FROM colors WHERE name = :n');
-        $colorId->execute(['n' => $driver['color_code']]);
+        $colorId->execute(['n' => $driver['color']]);
         $colorId = $colorId->fetchColumn();
 
         // Build INSERT query with optional officer fields

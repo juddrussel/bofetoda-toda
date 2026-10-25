@@ -92,11 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_assisted_renew
             }
             
             // Submit renewal application with officer attribution
-            $app_no = submit_renewal_application($driver, $uploadResult['paths'], $officer['officer_id'], $consent);
+            $app_no = submit_renewal_application($driver, $uploadResult['paths'], $officer['id'], $consent);
             
             if ($app_no) {
                 // Log the assisted renewal
-                log_assisted_renewal($officer['officer_id'], $driver_id, $app_no, 'Assisted Renewal Submitted');
+                log_assisted_renewal($officer['id'], $driver_id, $app_no, 'Assisted Renewal Submitted');
                 
                 // Clear session
                 unset($_SESSION['assisted_renewal_driver']);
