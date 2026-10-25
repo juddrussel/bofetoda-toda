@@ -1271,7 +1271,7 @@ function search_drivers_for_assisted_renewal($query, $limit = 10) {
             d.barangay_id,
             b.name AS barangay,
             d.contact_no,
-            d.status,
+            d.renewal_status,
             d.is_archived,
             (SELECT COUNT(*) FROM applications a 
              WHERE a.driver_id = d.driver_id 
