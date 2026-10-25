@@ -272,7 +272,7 @@ function send_deadline_reminders($announcementId, $announcementTitle, $deadlineD
     }
     
     // Send to officers
-    $pendingCount = count(get_pending_applications($cycleStart));
+    $pendingCount = count(get_pending_applications_for_reminder($cycleStart));
     foreach ($officers as $officerId) {
         $message = get_reminder_message_for_officer($daysRemaining, $deadlineDate, count($driversNotSubmitted), $pendingCount);
         
@@ -329,9 +329,9 @@ function get_drivers_with_submission($cycleStart) {
 }
 
 /**
- * Get pending applications count
+ * Get pending applications for deadline reminders
  */
-function get_pending_applications($cycleStart) {
+function get_pending_applications_for_reminder($cycleStart) {
     $pdo = get_pdo();
     
     $stmt = $pdo->prepare("
