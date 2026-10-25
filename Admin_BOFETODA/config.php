@@ -2433,7 +2433,7 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
         
         // Check if files were uploaded
         $hasAttachments = false;
-        if (!empty($files)) {
+        if (!empty($files) && isset($files['tmp_name'])) {
             if (is_array($files['tmp_name'])) {
                 // Multiple files
                 $hasAttachments = !empty($files['tmp_name'][0]) && $files['error'][0] === UPLOAD_ERR_OK;
