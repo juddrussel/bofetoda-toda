@@ -8,10 +8,18 @@
     
     // Wait for push notifications to be ready
     window.addEventListener('pushNotificationsReady', function() {
+        console.log('[Banner] Push notifications ready event fired');
+        
         // Check if we should show the banner
-        if (!window.shouldPromptForPush || !window.shouldPromptForPush()) {
+        const shouldPrompt = window.shouldPromptForPush ? window.shouldPromptForPush() : false;
+        console.log('[Banner] shouldPromptForPush():', shouldPrompt);
+        
+        if (!shouldPrompt) {
+            console.log('[Banner] Not showing banner - shouldPromptForPush returned false');
             return;
         }
+        
+        console.log('[Banner] Creating notification banner');
         
         // Create banner HTML
         const banner = document.createElement('div');
