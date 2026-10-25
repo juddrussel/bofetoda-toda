@@ -8,6 +8,9 @@
 (function() {
     'use strict';
     
+    // Detect if user is on iPhone
+    const isIPhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
     // Check if service workers are supported
     if (!('serviceWorker' in navigator)) {
         console.warn('Service Workers not supported in this browser');
@@ -17,6 +20,26 @@
     // Check if Push API is supported
     if (!('PushManager' in window)) {
         console.warn('Push notifications not supported in this browser');
+        
+        // Show info message for iPhone users
+        if (isIPhone) {
+            console.log('[Push] iPhone detected - Push notifications not supported in Chrome on iOS');
+            
+            // Show a one-time info toast
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.Toast && !sessionStorage.getItem('iphonePushInfoShown')) {
+                    setTimeout(function() {
+                        Toast.info(
+                            'Notification Support',
+                            'Push notifications are not supported in Chrome on iPhone. Use Safari for push notifications, or you\'ll still see in-app updates.',
+                            8000
+                        );
+                        sessionStorage.setItem('iphonePushInfoShown', 'true');
+                    }, 2000);
+                }
+            });
+        }
+        
         return;
     }
     
