@@ -1158,6 +1158,85 @@ function row_class_for_status($status) {
 
 function e($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 
+/**
+ * Paginate an array of items
+ * Returns: ['items' => [...], 'page' => 1, 'per_page' => 25, 'total' => 100, 'total_pages' => 4]
+ */
+function paginate_array($items, $page = 1, $perPage = 25) {
+    $total = count($items);
+    $totalPages = max(1, (int) ceil($total / $perPage));
+    $page = max(1, min($page, $totalPages));
+    $offset = ($page - 1) * $perPage);
+    
+    return [
+        'items' => array_slice($items, $offset, $perPage),
+        'page' => $page,
+        'per_page' => $perPage,
+        'total' => $total,
+        'total_pages' => $totalPages,
+    ];
+}
+
+/**
+ * Render pagination controls
+ */
+function render_pagination($currentPage, $totalPages, $baseUrl) {
+    if ($totalPages <= 1) return;
+    
+    echo '<div class="pagination-wrap">';
+    echo '<div class="pagination">';
+    
+    // Previous button
+    if ($currentPage > 1) {
+        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($currentPage - 1)) . '" class="pagination__btn">&larr; Previous</a>';
+    } else {
+        echo '<span class="pagination__btn pagination__btn--disabled">&larr; Previous</span>';
+    }
+    
+    // Page numbers
+    echo '<div class="pagination__numbers">';
+    
+    $range = 2; // Show 2 pages before and after current
+    $start = max(1, $currentPage - $range);
+    $end = min($totalPages, $currentPage + $range);
+    
+    if ($start > 1) {
+        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=1') . '" class="pagination__number">1</a>';
+        if ($start > 2) {
+            echo '<span class="pagination__ellipsis">...</span>';
+        }
+    }
+    
+    for ($i = $start; $i <= $end; $i++) {
+        if ($i == $currentPage) {
+            echo '<span class="pagination__number pagination__number--active">' . $i . '</span>';
+        } else {
+            echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $i) . '" class="pagination__number">' . $i . '</a>';
+        }
+    }
+    
+    if ($end < $totalPages) {
+        if ($end < $totalPages - 1) {
+            echo '<span class="pagination__ellipsis">...</span>';
+        }
+        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $totalPages) . '" class="pagination__number">' . $totalPages . '</a>';
+    }
+    
+    echo '</div>';
+    
+    // Next button
+    if ($currentPage < $totalPages) {
+        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($currentPage + 1)) . '" class="pagination__btn">Next &rarr;</a>';
+    } else {
+        echo '<span class="pagination__btn pagination__btn--disabled">Next &rarr;</span>';
+    }
+    
+    echo '</div>';
+    echo '<div class="pagination__info">Page ' . $currentPage . ' of ' . $totalPages . '</div>';
+    echo '</div>';
+}
+
+
 function render_shared_styles() {
     // Get VAPID public key for push notifications
     $vapidConfig = get_vapid_config();
@@ -1376,6 +1455,20 @@ table.registry td.id-cell{ color:var(--navy-light); font-weight:600; }
 .empty-state{ text-align:center; padding:40px 20px; color:#9aa1b4; }
 .text-muted{ color:var(--text-muted); }
 .flex-between{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+/* Pagination */
+.pagination-wrap{ padding:20px; border-top:1px solid var(--border); background:#fafbfc; }
+.pagination{ display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px; }
+.pagination__btn{ padding:8px 16px; border:1px solid var(--border); border-radius:6px; background:#fff; color:var(--text); font-size:13px; font-weight:600; text-decoration:none; transition:all .15s; }
+.pagination__btn:hover:not(.pagination__btn--disabled){ border-color:var(--navy); color:var(--navy); }
+.pagination__btn--disabled{ opacity:.4; cursor:not-allowed; }
+.pagination__numbers{ display:flex; align-items:center; gap:4px; }
+.pagination__number{ padding:8px 12px; border:1px solid var(--border); border-radius:6px; background:#fff; color:var(--text); font-size:13px; font-weight:600; text-decoration:none; transition:all .15s; min-width:40px; text-align:center; }
+.pagination__number:hover:not(.pagination__number--active){ border-color:var(--navy); color:var(--navy); }
+.pagination__number--active{ background:var(--navy); border-color:var(--navy); color:#fff; }
+.pagination__ellipsis{ padding:8px 4px; color:var(--text-muted); font-size:13px; }
+.pagination__info{ text-align:center; font-size:12px; color:var(--text-muted); font-weight:500; }
+
 
 @media (max-width:980px){
     .stat-grid, .report-grid{ grid-template-columns:repeat(2,1fr); }

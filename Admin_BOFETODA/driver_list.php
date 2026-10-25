@@ -80,10 +80,16 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $drivers   = d('drivers');
 $archived  = d('archived_drivers');
+
+// Pagination
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 25;
+$isArchived = (($_GET['view'] ?? 'active') === 'archived');
+$listToShow = $isArchived ? $archived : $drivers;
+$paginatedList = paginate_array($listToShow, $page, $perPage);
+
 $barangays = array_keys(d('barangays'));
 sort($barangays);
-
-$isArchived = (($_GET['view'] ?? 'active') === 'archived');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -336,7 +342,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
           </thead>
           <tbody>
             <?php if (!$isArchived): ?>
-              <?php foreach ($drivers as $drv): ?>
+              <?php foreach ($paginatedList['items'] as $drv): ?>
                 <tr class="is-clickable <?= row_class_for_status($drv['status']) ?>" data-open-modal="view-<?= e($drv['driver_id']) ?>" title="View driver details" data-barangay="<?= e($drv['barangay']) ?>" data-status="<?= e($drv['status']) ?>">
                   <td class="id-col"><?= e($drv['driver_id']) ?></td>
                   <td><?= e($drv['name']) ?></td>
@@ -358,7 +364,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
                 </tr>
               <?php endforeach; ?>
             <?php else: ?>
-              <?php foreach ($archived as $drv): ?>
+              <?php foreach ($paginatedList['items'] as $drv): ?>
                 <tr data-barangay="<?= e($drv['barangay']) ?>" data-status="-">
                   <td class="id-col"><?= e($drv['driver_id']) ?></td>
                   <td><?= e($drv['name']) ?></td>
@@ -379,6 +385,10 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
           </tbody>
         </table>
       </div>
+      <?php 
+      $baseUrl = BASE_URL . '/driver_list.php?view=' . ($isArchived ? 'archived' : 'active');
+      render_pagination($paginatedList['page'], $paginatedList['total_pages'], $baseUrl); 
+      ?>
     </div>
 
   </div>
@@ -413,7 +423,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
   </div>
 </div>
 
-<?php foreach ($drivers as $drv): ?>
+<?php foreach ($isArchived ? $archived : $drivers as $drv): ?>
 <div class="modal-backdrop" id="view-<?= e($drv['driver_id']) ?>">
   <div class="modal" style="max-width:680px;">
     <div class="modal__body" style="padding:20px 24px 4px;">

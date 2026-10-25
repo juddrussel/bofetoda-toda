@@ -27,6 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $queue = get_pending_applications(); // Changed from get_for_approval_applications()
+
+// Pagination
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 25;
+$paginatedQueue = paginate_array($queue, $page, $perPage);
+
 $totalApplications = count_applications();
 $barangays_list = array_keys(d('barangays'));
 sort($barangays_list);
@@ -312,7 +318,7 @@ if ($current) {
 
       <div style="margin-bottom:20px;">
         <h2 class="page-title">Approval Workflow</h2>
-        <p class="page-subtitle"><?= count($queue) ?> of <?= $totalApplications ?> applications</p>
+        <p class="page-subtitle"><?= $paginatedQueue['total'] ?> applications (showing <?= count($paginatedQueue['items']) ?> on this page)</p>
       </div>
 
       <div class="card" style="overflow:hidden;">
@@ -339,9 +345,9 @@ if ($current) {
               </tr>
             </thead>
             <tbody>
-              <?php if (empty($queue)): ?>
+              <?php if (empty($paginatedQueue['items'])): ?>
                 <tr><td colspan="7"><div class="empty-state">No applications waiting for your approval.</div></td></tr>
-              <?php else: foreach ($queue as $app): ?>
+              <?php else: foreach ($paginatedQueue['items'] as $app): ?>
                 <tr>
                   <td class="id-col"><?= e($app['app_no']) ?></td>
                   <td class="id-col"><?= e($app['driver_id']) ?></td>
@@ -355,6 +361,7 @@ if ($current) {
             </tbody>
           </table>
         </div>
+        <?php render_pagination($paginatedQueue['page'], $paginatedQueue['total_pages'], BASE_URL . '/approval_workflow.php'); ?>
       </div>
 
     <?php endif; ?>
