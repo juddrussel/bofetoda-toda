@@ -181,6 +181,29 @@ render_header([
             </div>
         </div>
 
+        <!-- Staff-Assisted Submission Banner -->
+        <?php if (!empty($app['is_staff_assisted']) && !empty($app['uploaded_by_officer_id'])): ?>
+        <div class="card" style="margin-top:16px; background:#e3f2fd; border:2px solid #2196f3;">
+            <div class="card-title" style="color:#1976d2;">Staff-Assisted Submission</div>
+            <p style="font-size:14px; color:#1565c0; margin-top:12px;">
+                <strong>This application was submitted by an officer on your behalf.</strong>
+            </p>
+            <div style="margin-top:12px; font-size:13px; color:#1976d2;">
+                <div style="margin-bottom:6px;"><strong>Submitted by:</strong> 
+                    <?php 
+                    require_once __DIR__ . '/../Admin_BOFETODA/db.php';
+                    $pdo = get_pdo();
+                    $officer = $pdo->prepare('SELECT name FROM officers WHERE officer_id = :id');
+                    $officer->execute(['id' => $app['uploaded_by_officer_id']]);
+                    $officer_name = $officer->fetchColumn();
+                    echo h($officer_name ?: 'Officer');
+                    ?>
+                </div>
+                <div><strong>Date:</strong> <?php echo h(date('M j, Y g:i A', strtotime($app['submitted_at']))); ?></div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Application Details -->
         <div class="card" style="margin-top:16px;">
             <div class="card-title">Application Details</div>

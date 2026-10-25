@@ -425,7 +425,7 @@ function next_application_no($pdo, $year = null) {
     return $prefix . str_pad((string) $n, 4, '0', STR_PAD_LEFT);
 }
 
-function submit_renewal_application(array $driver, array $documentPaths): string {
+function submit_renewal_application(array $driver, array $documentPaths, $officer_id = null, $consent = false): string {
     $pdo = get_pdo();
 
     $pdo->beginTransaction();
@@ -440,31 +440,68 @@ function submit_renewal_application(array $driver, array $documentPaths): string
         $colorId->execute(['n' => $driver['color_code']]);
         $colorId = $colorId->fetchColumn();
 
-        $insertApp = $pdo->prepare(
-            "INSERT INTO applications
-                (app_no, driver_id, name, age, birthday, contact_no, address,
-                 barangay_id, body_no, color_id, status, submitted_at)
-             VALUES
-                (:app_no, :driver_id, :name, :age, :birthday, :contact_no, :address,
-                 :barangay_id, :body_no, :color_id, 'Pending', NOW())"
-        );
-        $insertApp->execute([
-            'app_no'      => $appNo,
-            'driver_id'   => $driver['driver_id'],
-            'name'        => $driver['name'],
-            'age'         => $driver['age'],
-            'birthday'    => date('Y-m-d', strtotime($driver['birthday'])),
-            'contact_no'  => $driver['contact_no'],
-            'address'     => $driver['address'],
-            'barangay_id' => $barangayId,
-            'body_no'     => $driver['body_no'],
-            'color_id'    => $colorId,
-        ]);
+        // Build INSERT query with optional officer fields
+        if ($officer_id) {
+            $insertApp = $pdo->prepare(
+                "INSERT INTO applications
+                    (app_no, driver_id, name, age, birthday, contact_no, address,
+                     barangay_id, body_no, color_id, status, submitted_at,
+                     uploaded_by_officer_id, consent_given, is_staff_assisted)
+                 VALUES
+                    (:app_no, :driver_id, :name, :age, :birthday, :contact_no, :address,
+                     :barangay_id, :body_no, :color_id, 'Pending', NOW(),
+                     :officer_id, :consent, 1)"
+            );
+            $insertApp->execute([
+                'app_no'      => $appNo,
+                'driver_id'   => $driver['driver_id'],
+                'name'        => $driver['name'],
+                'age'         => $driver['age'],
+                'birthday'    => date('Y-m-d', strtotime($driver['birthday'])),
+                'contact_no'  => $driver['contact_no'],
+                'address'     => $driver['address'],
+                'barangay_id' => $barangayId,
+                'body_no'     => $driver['body_no'],
+                'color_id'    => $colorId,
+                'officer_id'  => $officer_id,
+                'consent'     => $consent ? 1 : 0,
+            ]);
+        } else {
+            $insertApp = $pdo->prepare(
+                "INSERT INTO applications
+                    (app_no, driver_id, name, age, birthday, contact_no, address,
+                     barangay_id, body_no, color_id, status, submitted_at)
+                 VALUES
+                    (:app_no, :driver_id, :name, :age, :birthday, :contact_no, :address,
+                     :barangay_id, :body_no, :color_id, 'Pending', NOW())"
+            );
+            $insertApp->execute([
+                'app_no'      => $appNo,
+                'driver_id'   => $driver['driver_id'],
+                'name'        => $driver['name'],
+                'age'         => $driver['age'],
+                'birthday'    => date('Y-m-d', strtotime($driver['birthday'])),
+                'contact_no'  => $driver['contact_no'],
+                'address'     => $driver['address'],
+                'barangay_id' => $barangayId,
+                'body_no'     => $driver['body_no'],
+                'color_id'    => $colorId,
+            ]);
+        }
 
-        $insertDoc = $pdo->prepare(
-            'INSERT INTO application_documents (app_no, doc_type, file_path, is_verified)
-             VALUES (:app_no, :doc_type, :file_path, 0)'
-        );
+        // Insert documents with optional officer attribution
+        if ($officer_id) {
+            $insertDoc = $pdo->prepare(
+                'INSERT INTO application_documents (app_no, doc_type, file_path, is_verified, uploaded_by_officer_id)
+                 VALUES (:app_no, :doc_type, :file_path, 0, :officer_id)'
+            );
+        } else {
+            $insertDoc = $pdo->prepare(
+                'INSERT INTO application_documents (app_no, doc_type, file_path, is_verified)
+                 VALUES (:app_no, :doc_type, :file_path, 0)'
+            );
+        }
+        
         $docTypeMap = [
             'drivers_license' => 'license',
             'or_cr'           => 'or_cr',
@@ -476,23 +513,43 @@ function submit_renewal_application(array $driver, array $documentPaths): string
             if (!$docType || !$path) {
                 continue;
             }
-            $insertDoc->execute([
-                'app_no'    => $appNo,
-                'doc_type'  => $docType,
-                'file_path' => $path,
-            ]);
+            if ($officer_id) {
+                $insertDoc->execute([
+                    'app_no'     => $appNo,
+                    'doc_type'   => $docType,
+                    'file_path'  => $path,
+                    'officer_id' => $officer_id,
+                ]);
+            } else {
+                $insertDoc->execute([
+                    'app_no'    => $appNo,
+                    'doc_type'  => $docType,
+                    'file_path' => $path,
+                ]);
+            }
         }
 
         $pdo->prepare("UPDATE drivers SET renewal_status = 'Pending Renewal' WHERE driver_id = :id")
             ->execute(['id' => $driver['driver_id']]);
 
+        // Create notification with officer info if staff-assisted
+        if ($officer_id) {
+            $officerName = $pdo->prepare('SELECT name FROM officers WHERE officer_id = :id');
+            $officerName->execute(['id' => $officer_id]);
+            $officerName = $officerName->fetchColumn();
+            
+            $message = "{$appNo} was submitted by {$officerName} on your behalf and is currently in the validation queue for processing.";
+        } else {
+            $message = "{$appNo} was submitted successfully and is currently in the validation queue for processing.";
+        }
+        
         $pdo->prepare(
             "INSERT INTO notifications (driver_id, app_no, title, message)
              VALUES (:driver_id, :app_no, 'Application Submitted', :msg)"
         )->execute([
             'driver_id' => $driver['driver_id'],
             'app_no'    => $appNo,
-            'msg'       => "{$appNo} was submitted successfully and is currently in the validation queue for processing.",
+            'msg'       => $message,
         ]);
 
         $pdo->commit();

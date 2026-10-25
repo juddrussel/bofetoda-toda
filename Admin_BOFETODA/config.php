@@ -1116,6 +1116,9 @@ function attempt_officer_login($officerId, $password) {
 
 function is_role($role) {
     $officer = current_officer();
+    if (is_array($role)) {
+        return $officer && in_array($officer['role'], $role, true);
+    }
     return $officer && $officer['role'] === $role;
 }
 
@@ -1234,6 +1237,144 @@ function render_pagination($currentPage, $totalPages, $baseUrl) {
     echo '</div>';
     echo '<div class="pagination__info">Page ' . $currentPage . ' of ' . $totalPages . '</div>';
     echo '</div>';
+}
+
+/**
+ * ============================================================================
+ * ASSISTED RENEWAL FUNCTIONS
+ * Functions for staff-assisted renewal submissions
+ * ============================================================================
+ */
+
+/**
+ * Search drivers for assisted renewal
+ * Searches by name, driver_id, or body_no
+ * Excludes archived drivers and those with pending applications
+ */
+function search_drivers_for_assisted_renewal($query, $limit = 10) {
+    $pdo = get_pdo();
+    $query = trim($query);
+    
+    if (strlen($query) < 2) {
+        return [];
+    }
+    
+    // Search by name, driver_id, or body_no
+    $search = '%' . $query . '%';
+    
+    $stmt = $pdo->prepare('
+        SELECT 
+            d.driver_id,
+            d.name,
+            d.body_no,
+            d.age,
+            d.barangay_id,
+            b.name AS barangay,
+            d.contact_no,
+            d.status,
+            d.is_archived,
+            (SELECT COUNT(*) FROM applications a 
+             WHERE a.driver_id = d.driver_id 
+             AND a.status IN ("Pending", "Validated", "For Approval")
+             AND a.announcement_id = (SELECT announcement_id FROM announcements WHERE status = "OPEN" LIMIT 1)
+            ) AS has_pending_app
+        FROM drivers d
+        LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
+        WHERE d.is_archived = 0
+        AND (
+            d.name LIKE :search 
+            OR d.driver_id LIKE :search 
+            OR d.body_no LIKE :search
+        )
+        ORDER BY 
+            CASE 
+                WHEN d.driver_id = :exact THEN 1
+                WHEN d.body_no = :exact THEN 2
+                WHEN d.name LIKE :starts THEN 3
+                ELSE 4
+            END,
+            d.name ASC
+        LIMIT :limit
+    ');
+    
+    $stmt->bindValue(':search', $search, PDO::PARAM_STR);
+    $stmt->bindValue(':exact', $query, PDO::PARAM_STR);
+    $stmt->bindValue(':starts', $query . '%', PDO::PARAM_STR);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Check if driver is eligible for assisted renewal
+ */
+function can_submit_assisted_renewal($driver_id) {
+    $pdo = get_pdo();
+    
+    // Check if driver exists and is not archived
+    $driver = $pdo->prepare('SELECT is_archived FROM drivers WHERE driver_id = :id LIMIT 1');
+    $driver->execute(['id' => $driver_id]);
+    $driver = $driver->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$driver || $driver['is_archived']) {
+        return false;
+    }
+    
+    // Check if driver already has pending application in current cycle
+    $stmt = $pdo->prepare('
+        SELECT COUNT(*) as count 
+        FROM applications a
+        JOIN announcements an ON an.announcement_id = a.announcement_id
+        WHERE a.driver_id = :driver_id
+        AND a.status IN ("Pending", "Validated", "For Approval")
+        AND an.status = "OPEN"
+    ');
+    $stmt->execute(['driver_id' => $driver_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    return $result['count'] == 0;
+}
+
+/**
+ * Get driver details for assisted renewal
+ */
+function get_driver_for_assisted_renewal($driver_id) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare('
+        SELECT 
+            d.*,
+            b.name AS barangay,
+            c.color_name AS color
+        FROM drivers d
+        LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
+        LEFT JOIN colors c ON c.color_id = d.color_id
+        WHERE d.driver_id = :id
+        AND d.is_archived = 0
+        LIMIT 1
+    ');
+    $stmt->execute(['id' => $driver_id]);
+    
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Log assisted renewal action
+ */
+function log_assisted_renewal($officer_id, $driver_id, $app_no, $action) {
+    $pdo = get_pdo();
+    
+    $stmt = $pdo->prepare('
+        INSERT INTO logs (officer_id, driver_id, action, created_at)
+        VALUES (:officer_id, :driver_id, :action, NOW())
+    ');
+    
+    $stmt->execute([
+        'officer_id' => $officer_id,
+        'driver_id' => $driver_id,
+        'action' => $action . ' (App: ' . $app_no . ')'
+    ]);
 }
 
 
@@ -1496,6 +1637,7 @@ function nav_icon($name) {
         'check'       => '<path d="M20 6L9 17l-5-5"/>',
         'chart'       => '<path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/>',
         'message'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+        'upload'      => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
         'logout'      => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     ];
     $path = $icons[$name] ?? '';
@@ -1521,9 +1663,11 @@ function render_sidebar($active) {
     <a class="nav-link <?= $active === 'announcements' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/announcements.php"><span class="nav-link__icon"><?= nav_icon('mail') ?></span> Renewals</a>
     <?php if ($role === 'secretary'): ?>
       <a class="nav-link <?= $active === 'validation' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/validation_tools.php"><span class="nav-link__icon"><?= nav_icon('validate') ?></span> Validation Tools</a>
+      <a class="nav-link <?= $active === 'assisted' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/assisted_renewal.php"><span class="nav-link__icon"><?= nav_icon('upload') ?></span> Assisted Renewal</a>
     <?php endif; ?>
     <?php if ($role === 'president'): ?>
       <a class="nav-link <?= $active === 'approval' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/approval_workflow.php"><span class="nav-link__icon"><?= nav_icon('check') ?></span> Approval Workflow</a>
+      <a class="nav-link <?= $active === 'assisted' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/assisted_renewal.php"><span class="nav-link__icon"><?= nav_icon('upload') ?></span> Assisted Renewal</a>
     <?php endif; ?>
     <a class="nav-link <?= $active === 'driverlist' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/driver_list.php"><span class="nav-link__icon"><?= nav_icon('user') ?></span> Driver List</a>
     <a class="nav-link <?= $active === 'driver_inbox' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/driver_inbox.php">
