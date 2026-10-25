@@ -153,7 +153,7 @@ render_header([
             
             <div class="document-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
                 <?php foreach ($documents as $doc): ?>
-                    <a href="/Driver_BOFETODA/download-attachment.php?app_no=<?php echo urlencode($app_no); ?>&doc_type=<?php echo urlencode($doc['doc_type']); ?>" 
+                    <a href="/Driver_BOFETODA/download-application-document.php?app_no=<?php echo urlencode($app_no); ?>&doc_type=<?php echo urlencode($doc['doc_type']); ?>" 
                        class="document-item" 
                        style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--color-border);border-radius:8px;text-decoration:none;color:var(--color-text);background:#fff;transition:all 0.2s ease;"
                        onmouseover="this.style.borderColor='var(--color-primary)';this.style.background='#fffdf0';"
