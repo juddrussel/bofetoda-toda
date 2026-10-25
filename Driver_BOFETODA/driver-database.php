@@ -431,6 +431,11 @@ function submit_renewal_application(array $driver, array $documentPaths, $office
     $pdo->beginTransaction();
     try {
         $appNo = next_application_no($pdo);
+        
+        // Get open announcement
+        $annStmt = $pdo->query("SELECT announcement_id FROM announcements WHERE status = 'OPEN' LIMIT 1");
+        $announcement = $annStmt->fetch();
+        $announcementId = $announcement ? $announcement['announcement_id'] : null;
 
         $barangayId = $pdo->prepare('SELECT barangay_id FROM barangays WHERE name = :n');
         $barangayId->execute(['n' => $driver['barangay']]);
@@ -445,47 +450,49 @@ function submit_renewal_application(array $driver, array $documentPaths, $office
             $insertApp = $pdo->prepare(
                 "INSERT INTO applications
                     (app_no, driver_id, name, age, birthday, contact_no, address,
-                     barangay_id, body_no, color_id, status, submitted_at,
+                     barangay_id, body_no, color_id, status, submitted_at, announcement_id,
                      uploaded_by_officer_id, consent_given, is_staff_assisted)
                  VALUES
                     (:app_no, :driver_id, :name, :age, :birthday, :contact_no, :address,
-                     :barangay_id, :body_no, :color_id, 'Pending', NOW(),
+                     :barangay_id, :body_no, :color_id, 'Pending', NOW(), :announcement_id,
                      :officer_id, :consent, 1)"
             );
             $insertApp->execute([
-                'app_no'      => $appNo,
-                'driver_id'   => $driver['driver_id'],
-                'name'        => $driver['name'],
-                'age'         => $driver['age'],
-                'birthday'    => date('Y-m-d', strtotime($driver['birthday'])),
-                'contact_no'  => $driver['contact_no'],
-                'address'     => $driver['address'],
-                'barangay_id' => $barangayId,
-                'body_no'     => $driver['body_no'],
-                'color_id'    => $colorId,
-                'officer_id'  => $officer_id,
-                'consent'     => $consent ? 1 : 0,
+                'app_no'          => $appNo,
+                'driver_id'       => $driver['driver_id'],
+                'name'            => $driver['name'],
+                'age'             => $driver['age'],
+                'birthday'        => date('Y-m-d', strtotime($driver['birthday'])),
+                'contact_no'      => $driver['contact_no'],
+                'address'         => $driver['address'],
+                'barangay_id'     => $barangayId,
+                'body_no'         => $driver['body_no'],
+                'color_id'        => $colorId,
+                'announcement_id' => $announcementId,
+                'officer_id'      => $officer_id,
+                'consent'         => $consent ? 1 : 0,
             ]);
         } else {
             $insertApp = $pdo->prepare(
                 "INSERT INTO applications
                     (app_no, driver_id, name, age, birthday, contact_no, address,
-                     barangay_id, body_no, color_id, status, submitted_at)
+                     barangay_id, body_no, color_id, status, submitted_at, announcement_id)
                  VALUES
                     (:app_no, :driver_id, :name, :age, :birthday, :contact_no, :address,
-                     :barangay_id, :body_no, :color_id, 'Pending', NOW())"
+                     :barangay_id, :body_no, :color_id, 'Pending', NOW(), :announcement_id)"
             );
             $insertApp->execute([
-                'app_no'      => $appNo,
-                'driver_id'   => $driver['driver_id'],
-                'name'        => $driver['name'],
-                'age'         => $driver['age'],
-                'birthday'    => date('Y-m-d', strtotime($driver['birthday'])),
-                'contact_no'  => $driver['contact_no'],
-                'address'     => $driver['address'],
-                'barangay_id' => $barangayId,
-                'body_no'     => $driver['body_no'],
-                'color_id'    => $colorId,
+                'app_no'          => $appNo,
+                'driver_id'       => $driver['driver_id'],
+                'name'            => $driver['name'],
+                'age'             => $driver['age'],
+                'birthday'        => date('Y-m-d', strtotime($driver['birthday'])),
+                'contact_no'      => $driver['contact_no'],
+                'address'         => $driver['address'],
+                'barangay_id'     => $barangayId,
+                'body_no'         => $driver['body_no'],
+                'color_id'        => $colorId,
+                'announcement_id' => $announcementId,
             ]);
         }
 
