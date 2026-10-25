@@ -2433,17 +2433,32 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
         
         // Check if files were uploaded
         $hasAttachments = false;
-        if (!empty($files) && isset($files['tmp_name'])) {
-            if (is_array($files['tmp_name'])) {
-                // Multiple files
-                $hasAttachments = !empty($files['tmp_name'][0]) && $files['error'][0] === UPLOAD_ERR_OK;
+        if (!empty($files)) {
+            error_log("Files array structure: " . print_r($files, true));
+            
+            // Check if this is a pre-processed array (from driver-messages.php)
+            // Structure: [0 => ['name' => '...', 'tmp_name' => '...', ...], ...]
+            if (isset($files[0]) && is_array($files[0]) && isset($files[0]['tmp_name'])) {
+                error_log("Pre-processed files array detected. Count: " . count($files));
+                $hasAttachments = !empty($files[0]['tmp_name']) && $files[0]['error'] === UPLOAD_ERR_OK;
+            }
+            // Check if this is raw $_FILES structure
+            elseif (isset($files['tmp_name'])) {
+                if (is_array($files['tmp_name'])) {
+                    // Multiple files
+                    error_log("Multiple files structure detected. Count: " . count($files['tmp_name']));
+                    $hasAttachments = !empty($files['tmp_name'][0]) && $files['error'][0] === UPLOAD_ERR_OK;
+                } else {
+                    // Single file
+                    error_log("Single file structure detected");
+                    $hasAttachments = !empty($files['tmp_name']) && $files['error'] === UPLOAD_ERR_OK;
+                }
             } else {
-                // Single file
-                $hasAttachments = !empty($files['tmp_name']) && $files['error'] === UPLOAD_ERR_OK;
+                error_log("Unknown files array structure");
             }
         }
         
-        error_log("send_driver_message: hasAttachments=$hasAttachments, files is " . (empty($files) ? "empty" : "not empty"));
+        error_log("send_driver_message: hasAttachments=" . (int)$hasAttachments . ", files is " . (empty($files) ? "empty" : "not empty"));
         
         // Set is_read based on sender (officer messages are pre-read)
         $isRead = ($senderType === 'officer') ? 1 : 0;
@@ -2474,9 +2489,22 @@ function send_driver_message($driverId, $senderType, $senderId, $messageText, $f
             
             error_log("Processing attachments for message $messageId. hasAttachments=$hasAttachments");
             
-            // Handle multiple files
+            // Handle both pre-processed array and raw $_FILES structure
             $fileArray = [];
-            if (is_array($files['tmp_name'])) {
+            
+            // Check if pre-processed (from driver-messages.php)
+            if (isset($files[0]) && is_array($files[0]) && isset($files[0]['tmp_name'])) {
+                error_log("Pre-processed files array: " . count($files) . " files");
+                foreach ($files as $file) {
+                    if ($file['error'] === UPLOAD_ERR_OK) {
+                        $fileArray[] = $file;
+                    } else {
+                        error_log("Pre-processed file upload error: " . $file['error']);
+                    }
+                }
+            }
+            // Handle raw $_FILES structure
+            elseif (is_array($files['tmp_name'])) {
                 error_log("Multiple files detected: " . count($files['tmp_name']) . " files");
                 for ($i = 0; $i < count($files['tmp_name']); $i++) {
                     if ($files['error'][$i] === UPLOAD_ERR_OK) {
