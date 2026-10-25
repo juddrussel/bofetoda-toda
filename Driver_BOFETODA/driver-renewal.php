@@ -9,6 +9,9 @@ $existingAppNo = get_current_application($driver['driver_id']);
 $existingApp   = $existingAppNo ? get_application_detail($existingAppNo) : null;
 $existingStatus = $existingApp['status'] ?? null;
 
+// Debug logging
+error_log("driver-renewal.php: driver_id={$driver['driver_id']}, existingAppNo=$existingAppNo, existingStatus=$existingStatus");
+
 if ($existingStatus
     && in_array($existingStatus, ['Approved', 'Rejected'], true)
     && !application_is_current_cycle($existingApp)
@@ -16,9 +19,11 @@ if ($existingStatus
     $existingAppNo = null;
     $existingApp = null;
     $existingStatus = null;
+    error_log("driver-renewal.php: Cleared old Approved/Rejected application");
 }
 
 if ($existingStatus && !in_array($existingStatus, ['Approved', 'Rejected'], true)) {
+    error_log("driver-renewal.php: Redirecting to view page - status=$existingStatus");
     header('Location: driver-view-application.php');
     exit;
 }
