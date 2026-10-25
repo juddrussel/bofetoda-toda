@@ -18,6 +18,9 @@ $success_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_text'])) {
     $message_text = trim($_POST['message_text']);
     
+    error_log("Driver message POST received. Message length: " . strlen($message_text));
+    error_log("FILES array: " . print_r($_FILES, true));
+    
     if (empty($message_text)) {
         $error_message = 'Please enter a message.';
     } else {
@@ -463,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messagesBox.scrollTop = messagesBox.scrollHeight;
     }
     
-    // File upload preview
+    // File upload preview with thumbnails
     const fileInput = document.getElementById('fileInput');
     const selectedFilesDiv = document.getElementById('selectedFiles');
     
@@ -480,16 +483,51 @@ document.addEventListener('DOMContentLoaded', function() {
             const fileItem = document.createElement('div');
             fileItem.className = 'selected-file-item';
             
+            // Create thumbnail for images
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.style.width = '40px';
+                img.style.height = '40px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '4px';
+                img.style.marginRight = '8px';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                fileItem.appendChild(img);
+            } else {
+                const icon = document.createElement('span');
+                icon.textContent = '📄';
+                icon.style.fontSize = '24px';
+                icon.style.marginRight = '8px';
+                fileItem.appendChild(icon);
+            }
+            
+            const fileInfo = document.createElement('div');
+            fileInfo.style.flex = '1';
+            
             const fileName = document.createElement('span');
             fileName.className = 'selected-file-name';
-            fileName.textContent = file.name;
+            fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+            
+            const uploadStatus = document.createElement('div');
+            uploadStatus.className = 'upload-status';
+            uploadStatus.style.fontSize = '12px';
+            uploadStatus.style.color = '#16a34a';
+            uploadStatus.textContent = '✓ Ready to send';
+            
+            fileInfo.appendChild(fileName);
+            fileInfo.appendChild(uploadStatus);
+            fileItem.appendChild(fileInfo);
             
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-file-btn';
             removeBtn.textContent = '×';
             removeBtn.type = 'button';
             removeBtn.onclick = function() {
-                // Create a new FileList without this file
                 const dt = new DataTransfer();
                 Array.from(fileInput.files).forEach((f, i) => {
                     if (i !== index) {
@@ -497,17 +535,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 fileInput.files = dt.files;
-                
-                // Trigger change event to update display
                 fileInput.dispatchEvent(new Event('change'));
             };
             
-            fileItem.appendChild(fileName);
             fileItem.appendChild(removeBtn);
             selectedFilesDiv.appendChild(fileItem);
         });
     });
+    
+    // Show uploading status on form submit
+    const messageForm = document.getElementById('messageForm');
+    messageForm.addEventListener('submit', function(e) {
+        if (fileInput.files.length > 0) {
+            const statusElements = document.querySelectorAll('.upload-status');
+            statusElements.forEach(el => {
+                el.textContent = '⏳ Uploading...';
+                el.style.color = '#ca8a04';
+            });
+        }
+    });
 });
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
 </script>
 
 <?php render_footer('messages'); ?>
