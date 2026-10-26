@@ -162,7 +162,7 @@ img {
 
 .card {
   background: var(--color-white);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
   padding: 20px;
   margin-bottom: 20px;
@@ -799,7 +799,7 @@ img {
   display: flex;
   gap: 14px;
   background: var(--color-white);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
   padding: 20px;
   margin-bottom: 18px;
@@ -919,7 +919,7 @@ img {
 
 .info-card {
   background: var(--color-white);
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
   padding: 20px;
   margin-bottom: 18px;
