@@ -197,7 +197,7 @@ if (count($nameParts) >= 2) {
     <div class="max-w-5xl mx-auto flex flex-col gap-6">
 
       <!-- BEGIN: DriverProfileHeaderCard -->
-      <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200" data-purpose="driver-summary-header">
+      <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 sticky top-0 z-20" data-purpose="driver-summary-header" style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.95);">
         <div class="flex items-center justify-between mb-4">
           <a class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-toda-navy transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-100" href="driver_inbox.php">
             <i class="fa-solid fa-arrow-left text-xs"></i>
@@ -399,7 +399,7 @@ if (count($nameParts) >= 2) {
       <!-- END: ConversationThread -->
 
       <!-- BEGIN: MessageReplyComposer -->
-      <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mt-2" data-purpose="composer-reply-panel" style="margin-bottom: 24px;">
+      <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mt-2 sticky bottom-0 z-20" data-purpose="composer-reply-panel" style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.95);">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <i class="fa-regular fa-comment-dots text-amber-500"></i>
