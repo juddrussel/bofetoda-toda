@@ -62,6 +62,9 @@ if ($currentAppStatus && !in_array($currentAppStatus, ['Approved', 'Rejected'], 
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta name="theme-color" content="#f8fafc"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <title>Bocaue TODA Member Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
@@ -100,9 +103,22 @@ body {
   -webkit-tap-highlight-color: transparent;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
 }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Improve touch targets for mobile */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent zoom on input focus (iOS) */
+input, textarea, select {
+  font-size: 16px !important;
+}
 
 /* Chat Window Styles */
 .chat-window {
@@ -338,8 +354,26 @@ body {
 @media (max-width: 480px) {
   .chat-window {
     right: 10px;
+    left: 10px;
     bottom: 70px;
-    width: calc(100vw - 20px);
+    width: auto;
+    max-width: none;
+    height: 450px;
+  }
+  .chat-bubble {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chat-window {
+    height: 400px;
+  }
+  .chat-bubble {
+    max-width: 180px;
+  }
+  .chat-header-title {
+    font-size: 14px;
   }
 }
 
@@ -391,7 +425,7 @@ echo h(strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($
 </section>
 
 <!-- Main Content Area -->
-<main class="flex-1 px-4 space-y-4 pb-28">
+<main class="flex-1 px-4 space-y-4 hide-scrollbar" style="padding-bottom: calc(7rem + env(safe-area-inset-bottom)); overflow-y: auto;">
 
 <!-- Announcements Section -->
 <?php if (!empty($generalAnnouncements)): ?>
@@ -658,7 +692,7 @@ REJECTED
 </main>
 
 <!-- Floating Chat Button -->
-<button type="button" class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] z-40 w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white" id="chatToggleBtn" aria-label="Open support chat">
+<button type="button" class="fixed right-4 z-40 w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white md:right-[calc(50%-190px)]" id="chatToggleBtn" aria-label="Open support chat" style="bottom: calc(5rem + env(safe-area-inset-bottom));">
 <svg class="w-6 h-6 fill-slate-950" viewBox="0 0 24 24">
 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
 </svg>
@@ -709,8 +743,8 @@ REJECTED
 </div>
 
 <!-- Bottom Navigation Bar -->
-<nav class="fixed bottom-0 left-0 right-0 max-w-[420px] mx-auto bg-[#070b14] text-slate-400 border-t border-slate-800 z-50 px-2 py-2 shadow-nav">
-<div class="grid grid-cols-4 items-center">
+<nav class="fixed bottom-0 left-0 right-0 max-w-[420px] mx-auto bg-[#070b14] text-slate-400 border-t border-slate-800 z-50 px-2 shadow-nav" style="padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));">
+<div class="grid grid-cols-4 items-center py-2">
 <a class="flex flex-col items-center justify-center py-1 group text-amber-400" href="driver-home.php">
 <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewBox="0 0 24 24">
 <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
