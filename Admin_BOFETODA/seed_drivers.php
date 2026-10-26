@@ -1,18 +1,10 @@
 <?php
 /**
  * Driver Seeding Script
- * Access: https://your-domain.com/Admin_BOFETODA/seed_drivers.php?key=SECRET_KEY_2024
+ * Access: https://your-domain.com/seed_drivers.php
  * 
  * IMPORTANT: Delete this file after running!
  */
-
-// Security check - change this key to something secure
-$SEED_KEY = 'SECRET_KEY_2024';
-
-if (!isset($_GET['key']) || $_GET['key'] !== $SEED_KEY) {
-    http_response_code(403);
-    die('Access denied. Invalid key.');
-}
 
 require_once __DIR__ . '/db.php';
 
