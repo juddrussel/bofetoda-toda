@@ -29,8 +29,8 @@ try {
         try {
             $pdo = get_pdo();
             $stmt = $pdo->prepare(
-                "INSERT INTO driver_messages (driver_id, sender_type, message, sent_at) 
-                 VALUES (:driver_id, 'driver', :message, NOW())"
+                "INSERT INTO driver_messages (driver_id, sender_type, message, sent_at, has_reply) 
+                 VALUES (:driver_id, 'driver', :message, NOW(), 0)"
             );
             $stmt->execute([
                 'driver_id' => $driver_id,
@@ -75,6 +75,21 @@ try {
                  SET is_read = 1 
                  WHERE driver_id = :driver_id AND sender_type = 'admin' AND is_read = 0"
             )->execute(['driver_id' => $driver_id]);
+            
+            // When admin sends a message, mark all previous driver messages as replied
+            $lastAdminMsg = $pdo->prepare(
+                "SELECT message_id FROM driver_messages 
+                 WHERE driver_id = :driver_id AND sender_type = 'admin' 
+                 ORDER BY sent_at DESC LIMIT 1"
+            );
+            $lastAdminMsg->execute(['driver_id' => $driver_id]);
+            if ($lastAdminMsg->fetchColumn()) {
+                $pdo->prepare(
+                    "UPDATE driver_messages 
+                     SET has_reply = 1 
+                     WHERE driver_id = :driver_id AND sender_type = 'driver' AND has_reply = 0"
+                )->execute(['driver_id' => $driver_id]);
+            }
             
             header('Content-Type: application/json');
             echo json_encode([
