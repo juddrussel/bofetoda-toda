@@ -175,10 +175,6 @@ if (count($nameParts) >= 2) {
 </head>
 
 <body>
-<?php render_sidebar('driver_inbox'); ?></style>
-</head>
-
-<body>
 <?php render_sidebar('driver_inbox'); ?>
 
 <div class="main-col">
