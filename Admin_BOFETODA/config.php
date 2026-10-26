@@ -1639,6 +1639,7 @@ function nav_icon($name) {
         'chart'       => '<path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/>',
         'message'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
         'upload'      => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+        'database'    => '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
         'logout'      => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     ];
     $path = $icons[$name] ?? '';
@@ -1680,6 +1681,7 @@ function render_sidebar($active) {
     </a>
     <?php if ($role === 'president'): ?>
       <a class="nav-link <?= $active === 'reports' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/reports.php"><span class="nav-link__icon"><?= nav_icon('chart') ?></span> Reports</a>
+      <a class="nav-link <?= $active === 'backup' ? 'is-active' : '' ?>" href="<?= BASE_URL ?>/backup.php"><span class="nav-link__icon"><?= nav_icon('database') ?></span> Database Backup</a>
     <?php endif; ?>
     <a class="nav-link nav-link--logout" href="#" data-open-modal="logout-modal"><span class="nav-link__icon"><?= nav_icon('logout') ?></span> Logout</a>
   </nav>
@@ -3356,4 +3358,242 @@ function get_driver_name($driverId) {
         error_log('get_driver_name error: ' . $e->getMessage());
         return $driverId;
     }
+}
+
+
+// ============================================================================
+// Database Backup Functions
+// ============================================================================
+
+/**
+ * Get database backup command (mysqldump)
+ */
+function get_mysqldump_command() {
+    $host = getenv('DB_HOST') ?: '127.0.0.1';
+    $port = getenv('DB_PORT') ?: '3306';
+    $user = getenv('DB_USER') ?: 'root';
+    $pass = getenv('DB_PASS') ?: '';
+    $name = getenv('DB_NAME') ?: 'bofetoda';
+    
+    return sprintf(
+        'mysqldump --host=%s --port=%s --user=%s --password=%s --single-transaction --quick --lock-tables=false %s',
+        escapeshellarg($host),
+        escapeshellarg($port),
+        escapeshellarg($user),
+        escapeshellarg($pass),
+        escapeshellarg($name)
+    );
+}
+
+/**
+ * Upload backup file to R2
+ * 
+ * @param string $localPath Local path to backup file
+ * @param string $r2Key R2 object key (path)
+ * @return bool Success status
+ */
+function upload_backup_to_r2($localPath, $r2Key) {
+    $client = get_r2_client();
+    
+    if (!$client) {
+        error_log('R2 client not available for backup upload');
+        return false;
+    }
+    
+    $bucketName = getenv('R2_BUCKET_NAME') ?: 'bofetoda-announcements';
+    
+    try {
+        $result = $client->putObject([
+            'Bucket' => $bucketName,
+            'Key' => $r2Key,
+            'SourceFile' => $localPath,
+            'ContentType' => 'application/gzip',
+            'ACL' => 'private', // Backups should NOT be public
+        ]);
+        
+        return true;
+    } catch (Exception $e) {
+        error_log('R2 backup upload failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * List all backups from R2
+ * 
+ * @return array Array of backup metadata
+ */
+function list_r2_backups() {
+    $client = get_r2_client();
+    
+    if (!$client) {
+        return [];
+    }
+    
+    $bucketName = getenv('R2_BUCKET_NAME') ?: 'bofetoda-announcements';
+    
+    try {
+        $result = $client->listObjectsV2([
+            'Bucket' => $bucketName,
+            'Prefix' => 'backups/',
+        ]);
+        
+        $backups = [];
+        
+        if (isset($result['Contents'])) {
+            foreach ($result['Contents'] as $object) {
+                $key = $object['Key'];
+                
+                // Skip directory markers
+                if (substr($key, -1) === '/') {
+                    continue;
+                }
+                
+                // Parse filename to extract date/time
+                $filename = basename($key);
+                $dateTime = null;
+                
+                if (preg_match('/backup_(\d{4}-\d{2}-\d{2})_(\d{6})\.sql\.gz/', $filename, $matches)) {
+                    $dateTime = $matches[1] . ' ' . substr($matches[2], 0, 2) . ':' . substr($matches[2], 2, 2) . ':' . substr($matches[2], 4, 2);
+                }
+                
+                // Generate pre-signed URL (valid for 1 hour)
+                $cmd = $client->getCommand('GetObject', [
+                    'Bucket' => $bucketName,
+                    'Key' => $key,
+                ]);
+                
+                $request = $client->createPresignedRequest($cmd, '+1 hour');
+                $downloadUrl = (string) $request->getUri();
+                
+                $backups[] = [
+                    'key' => $key,
+                    'filename' => $filename,
+                    'size' => $object['Size'],
+                    'size_formatted' => format_bytes($object['Size']),
+                    'last_modified' => $object['LastModified']->format('Y-m-d H:i:s'),
+                    'date_time' => $dateTime,
+                    'age' => time_ago($object['LastModified']->getTimestamp()),
+                    'download_url' => $downloadUrl,
+                ];
+            }
+        }
+        
+        // Sort by last_modified descending (newest first)
+        usort($backups, function($a, $b) {
+            return strcmp($b['last_modified'], $a['last_modified']);
+        });
+        
+        return $backups;
+    } catch (Exception $e) {
+        error_log('Failed to list R2 backups: ' . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Delete old backups from R2 (older than X days)
+ * 
+ * @param int $daysToKeep Number of days to keep
+ * @return int Number of backups deleted
+ */
+function cleanup_old_backups($daysToKeep = 7) {
+    $client = get_r2_client();
+    
+    if (!$client) {
+        return 0;
+    }
+    
+    $bucketName = getenv('R2_BUCKET_NAME') ?: 'bofetoda-announcements';
+    $cutoffTimestamp = time() - ($daysToKeep * 24 * 60 * 60);
+    $deletedCount = 0;
+    
+    try {
+        $result = $client->listObjectsV2([
+            'Bucket' => $bucketName,
+            'Prefix' => 'backups/',
+        ]);
+        
+        if (isset($result['Contents'])) {
+            foreach ($result['Contents'] as $object) {
+                $key = $object['Key'];
+                
+                // Skip directory markers
+                if (substr($key, -1) === '/') {
+                    continue;
+                }
+                
+                // Check if older than cutoff
+                if ($object['LastModified']->getTimestamp() < $cutoffTimestamp) {
+                    $client->deleteObject([
+                        'Bucket' => $bucketName,
+                        'Key' => $key,
+                    ]);
+                    
+                    $deletedCount++;
+                    error_log("Deleted old backup: $key");
+                }
+            }
+        }
+        
+        return $deletedCount;
+    } catch (Exception $e) {
+        error_log('Failed to cleanup old backups: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Format bytes to human-readable size
+ * 
+ * @param int $bytes Bytes
+ * @return string Formatted size
+ */
+function format_bytes($bytes) {
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    $i = 0;
+    
+    while ($bytes >= 1024 && $i < count($units) - 1) {
+        $bytes /= 1024;
+        $i++;
+    }
+    
+    return round($bytes, 2) . ' ' . $units[$i];
+}
+
+/**
+ * Convert timestamp to human-readable "time ago" format
+ * 
+ * @param int $timestamp Unix timestamp
+ * @return string Time ago string
+ */
+function time_ago($timestamp) {
+    $diff = time() - $timestamp;
+    
+    if ($diff < 60) {
+        return $diff . ' second' . ($diff != 1 ? 's' : '') . ' ago';
+    }
+    
+    $diff = floor($diff / 60);
+    if ($diff < 60) {
+        return $diff . ' minute' . ($diff != 1 ? 's' : '') . ' ago';
+    }
+    
+    $diff = floor($diff / 60);
+    if ($diff < 24) {
+        return $diff . ' hour' . ($diff != 1 ? 's' : '') . ' ago';
+    }
+    
+    $diff = floor($diff / 24);
+    if ($diff < 30) {
+        return $diff . ' day' . ($diff != 1 ? 's' : '') . ' ago';
+    }
+    
+    $diff = floor($diff / 30);
+    if ($diff < 12) {
+        return $diff . ' month' . ($diff != 1 ? 's' : '') . ' ago';
+    }
+    
+    $diff = floor($diff / 12);
+    return $diff . ' year' . ($diff != 1 ? 's' : '') . ' ago';
 }
