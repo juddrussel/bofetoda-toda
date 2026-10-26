@@ -470,18 +470,11 @@ if (count($nameParts) >= 2) {
 <script>
 // File upload preview and auto-scroll to latest message
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-scroll to latest message (bottom of conversation)
-    const conversationSection = document.querySelector('[data-purpose="messages-timeline-thread"]');
-    if (conversationSection) {
-        // Scroll to bottom after a brief delay to ensure all content is loaded
-        setTimeout(function() {
-            conversationSection.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            // Alternative: scroll to the last message
-            const lastMessage = conversationSection.querySelector('article:last-child');
-            if (lastMessage) {
-                lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }
-        }, 100);
+    // Auto-scroll to latest message (bottom of conversation) - instant, no animation
+    const lastMessage = document.querySelector('[data-purpose="messages-timeline-thread"] article:last-of-type');
+    if (lastMessage) {
+        // Instant scroll to bottom, no smooth animation
+        lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
     }
     
     // File upload preview
