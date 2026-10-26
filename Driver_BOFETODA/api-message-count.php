@@ -69,7 +69,7 @@ try {
                     dm.is_read,
                     dm.has_attachments,
                     GROUP_CONCAT(
-                        CONCAT(ma.file_name, '|', COALESCE(ma.r2_key, ma.file_path), '|', ma.file_type)
+                        CONCAT(ma.id, '|', ma.file_name, '|', ma.file_type)
                         SEPARATOR ':::'
                     ) as attachments
                  FROM driver_messages dm
@@ -91,8 +91,8 @@ try {
                         $parts = explode('|', $att);
                         if (count($parts) === 3) {
                             $msg['attachment_list'][] = [
-                                'name' => $parts[0],
-                                'path' => $parts[1],
+                                'id' => $parts[0],
+                                'name' => $parts[1],
                                 'type' => $parts[2]
                             ];
                         }

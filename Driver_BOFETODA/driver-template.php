@@ -1833,13 +1833,11 @@ function render_floating_chat() {
             if (msg.attachment_list && msg.attachment_list.length > 0) {
                 msg.attachment_list.forEach(function(att) {
                     if (att.type && att.type.startsWith('image/')) {
-                        // Show image
-                        var imgUrl = att.path.startsWith('http') ? att.path : 'download-attachment.php?file=' + encodeURIComponent(att.path);
-                        html += '<img src="' + imgUrl + '" class="chat-bubble-image" alt="' + escapeHtml(att.name) + '">';
+                        // Show image using attachment ID
+                        html += '<img src="download-attachment.php?id=' + att.id + '" class="chat-bubble-image" alt="' + escapeHtml(att.name) + '">';
                     } else {
                         // Show file download link
-                        var fileUrl = att.path.startsWith('http') ? att.path : 'download-attachment.php?file=' + encodeURIComponent(att.path);
-                        html += '<a href="' + fileUrl + '" target="_blank" style="color:inherit;text-decoration:underline;display:block;margin-top:4px;">📎 ' + escapeHtml(att.name) + '</a>';
+                        html += '<a href="download-attachment.php?id=' + att.id + '" target="_blank" style="color:inherit;text-decoration:underline;display:block;margin-top:4px;">📎 ' + escapeHtml(att.name) + '</a>';
                     }
                 });
             }
