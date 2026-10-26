@@ -3211,9 +3211,19 @@ function driver_has_messages($driverId) {
  * Format timestamp as relative time (e.g., "2 hours ago", "Just now")
  */
 function format_relative_time($timestamp) {
-    $now = time();
-    $time = is_numeric($timestamp) ? $timestamp : strtotime($timestamp);
-    $diff = $now - $time;
+    // Set timezone to Philippine Time (PHT)
+    $timezone = new DateTimeZone('Asia/Manila');
+    $now = new DateTime('now', $timezone);
+    
+    // Create DateTime object for the timestamp
+    if (is_numeric($timestamp)) {
+        $time = new DateTime('@' . $timestamp);
+    } else {
+        $time = new DateTime($timestamp);
+    }
+    $time->setTimezone($timezone);
+    
+    $diff = $now->getTimestamp() - $time->getTimestamp();
     
     if ($diff < 60) {
         return 'Just now';
@@ -3230,7 +3240,7 @@ function format_relative_time($timestamp) {
         $weeks = floor($diff / 604800);
         return $weeks . ' week' . ($weeks !== 1 ? 's' : '') . ' ago';
     } else {
-        return date('M j, Y', $time);
+        return $time->format('M j, Y');
     }
 }
 

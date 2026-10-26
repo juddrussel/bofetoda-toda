@@ -262,7 +262,10 @@ if (count($nameParts) >= 2) {
           <!-- Date Divider -->
           <div class="flex items-center justify-center my-1" data-purpose="timeline-date-divider">
             <span class="bg-slate-200/80 text-slate-600 text-xs font-medium px-4 py-1 rounded-full uppercase tracking-wider shadow-sm">
-              <?= date('l • F j, Y') ?>
+              <?php 
+                $phtDate = new DateTime('now', new DateTimeZone('Asia/Manila'));
+                echo $phtDate->format('l • F j, Y'); 
+              ?>
             </span>
           </div>
 
