@@ -18,9 +18,6 @@ $officer = current_officer();
 <title>Database Backup · <?= e(APP_NAME) ?></title>
 <?php render_shared_styles(); ?>
 <style>
-.page-title { font-size:26px; font-weight:800; color:var(--navy); }
-.page-subtitle { font-size:13px; color:var(--text-muted); margin-top:4px; }
-
 .info-banner {
     background:#e0f2fe;
     border:1px solid #7dd3fc;
@@ -62,13 +59,9 @@ $officer = current_officer();
 <?php render_sidebar('backup'); ?>
 
 <div class="main-col">
+  <?php render_topbar('Administration Portal', 'Database Backup', 'Manage database backups and ensure data safety'); ?>
+
 <div class="page">
-    <div class="flex-between" style="margin-bottom:20px;">
-        <div>
-            <h1 class="page-title">Database Backup & Recovery</h1>
-            <p class="page-subtitle">Manage database backups and ensure data safety</p>
-        </div>
-    </div>
 
     <div class="info-banner">
         <div class="info-banner__icon">💾</div>
