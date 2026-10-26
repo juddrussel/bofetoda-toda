@@ -29,13 +29,6 @@ $command = sprintf(
     escapeshellarg($dbname)
 );
 
-// Set headers for download
-header('Content-Type: application/gzip');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('Cache-Control: no-cache, must-revalidate');
-header('Pragma: no-cache');
-header('Expires: 0');
-
 // Execute mysqldump and stream to browser
 $descriptorspec = [
     0 => ['pipe', 'r'],  // stdin
@@ -49,27 +42,52 @@ if (is_resource($process)) {
     // Close stdin
     fclose($pipes[0]);
     
-    // Stream stdout to browser
-    while (!feof($pipes[1])) {
-        echo fread($pipes[1], 8192);
-        flush();
-    }
-    fclose($pipes[1]);
-    
-    // Capture stderr for error logging
+    // Capture stderr for error checking
     $errors = stream_get_contents($pipes[2]);
     fclose($pipes[2]);
+    
+    // Read stdout into buffer first to check if we got data
+    $output = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
     
     // Get return value
     $returnValue = proc_close($process);
     
-    // Log errors if any
-    if ($returnValue !== 0) {
-        error_log("Manual backup failed with return code $returnValue: $errors");
+    // Check for errors or empty output
+    if ($returnValue !== 0 || empty($output) || strlen($output) < 100) {
+        // Something went wrong - show error instead of downloading empty file
+        header('Content-Type: text/plain');
+        echo "Backup failed!\n\n";
+        echo "Return code: $returnValue\n";
+        echo "Output size: " . strlen($output) . " bytes\n\n";
+        echo "Errors:\n$errors\n\n";
+        echo "Command attempted:\n$command\n\n";
+        echo "Database connection details:\n";
+        echo "Host: $host:$port\n";
+        echo "Database: $dbname\n";
+        echo "User: $user\n";
+        
+        error_log("Manual backup failed - return code: $returnValue, output size: " . strlen($output) . ", errors: $errors");
+        exit;
     }
+    
+    // Success - send the backup file
+    header('Content-Type: application/gzip');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . strlen($output));
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
+    echo $output;
+    
 } else {
     // Failed to execute command
-    header('HTTP/1.1 500 Internal Server Error');
-    echo "Failed to create database backup. Please contact your system administrator.";
-    error_log('Failed to execute mysqldump command');
+    header('Content-Type: text/plain');
+    echo "Failed to create database backup - could not execute mysqldump command.\n\n";
+    echo "This might mean:\n";
+    echo "1. mysqldump is not installed\n";
+    echo "2. mysqldump is not in the system PATH\n";
+    echo "3. PHP proc_open is disabled\n";
+    error_log('Failed to execute mysqldump command - proc_open failed');
 }

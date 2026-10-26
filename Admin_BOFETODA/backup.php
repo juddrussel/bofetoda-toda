@@ -9,9 +9,6 @@ require_once __DIR__ . '/config.php';
 require_role('president');
 
 $officer = current_officer();
-$page_heading = 'Database Backup & Recovery';
-$page_sub = 'Manage database backups and ensure data safety';
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,215 +18,43 @@ $page_sub = 'Manage database backups and ensure data safety';
 <title>Database Backup · <?= e(APP_NAME) ?></title>
 <?php render_shared_styles(); ?>
 <style>
-.backup-wrapper { max-width: 1200px; margin: 0 auto; }
+.page-title { font-size:26px; font-weight:800; color:var(--navy); }
+.page-subtitle { font-size:13px; color:var(--text-muted); margin-top:4px; }
 
-.backup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 36px; }
+.info-banner {
+    background:#e0f2fe;
+    border:1px solid #7dd3fc;
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:20px;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+}
+.info-banner__icon { font-size:24px; flex-shrink:0; line-height:1; }
+.info-banner__content { flex:1; }
+.info-banner__title { font-size:13px; font-weight:700; color:#075985; margin:0 0 4px; text-transform:uppercase; letter-spacing:.4px; }
+.info-banner__text { margin:0; font-size:13px; color:#075985; line-height:1.6; }
 
-.backup-card { 
-    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-    border: 1px solid #e2e8f0; 
-    border-radius: 16px; 
-    padding: 32px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06); 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-.backup-card:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-.backup-card:hover:before { opacity: 1; }
-.backup-card:hover { 
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.06); 
-    border-color: #cbd5e1; 
-}
+.backup-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
 
-.backup-card__header { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 24px; }
-.backup-card__icon { 
-    width: 64px; height: 64px; border-radius: 14px; 
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px; flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
+.loading-spinner {
+    display:inline-block;
+    width:16px;
+    height:16px;
+    border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
 }
-.backup-card:hover .backup-card__icon { transform: scale(1.05) rotate(5deg); }
-.backup-card__icon--manual { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.backup-card__icon--auto { background: linear-gradient(135deg, #16a34a 0%, #059669 100%); }
+@keyframes spin { to { transform:rotate(360deg); } }
 
-.backup-card__content { flex: 1; }
-.backup-card__title { 
-    font-size: 22px; font-weight: 700; color: #0f172a; 
-    margin-bottom: 8px; line-height: 1.3;
-    letter-spacing: -0.02em;
-}
-.backup-card__desc { 
-    font-size: 14px; color: #64748b; line-height: 1.8; margin: 0;
-}
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
+.empty-state__icon { font-size:48px; margin-bottom:12px; opacity:0.3; }
+.empty-state__text { font-size:14px; }
 
-.backup-btn { 
-    display: inline-flex; align-items: center; gap: 10px; justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-    color: white; padding: 16px 28px; border: none; border-radius: 12px; 
-    font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-    width: 100%; margin-top: 24px;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-}
-.backup-btn:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); 
-    color: white; 
-}
-.backup-btn:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); }
-.backup-btn--success { 
-    background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
-}
-.backup-btn--success:hover { 
-    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3); 
-}
-
-.backups-section { 
-    background: #ffffff;
-    border: 1px solid #e2e8f0; 
-    border-radius: 16px; 
-    padding: 32px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06); 
-    margin-bottom: 36px;
-}
-.backups-section__header { 
-    display: flex; align-items: center; gap: 16px; 
-    padding-bottom: 24px; border-bottom: 2px solid #f1f5f9; margin-bottom: 28px;
-}
-.backups-section__icon { font-size: 36px; }
-.backups-section__title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
-
-.backups-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.backups-table thead { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
-.backups-table th { 
-    text-align: left; padding: 16px 18px; font-size: 12px; font-weight: 700; 
-    color: #475569; text-transform: uppercase; letter-spacing: 0.8px;
-    border-bottom: 2px solid #e2e8f0;
-}
-.backups-table th:first-child { border-radius: 10px 0 0 0; padding-left: 24px; }
-.backups-table th:last-child { border-radius: 0 10px 0 0; padding-right: 24px; }
-.backups-table td { 
-    padding: 18px; font-size: 14px; border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
-}
-.backups-table td:first-child { padding-left: 24px; }
-.backups-table td:last-child { padding-right: 24px; }
-.backups-table tbody tr { transition: all 0.2s; }
-.backups-table tbody tr:hover { 
-    background: linear-gradient(90deg, #fafbfc 0%, #f8fafc 100%);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-}
-.backups-table tbody tr:last-child td { border-bottom: none; }
-
-.backup-download-btn { 
-    display: inline-flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white; padding: 11px 20px; 
-    border-radius: 10px; font-size: 13px; font-weight: 600; 
-    text-decoration: none; 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
-}
-.backup-download-btn:hover { 
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46a0 100%);
-    color: white; 
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.loading-spinner { 
-    display: inline-block; width: 18px; height: 18px; 
-    border: 3px solid rgba(255,255,255,0.3); 
-    border-top: 3px solid #ffffff; 
-    border-radius: 50%; animation: spin 0.8s linear infinite;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-.empty-state { text-align: center; padding: 80px 20px; color: #64748b; }
-.empty-state__icon { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
-.empty-state__text { font-size: 15px; line-height: 1.6; }
-
-.best-practices { 
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
-    border: 1px solid #e2e8f0; 
-    border-radius: 16px; 
-    padding: 32px; 
-    margin-top: 36px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-.best-practices__header { 
-    display: flex; align-items: center; gap: 14px; 
-    margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0;
-}
-.best-practices__icon { font-size: 32px; }
-.best-practices__title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
-.best-practices ul { margin: 0; padding-left: 0; list-style: none; }
-.best-practices li { 
-    font-size: 14px; color: #475569; margin-bottom: 16px; line-height: 1.8;
-    padding-left: 32px; position: relative;
-}
-.best-practices li:last-child { margin-bottom: 0; }
-.best-practices li:before { 
-    content: "✓"; position: absolute; left: 0; top: 1px; 
-    width: 22px; height: 22px;
-    background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700; 
-    font-size: 13px;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2);
-}
-.best-practices li strong { color: #0f172a; font-weight: 600; }
-
-.info-banner { 
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); 
-    border: 1px solid #93c5fd; 
-    border-radius: 14px; 
-    padding: 24px 28px; 
-    margin-bottom: 36px;
-    display: flex; 
-    align-items: flex-start; 
-    gap: 18px;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-.info-banner__icon { font-size: 32px; flex-shrink: 0; }
-.info-banner__content { flex: 1; }
-.info-banner__title { 
-    font-size: 17px; font-weight: 700; color: #1e40af; 
-    margin: 0 0 8px 0; letter-spacing: -0.01em;
-}
-.info-banner__text { 
-    margin: 0; font-size: 14px; color: #1e40af; line-height: 1.8;
-}
-
-.backup-stats { 
-    display: inline-flex; align-items: center; gap: 8px;
-    background: #f1f5f9; color: #475569; padding: 8px 14px; 
-    border-radius: 8px; font-size: 13px; margin-top: 20px;
-}
-
-@media (max-width: 900px) {
-    .backup-grid { grid-template-columns: 1fr; gap: 24px; }
-    .backup-card { padding: 28px; }
-    .backups-section { padding: 28px; }
-    .best-practices { padding: 28px; }
+@media (max-width:900px) {
+    .backup-grid { grid-template-columns:1fr; }
 }
 </style>
 </head>
@@ -237,11 +62,11 @@ $page_sub = 'Manage database backups and ensure data safety';
 <?php render_sidebar('backup'); ?>
 
 <div class="main-col">
-<main class="container backup-wrapper">
-    <div class="page-head">
+<div class="page">
+    <div class="flex-between" style="margin-bottom:20px;">
         <div>
-            <h1 class="page-title"><?= e($page_heading) ?></h1>
-            <p class="page-subtitle"><?= e($page_sub) ?></p>
+            <h1 class="page-title">Database Backup & Recovery</h1>
+            <p class="page-subtitle">Manage database backups and ensure data safety</p>
         </div>
     </div>
 
@@ -255,73 +80,86 @@ $page_sub = 'Manage database backups and ensure data safety';
 
     <div class="backup-grid">
         <!-- Manual Backup Card -->
-        <div class="backup-card">
-            <div class="backup-card__header">
-                <div class="backup-card__icon backup-card__icon--manual">📥</div>
-                <div class="backup-card__content">
-                    <h2 class="backup-card__title">Manual Backup</h2>
-                    <p class="backup-card__desc">Create an immediate backup and download it to your computer. Use before major changes.</p>
+        <div class="card">
+            <div class="card__head">
+                <div>
+                    <h3>📥 Manual Backup</h3>
+                    <p>Create an immediate backup and download it to your computer. Use before major changes.</p>
                 </div>
             </div>
-            <a href="<?= BASE_URL ?>/api-manual-backup.php" class="backup-btn" id="manualBackupBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Download Backup Now
-            </a>
+            <div class="card__body">
+                <a href="<?= BASE_URL ?>/api-manual-backup.php" class="btn btn-primary btn-block" id="manualBackupBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Backup Now
+                </a>
+            </div>
         </div>
 
         <!-- Automated Backups Card -->
-        <div class="backup-card">
-            <div class="backup-card__header">
-                <div class="backup-card__icon backup-card__icon--auto">🔄</div>
-                <div class="backup-card__content">
-                    <h2 class="backup-card__title">Automated Backups</h2>
-                    <p class="backup-card__desc">Daily backups run automatically at midnight and are stored securely in cloud storage.</p>
+        <div class="card">
+            <div class="card__head">
+                <div>
+                    <h3>🔄 Automated Backups</h3>
+                    <p>Daily backups run automatically at midnight and are stored securely in cloud storage.</p>
                 </div>
             </div>
-            <button class="backup-btn backup-btn--success" onclick="refreshBackupList()" id="refreshBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                </svg>
-                Refresh List
-            </button>
+            <div class="card__body">
+                <button class="btn btn-success btn-block" onclick="refreshBackupList()" id="refreshBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    Refresh List
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Automated Backups List -->
-    <div class="backups-section">
-        <div class="backups-section__header">
-            <div class="backups-section__icon">📦</div>
-            <h2 class="backups-section__title">Available Backups</h2>
+    <div class="card">
+        <div class="card__head">
+            <h3>📦 Available Backups</h3>
         </div>
-        
-        <div id="backupsContainer">
-            <div class="empty-state">
-                <div class="empty-state__icon">⏳</div>
-                <div class="empty-state__text">Loading backups...</div>
+        <div class="card__body">
+            <div id="backupsContainer">
+                <div class="empty-state">
+                    <div class="empty-state__icon">⏳</div>
+                    <div class="empty-state__text">Loading backups...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Best Practices -->
-    <div class="best-practices">
-        <div class="best-practices__header">
-            <div class="best-practices__icon">📋</div>
-            <h3 class="best-practices__title">Best Practices</h3>
+    <div class="card">
+        <div class="card__head">
+            <h3>📋 Best Practices</h3>
         </div>
-        <ul>
-            <li><strong>Before major changes:</strong> Always download a manual backup before updating the system, modifying data, or making configuration changes.</li>
-            <li><strong>Store backups securely:</strong> Keep downloaded backups in a safe location, preferably on external storage or a secure cloud service.</li>
-            <li><strong>Test restores:</strong> Periodically verify that backups can be restored successfully by testing them in a development environment.</li>
-            <li><strong>Multiple copies:</strong> Maintain backups in multiple locations (your computer, external drive, cloud) for redundancy.</li>
-            <li><strong>Recovery procedure:</strong> To restore a backup, contact your database administrator with the backup file.</li>
-        </ul>
+        <div class="card__body">
+            <ul style="margin:0; padding-left:20px; list-style:disc;">
+                <li style="font-size:13.5px; color:var(--text); margin-bottom:12px; line-height:1.7;">
+                    <strong>Before major changes:</strong> Always download a manual backup before updating the system, modifying data, or making configuration changes.
+                </li>
+                <li style="font-size:13.5px; color:var(--text); margin-bottom:12px; line-height:1.7;">
+                    <strong>Store backups securely:</strong> Keep downloaded backups in a safe location, preferably on external storage or a secure cloud service.
+                </li>
+                <li style="font-size:13.5px; color:var(--text); margin-bottom:12px; line-height:1.7;">
+                    <strong>Test restores:</strong> Periodically verify that backups can be restored successfully by testing them in a development environment.
+                </li>
+                <li style="font-size:13.5px; color:var(--text); margin-bottom:12px; line-height:1.7;">
+                    <strong>Multiple copies:</strong> Maintain backups in multiple locations (your computer, external drive, cloud) for redundancy.
+                </li>
+                <li style="font-size:13.5px; color:var(--text); margin-bottom:0; line-height:1.7;">
+                    <strong>Recovery procedure:</strong> To restore a backup, contact your database administrator with the backup file.
+                </li>
+            </ul>
+        </div>
     </div>
-</main>
+</div>
 
 <script>
 // Load automated backups on page load
@@ -358,16 +196,17 @@ async function loadBackupList() {
         
         // Build table
         let html = `
-            <table class="backups-table">
-                <thead>
-                    <tr>
-                        <th>Date & Time</th>
-                        <th>File Size</th>
-                        <th>Age</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div class="table-wrap">
+                <table class="registry">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>File Size</th>
+                            <th>Age</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         `;
         
         data.backups.forEach(backup => {
@@ -375,10 +214,10 @@ async function loadBackupList() {
                 <tr>
                     <td><strong>${backup.date_time || backup.last_modified}</strong></td>
                     <td>${backup.size_formatted}</td>
-                    <td>${backup.age}</td>
-                    <td>
-                        <a href="${backup.download_url}" class="backup-download-btn" download="${backup.filename}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <td class="text-muted">${backup.age}</td>
+                    <td style="text-align:right;">
+                        <a href="${backup.download_url}" class="btn btn-primary btn-sm" download="${backup.filename}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -391,9 +230,10 @@ async function loadBackupList() {
         });
         
         html += `
-                </tbody>
-            </table>
-            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top:16px; font-size:12.5px; color:var(--text-muted);">
                 Showing ${data.count} backup${data.count !== 1 ? 's' : ''}. Backups older than 7 days are automatically deleted.
             </p>
         `;
