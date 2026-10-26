@@ -16,7 +16,14 @@ try {
     // Handle POST request - send message
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         $message = trim($_POST['message'] ?? '');
-        $hasFiles = isset($_FILES['attachments']) && !empty($_FILES['attachments']['name']) && is_array($_FILES['attachments']['name']);
+        $hasFiles = isset($_FILES['attachments']) && isset($_FILES['attachments']['name']) && is_array($_FILES['attachments']['name']) && !empty($_FILES['attachments']['name'][0]);
+        
+        error_log("=== MESSAGE SEND DEBUG ===");
+        error_log("Message: " . $message);
+        error_log("Has files: " . ($hasFiles ? 'yes' : 'no'));
+        if ($hasFiles) {
+            error_log("File count: " . count($_FILES['attachments']['name']));
+        }
         
         if (empty($message) && !$hasFiles) {
             header('Content-Type: application/json');
@@ -44,18 +51,26 @@ try {
             ]);
             
             $messageId = $pdo->lastInsertId();
+            error_log("Message ID: " . $messageId);
             
             // Handle file uploads if any
             if ($hasFiles) {
-                require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
-                
                 $uploadedCount = 0;
                 $files = $_FILES['attachments'];
                 $fileCount = count($files['name']);
                 
+                error_log("Processing $fileCount files...");
+                
+                // Create upload directory
+                $uploadDir = __DIR__ . '/uploads/message_attachments/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                
                 for ($i = 0; $i < $fileCount; $i++) {
                     // Skip if no file or error
                     if (!isset($files['error'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                        error_log("File $i has upload error: " . ($files['error'][$i] ?? 'unknown'));
                         continue;
                     }
                     
@@ -64,46 +79,22 @@ try {
                     $fileSize = $files['size'][$i];
                     $fileType = $files['type'][$i];
                     
+                    error_log("Processing file: $fileName ($fileSize bytes, $fileType)");
+                    
                     // Validate file size (max 5MB)
                     if ($fileSize > 5 * 1024 * 1024) {
+                        error_log("File too large: $fileName");
                         continue;
                     }
                     
-                    // Try R2 upload first
-                    try {
-                        $r2Key = upload_message_attachment_to_r2($driver_id, $messageId, $fileTmpPath, $fileName);
-                        
-                        if ($r2Key) {
-                            // Insert attachment record with R2 key
-                            $stmt = $pdo->prepare(
-                                "INSERT INTO message_attachments (message_id, file_name, file_size, file_type, r2_key, uploaded_at)
-                                 VALUES (:message_id, :file_name, :file_size, :file_type, :r2_key, NOW())"
-                            );
-                            $stmt->execute([
-                                'message_id' => $messageId,
-                                'file_name' => $fileName,
-                                'file_size' => $fileSize,
-                                'file_type' => $fileType,
-                                'r2_key' => $r2Key
-                            ]);
-                            $uploadedCount++;
-                            continue;
-                        }
-                    } catch (Exception $e) {
-                        error_log("R2 upload failed, trying local: " . $e->getMessage());
-                    }
-                    
-                    // Fallback to local storage
-                    $uploadDir = __DIR__ . '/uploads/message_attachments/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    
-                    $safeFileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
+                    // Save to local storage
+                    $safeFileName = time() . '_' . $i . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
                     $destPath = $uploadDir . $safeFileName;
                     
                     if (move_uploaded_file($fileTmpPath, $destPath)) {
                         $relativePath = 'Driver_BOFETODA/uploads/message_attachments/' . $safeFileName;
+                        
+                        error_log("File saved to: $relativePath");
                         
                         $stmt = $pdo->prepare(
                             "INSERT INTO message_attachments (message_id, file_name, file_path, file_size, file_type, uploaded_at)
@@ -117,8 +108,13 @@ try {
                             'file_type' => $fileType
                         ]);
                         $uploadedCount++;
+                        error_log("Attachment saved to database");
+                    } else {
+                        error_log("Failed to move uploaded file: $fileName");
                     }
                 }
+                
+                error_log("Uploaded $uploadedCount files");
                 
                 // Update has_attachments if uploads succeeded
                 if ($uploadedCount > 0) {
@@ -127,6 +123,7 @@ try {
             }
             
             $pdo->commit();
+            error_log("=== MESSAGE SENT SUCCESSFULLY ===");
             
             header('Content-Type: application/json');
             echo json_encode([
@@ -139,11 +136,13 @@ try {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            error_log("Failed to send message: " . $e->getMessage());
+            error_log("=== MESSAGE SEND FAILED ===");
+            error_log("Error: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'message' => 'Failed to send message: ' . $e->getMessage()
+                'message' => 'Database error: ' . $e->getMessage()
             ]);
             exit;
         }
