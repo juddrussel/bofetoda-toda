@@ -16,27 +16,102 @@ try {
     // Handle POST request - send message
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         $message = trim($_POST['message'] ?? '');
+        $hasFiles = !empty($_FILES['attachments']['name'][0]);
         
-        if (empty($message)) {
+        if (empty($message) && !$hasFiles) {
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'message' => 'Message cannot be empty'
+                'message' => 'Message or attachment required'
             ]);
             exit;
         }
         
         try {
             $pdo = get_pdo();
+            $pdo->beginTransaction();
+            
+            // Insert message
             $stmt = $pdo->prepare(
-                "INSERT INTO driver_messages (driver_id, sender_type, sender_id, message_text, has_reply, sent_at) 
-                 VALUES (:driver_id, 'driver', :sender_id, :message_text, 0, NOW())"
+                "INSERT INTO driver_messages (driver_id, sender_type, sender_id, message_text, has_attachments, has_reply, sent_at) 
+                 VALUES (:driver_id, 'driver', :sender_id, :message_text, :has_attachments, 0, NOW())"
             );
             $stmt->execute([
                 'driver_id' => $driver_id,
                 'sender_id' => $driver_id,
-                'message_text' => $message
+                'message_text' => $message,
+                'has_attachments' => $hasFiles ? 1 : 0
             ]);
+            
+            $messageId = $pdo->lastInsertId();
+            
+            // Handle file uploads if any
+            if ($hasFiles) {
+                require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+                
+                $uploadedCount = 0;
+                $fileCount = count($_FILES['attachments']['name']);
+                
+                for ($i = 0; $i < $fileCount; $i++) {
+                    if ($_FILES['attachments']['error'][$i] === UPLOAD_ERR_OK) {
+                        $fileName = $_FILES['attachments']['name'][$i];
+                        $fileTmpPath = $_FILES['attachments']['tmp_name'][$i];
+                        $fileSize = $_FILES['attachments']['size'][$i];
+                        $fileType = $_FILES['attachments']['type'][$i];
+                        
+                        // Try R2 upload first
+                        $r2Key = upload_message_attachment_to_r2($driver_id, $messageId, $fileTmpPath, $fileName);
+                        
+                        if ($r2Key) {
+                            // Insert attachment record with R2 key
+                            $stmt = $pdo->prepare(
+                                "INSERT INTO message_attachments (message_id, file_name, file_size, file_type, r2_key, uploaded_at)
+                                 VALUES (:message_id, :file_name, :file_size, :file_type, :r2_key, NOW())"
+                            );
+                            $stmt->execute([
+                                'message_id' => $messageId,
+                                'file_name' => $fileName,
+                                'file_size' => $fileSize,
+                                'file_type' => $fileType,
+                                'r2_key' => $r2Key
+                            ]);
+                            $uploadedCount++;
+                        } else {
+                            // Fallback to local storage
+                            $uploadDir = __DIR__ . '/uploads/message_attachments/';
+                            if (!is_dir($uploadDir)) {
+                                mkdir($uploadDir, 0755, true);
+                            }
+                            
+                            $safeFileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
+                            $destPath = $uploadDir . $safeFileName;
+                            
+                            if (move_uploaded_file($fileTmpPath, $destPath)) {
+                                $relativePath = 'Driver_BOFETODA/uploads/message_attachments/' . $safeFileName;
+                                
+                                $stmt = $pdo->prepare(
+                                    "INSERT INTO message_attachments (message_id, file_name, file_path, file_size, file_type, uploaded_at)
+                                     VALUES (:message_id, :file_name, :file_path, :file_size, :file_type, NOW())"
+                                );
+                                $stmt->execute([
+                                    'message_id' => $messageId,
+                                    'file_name' => $fileName,
+                                    'file_path' => $relativePath,
+                                    'file_size' => $fileSize,
+                                    'file_type' => $fileType
+                                ]);
+                                $uploadedCount++;
+                            }
+                        }
+                    }
+                }
+                
+                if ($uploadedCount === 0) {
+                    throw new Exception('Failed to upload attachments');
+                }
+            }
+            
+            $pdo->commit();
             
             header('Content-Type: application/json');
             echo json_encode([
@@ -46,6 +121,9 @@ try {
             exit;
             
         } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             error_log("Failed to send message: " . $e->getMessage());
             header('Content-Type: application/json');
             echo json_encode([

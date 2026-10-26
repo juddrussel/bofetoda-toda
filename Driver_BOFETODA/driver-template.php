@@ -1411,6 +1411,88 @@ img {
   align-items: flex-end;
 }
 
+.chat-attach-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+  position: relative;
+}
+
+.chat-attach-btn:hover {
+  background: #e5e7eb;
+}
+
+.chat-attach-btn input[type="file"] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chat-attach-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-muted);
+}
+
+.chat-attachment-preview {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.chat-attachment-item {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.chat-attachment-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-attachment-item-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.chat-attachment-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e53935;
+  color: #fff;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .chat-input {
   flex: 1;
   background: var(--color-bg);
@@ -1753,7 +1835,14 @@ function render_floating_chat() {
     </div>
     
     <div class="chat-input-area">
+        <div class="chat-attachment-preview" id="chatAttachmentPreview" style="display:none;"></div>
         <div class="chat-input-row">
+            <button type="button" class="chat-attach-btn" title="Attach file">
+                <input type="file" id="chatFileInput" accept="image/*,.pdf,.doc,.docx" multiple>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+            </button>
             <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="1"></textarea>
             <button type="button" class="chat-send-btn" id="chatSendBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1773,7 +1862,10 @@ function render_floating_chat() {
     var chatMessages = document.getElementById('chatMessages');
     var chatInput = document.getElementById('chatInput');
     var chatSendBtn = document.getElementById('chatSendBtn');
+    var chatFileInput = document.getElementById('chatFileInput');
+    var chatAttachmentPreview = document.getElementById('chatAttachmentPreview');
     var driverId = <?php echo json_encode($driver_id); ?>;
+    var selectedFiles = [];
     
     function openChat() {
         chatWindow.classList.add('is-open');
@@ -1862,16 +1954,54 @@ function render_floating_chat() {
             '</div>';
     }
     
+    function updateAttachmentPreview() {
+        if (selectedFiles.length === 0) {
+            chatAttachmentPreview.style.display = 'none';
+            chatAttachmentPreview.innerHTML = '';
+            return;
+        }
+        
+        chatAttachmentPreview.style.display = 'flex';
+        var html = '';
+        selectedFiles.forEach(function(file, index) {
+            var isImage = file.type.startsWith('image/');
+            html += '<div class="chat-attachment-item">';
+            if (isImage) {
+                html += '<img src="' + URL.createObjectURL(file) + '" alt="' + escapeHtml(file.name) + '">';
+            } else {
+                html += '<div class="chat-attachment-item-file">📄</div>';
+            }
+            html += '<div class="chat-attachment-remove" data-index="' + index + '">×</div>';
+            html += '</div>';
+        });
+        chatAttachmentPreview.innerHTML = html;
+        
+        // Add remove listeners
+        chatAttachmentPreview.querySelectorAll('.chat-attachment-remove').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var index = parseInt(btn.getAttribute('data-index'));
+                selectedFiles.splice(index, 1);
+                updateAttachmentPreview();
+            });
+        });
+    }
+    
     function sendMessage() {
         var message = chatInput.value.trim();
-        if (!message) return;
+        if (!message && selectedFiles.length === 0) return;
         
         chatSendBtn.disabled = true;
         chatInput.disabled = true;
+        chatFileInput.disabled = true;
         
         var formData = new FormData();
         formData.append('message', message);
         formData.append('send_message', '1');
+        
+        // Add files
+        selectedFiles.forEach(function(file, index) {
+            formData.append('attachments[]', file);
+        });
         
         fetch('api-message-count.php', {
             method: 'POST',
@@ -1881,6 +2011,8 @@ function render_floating_chat() {
         .then(function(data) {
             if (data.success) {
                 chatInput.value = '';
+                selectedFiles = [];
+                updateAttachmentPreview();
                 loadMessages();
             } else {
                 alert(data.message || 'Failed to send message');
@@ -1892,6 +2024,7 @@ function render_floating_chat() {
         .finally(function() {
             chatSendBtn.disabled = false;
             chatInput.disabled = false;
+            chatFileInput.disabled = false;
             chatInput.focus();
         });
     }
@@ -1905,6 +2038,14 @@ function render_floating_chat() {
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // File input handler
+    chatFileInput.addEventListener('change', function() {
+        var files = Array.from(chatFileInput.files);
+        selectedFiles = selectedFiles.concat(files);
+        chatFileInput.value = ''; // Reset input
+        updateAttachmentPreview();
+    });
     
     // Auto-resize textarea
     chatInput.addEventListener('input', function() {
