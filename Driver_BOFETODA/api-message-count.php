@@ -29,12 +29,13 @@ try {
         try {
             $pdo = get_pdo();
             $stmt = $pdo->prepare(
-                "INSERT INTO driver_messages (driver_id, sender_type, message, sent_at, has_reply) 
-                 VALUES (:driver_id, 'driver', :message, NOW(), 0)"
+                "INSERT INTO driver_messages (driver_id, sender_type, sender_id, message_text, has_reply, sent_at) 
+                 VALUES (:driver_id, 'driver', :sender_id, :message_text, 0, NOW())"
             );
             $stmt->execute([
                 'driver_id' => $driver_id,
-                'message' => $message
+                'sender_id' => $driver_id,
+                'message_text' => $message
             ]);
             
             header('Content-Type: application/json');
@@ -49,7 +50,7 @@ try {
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'message' => 'Failed to send message'
+                'message' => 'Failed to send message: ' . $e->getMessage()
             ]);
             exit;
         }
@@ -60,7 +61,7 @@ try {
         try {
             $pdo = get_pdo();
             $stmt = $pdo->prepare(
-                "SELECT message_id, sender_type, message, sent_at, is_read
+                "SELECT id as message_id, sender_type, message_text as message, sent_at, is_read
                  FROM driver_messages
                  WHERE driver_id = :driver_id
                  ORDER BY sent_at ASC
@@ -69,21 +70,21 @@ try {
             $stmt->execute(['driver_id' => $driver_id]);
             $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Mark admin messages as read
+            // Mark officer messages as read
             $pdo->prepare(
                 "UPDATE driver_messages 
                  SET is_read = 1 
-                 WHERE driver_id = :driver_id AND sender_type = 'admin' AND is_read = 0"
+                 WHERE driver_id = :driver_id AND sender_type = 'officer' AND is_read = 0"
             )->execute(['driver_id' => $driver_id]);
             
-            // When admin sends a message, mark all previous driver messages as replied
-            $lastAdminMsg = $pdo->prepare(
-                "SELECT message_id FROM driver_messages 
-                 WHERE driver_id = :driver_id AND sender_type = 'admin' 
+            // When officer sends a message, mark all previous driver messages as replied
+            $lastOfficerMsg = $pdo->prepare(
+                "SELECT id FROM driver_messages 
+                 WHERE driver_id = :driver_id AND sender_type = 'officer' 
                  ORDER BY sent_at DESC LIMIT 1"
             );
-            $lastAdminMsg->execute(['driver_id' => $driver_id]);
-            if ($lastAdminMsg->fetchColumn()) {
+            $lastOfficerMsg->execute(['driver_id' => $driver_id]);
+            if ($lastOfficerMsg->fetchColumn()) {
                 $pdo->prepare(
                     "UPDATE driver_messages 
                      SET has_reply = 1 
