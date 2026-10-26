@@ -21,7 +21,7 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -79,7 +79,7 @@
         .portal-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-color: #667eea;
+            border-color: #3b82f6;
         }
         .portal-icon {
             font-size: 48px;
@@ -129,7 +129,7 @@
             </a>
             
             <a href="Driver_BOFETODA/driver-login.php" class="portal-card">
-                <div class="portal-icon">🚗</div>
+                <div class="portal-icon">🛺</div>
                 <div class="portal-title">Driver Portal</div>
                 <div class="portal-desc">For TODA Members</div>
             </a>
