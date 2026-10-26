@@ -108,7 +108,7 @@ if (count($nameParts) >= 2) {
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
 <!-- Font Awesome for clean operational icons -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <!-- Google Fonts: Inter -->
 <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -228,10 +228,6 @@ if (count($nameParts) >= 2) {
                 <span class="flex items-center gap-1.5">
                   <i class="fa-solid fa-id-badge text-slate-400"></i>
                   <span class="text-slate-700">Driver ID:</span> <?= e($driver['driver_id']) ?>
-                </span>
-                <span class="flex items-center gap-1.5">
-                  <i class="fa-solid fa-motorcycle text-slate-400"></i>
-                  <span class="text-slate-700">Body No:</span> <?= e($driver['body_no'] ?? 'N/A') ?>
                 </span>
               </div>
             </div>
