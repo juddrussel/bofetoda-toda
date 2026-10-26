@@ -391,8 +391,18 @@ $hasActiveCycle = isset($announcementRows[0])
   var submitBtn    = document.getElementById('renewalSubmitBtn');
   var updateNote   = document.getElementById('renewalUpdateNote');
 
-  function openOverlay()  { overlay.classList.add('is-open');    document.body.style.overflow = 'hidden'; }
-  function closeOverlay() { overlay.classList.remove('is-open'); document.body.style.overflow = '';       }
+  function openOverlay()  { 
+    overlay.classList.add('is-open');
+    if (!document.getElementById('logoutModal') || !document.getElementById('logoutModal').classList.contains('is-open')) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  function closeOverlay() { 
+    overlay.classList.remove('is-open'); 
+    if (!document.getElementById('logoutModal') || !document.getElementById('logoutModal').classList.contains('is-open')) {
+      document.body.style.overflow = '';
+    }
+  }
 
   function openForCreate() {
     form.reset();
@@ -427,12 +437,14 @@ $hasActiveCycle = isset($announcementRows[0])
 
   if (overlay) {
     overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) closeOverlay();
+      if (e.target === overlay && e.target.id === 'renewalOverlay') closeOverlay();
     });
   }
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeOverlay();
+    if (e.key === 'Escape' && overlay.classList.contains('is-open') && document.activeElement && !document.activeElement.closest('.modal-backdrop[id="logoutModal"]')) {
+      closeOverlay();
+    }
   });
 })();
 </script>
