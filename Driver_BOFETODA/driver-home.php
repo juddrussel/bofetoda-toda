@@ -94,7 +94,7 @@ render_header([
 .gen-ann-card {
     background: white;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 16px;
     padding: 18px 20px;
     margin-bottom: 14px;
     box-shadow: var(--shadow-card);
@@ -224,7 +224,7 @@ render_header([
     padding: 30px 20px;
     background: white;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 16px;
     color: var(--text-muted);
     font-size: 14px;
 }
