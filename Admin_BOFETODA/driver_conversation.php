@@ -179,6 +179,16 @@ if (count($nameParts) >= 2) {
 
 <div class="main-col">
   <?php render_topbar('Administration Portal', 'Driver Conversation'); ?>
+  
+  <style>
+    /* Make topbar sticky */
+    .topbar {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 50 !important;
+      background: white !important;
+    }
+  </style>
 
   <div class="page" style="background: #f1f5f9;">
     
@@ -458,8 +468,23 @@ if (count($nameParts) >= 2) {
 </div><!-- /.main-col -->
 
 <script>
-// File upload preview
+// File upload preview and auto-scroll to latest message
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto-scroll to latest message (bottom of conversation)
+    const conversationSection = document.querySelector('[data-purpose="messages-timeline-thread"]');
+    if (conversationSection) {
+        // Scroll to bottom after a brief delay to ensure all content is loaded
+        setTimeout(function() {
+            conversationSection.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            // Alternative: scroll to the last message
+            const lastMessage = conversationSection.querySelector('article:last-child');
+            if (lastMessage) {
+                lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        }, 100);
+    }
+    
+    // File upload preview
     const fileInput = document.getElementById('fileInput');
     const selectedFilesDiv = document.getElementById('selectedFiles');
     
