@@ -179,7 +179,7 @@ if (count($nameParts) >= 2) {
   <div class="page" style="background: #f1f5f9; padding: 0;">
     
     <!-- BEGIN: Breadcrumb Navigation Bar -->
-    <div class="bg-white border-b border-slate-200 sticky top-0 z-30" style="margin: -24px -32px 0 -32px; padding: 16px 32px;">
+    <div class="bg-white border-b border-slate-200" style="margin: -24px -32px 0 -32px; padding: 16px 32px; position: relative; z-index: 1;">
       <div class="flex items-center justify-between">
         <!-- Left: Return Navigation -->
         <div class="flex items-center space-x-4">
