@@ -55,17 +55,13 @@ try {
             
             // Handle file uploads if any
             if ($hasFiles) {
+                require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
+                
                 $uploadedCount = 0;
                 $files = $_FILES['attachments'];
                 $fileCount = count($files['name']);
                 
                 error_log("Processing $fileCount files...");
-                
-                // Create upload directory
-                $uploadDir = __DIR__ . '/uploads/message_attachments/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
                 
                 for ($i = 0; $i < $fileCount; $i++) {
                     // Skip if no file or error
@@ -87,30 +83,59 @@ try {
                         continue;
                     }
                     
-                    // Save to local storage
-                    $safeFileName = time() . '_' . $i . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
-                    $destPath = $uploadDir . $safeFileName;
+                    // Prepare file array for R2 function
+                    $fileArray = [
+                        'name' => $fileName,
+                        'tmp_name' => $fileTmpPath,
+                        'size' => $fileSize,
+                        'type' => $fileType,
+                        'error' => $files['error'][$i]
+                    ];
                     
-                    if (move_uploaded_file($fileTmpPath, $destPath)) {
-                        $relativePath = 'Driver_BOFETODA/uploads/message_attachments/' . $safeFileName;
+                    // Try R2 upload with fallback to local
+                    try {
+                        $uploadResult = upload_message_attachment_r2($driver_id, $messageId, $fileArray);
                         
-                        error_log("File saved to: $relativePath");
+                        if ($uploadResult && is_array($uploadResult)) {
+                            error_log("Upload successful - Storage: " . $uploadResult['storage']);
+                            
+                            // Insert attachment record
+                            if ($uploadResult['storage'] === 'r2') {
+                                // R2 storage
+                                $stmt = $pdo->prepare(
+                                    "INSERT INTO message_attachments (message_id, file_name, file_size, file_type, r2_key, uploaded_at)
+                                     VALUES (:message_id, :file_name, :file_size, :file_type, :r2_key, NOW())"
+                                );
+                                $stmt->execute([
+                                    'message_id' => $messageId,
+                                    'file_name' => $fileName,
+                                    'file_size' => $fileSize,
+                                    'file_type' => $fileType,
+                                    'r2_key' => $uploadResult['path']
+                                ]);
+                            } else {
+                                // Local storage
+                                $stmt = $pdo->prepare(
+                                    "INSERT INTO message_attachments (message_id, file_name, file_path, file_size, file_type, uploaded_at)
+                                     VALUES (:message_id, :file_name, :file_path, :file_size, :file_type, NOW())"
+                                );
+                                $stmt->execute([
+                                    'message_id' => $messageId,
+                                    'file_name' => $fileName,
+                                    'file_path' => $uploadResult['path'],
+                                    'file_size' => $fileSize,
+                                    'file_type' => $fileType
+                                ]);
+                            }
+                            
+                            $uploadedCount++;
+                            error_log("Attachment saved to database");
+                        } else {
+                            error_log("Upload failed for: $fileName");
+                        }
                         
-                        $stmt = $pdo->prepare(
-                            "INSERT INTO message_attachments (message_id, file_name, file_path, file_size, file_type, uploaded_at)
-                             VALUES (:message_id, :file_name, :file_path, :file_size, :file_type, NOW())"
-                        );
-                        $stmt->execute([
-                            'message_id' => $messageId,
-                            'file_name' => $fileName,
-                            'file_path' => $relativePath,
-                            'file_size' => $fileSize,
-                            'file_type' => $fileType
-                        ]);
-                        $uploadedCount++;
-                        error_log("Attachment saved to database");
-                    } else {
-                        error_log("Failed to move uploaded file: $fileName");
+                    } catch (Exception $e) {
+                        error_log("Upload exception for $fileName: " . $e->getMessage());
                     }
                 }
                 
