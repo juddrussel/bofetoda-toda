@@ -16,7 +16,7 @@ try {
     // Handle POST request - send message
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         $message = trim($_POST['message'] ?? '');
-        $hasFiles = !empty($_FILES['attachments']['name'][0]);
+        $hasFiles = isset($_FILES['attachments']) && !empty($_FILES['attachments']['name']) && is_array($_FILES['attachments']['name']);
         
         if (empty($message) && !$hasFiles) {
             header('Content-Type: application/json');
@@ -50,16 +50,27 @@ try {
                 require_once __DIR__ . '/../Admin_BOFETODA/r2-storage.php';
                 
                 $uploadedCount = 0;
-                $fileCount = count($_FILES['attachments']['name']);
+                $files = $_FILES['attachments'];
+                $fileCount = count($files['name']);
                 
                 for ($i = 0; $i < $fileCount; $i++) {
-                    if ($_FILES['attachments']['error'][$i] === UPLOAD_ERR_OK) {
-                        $fileName = $_FILES['attachments']['name'][$i];
-                        $fileTmpPath = $_FILES['attachments']['tmp_name'][$i];
-                        $fileSize = $_FILES['attachments']['size'][$i];
-                        $fileType = $_FILES['attachments']['type'][$i];
-                        
-                        // Try R2 upload first
+                    // Skip if no file or error
+                    if (!isset($files['error'][$i]) || $files['error'][$i] !== UPLOAD_ERR_OK) {
+                        continue;
+                    }
+                    
+                    $fileName = $files['name'][$i];
+                    $fileTmpPath = $files['tmp_name'][$i];
+                    $fileSize = $files['size'][$i];
+                    $fileType = $files['type'][$i];
+                    
+                    // Validate file size (max 5MB)
+                    if ($fileSize > 5 * 1024 * 1024) {
+                        continue;
+                    }
+                    
+                    // Try R2 upload first
+                    try {
                         $r2Key = upload_message_attachment_to_r2($driver_id, $messageId, $fileTmpPath, $fileName);
                         
                         if ($r2Key) {
@@ -76,38 +87,42 @@ try {
                                 'r2_key' => $r2Key
                             ]);
                             $uploadedCount++;
-                        } else {
-                            // Fallback to local storage
-                            $uploadDir = __DIR__ . '/uploads/message_attachments/';
-                            if (!is_dir($uploadDir)) {
-                                mkdir($uploadDir, 0755, true);
-                            }
-                            
-                            $safeFileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
-                            $destPath = $uploadDir . $safeFileName;
-                            
-                            if (move_uploaded_file($fileTmpPath, $destPath)) {
-                                $relativePath = 'Driver_BOFETODA/uploads/message_attachments/' . $safeFileName;
-                                
-                                $stmt = $pdo->prepare(
-                                    "INSERT INTO message_attachments (message_id, file_name, file_path, file_size, file_type, uploaded_at)
-                                     VALUES (:message_id, :file_name, :file_path, :file_size, :file_type, NOW())"
-                                );
-                                $stmt->execute([
-                                    'message_id' => $messageId,
-                                    'file_name' => $fileName,
-                                    'file_path' => $relativePath,
-                                    'file_size' => $fileSize,
-                                    'file_type' => $fileType
-                                ]);
-                                $uploadedCount++;
-                            }
+                            continue;
                         }
+                    } catch (Exception $e) {
+                        error_log("R2 upload failed, trying local: " . $e->getMessage());
+                    }
+                    
+                    // Fallback to local storage
+                    $uploadDir = __DIR__ . '/uploads/message_attachments/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    
+                    $safeFileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
+                    $destPath = $uploadDir . $safeFileName;
+                    
+                    if (move_uploaded_file($fileTmpPath, $destPath)) {
+                        $relativePath = 'Driver_BOFETODA/uploads/message_attachments/' . $safeFileName;
+                        
+                        $stmt = $pdo->prepare(
+                            "INSERT INTO message_attachments (message_id, file_name, file_path, file_size, file_type, uploaded_at)
+                             VALUES (:message_id, :file_name, :file_path, :file_size, :file_type, NOW())"
+                        );
+                        $stmt->execute([
+                            'message_id' => $messageId,
+                            'file_name' => $fileName,
+                            'file_path' => $relativePath,
+                            'file_size' => $fileSize,
+                            'file_type' => $fileType
+                        ]);
+                        $uploadedCount++;
                     }
                 }
                 
-                if ($uploadedCount === 0) {
-                    throw new Exception('Failed to upload attachments');
+                // Update has_attachments if uploads succeeded
+                if ($uploadedCount > 0) {
+                    $pdo->prepare("UPDATE driver_messages SET has_attachments = 1 WHERE id = ?")->execute([$messageId]);
                 }
             }
             
