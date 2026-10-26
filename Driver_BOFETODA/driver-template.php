@@ -1196,6 +1196,290 @@ img {
     gap: 10px;
   }
 }
+
+/* Floating Chat Box */
+.floating-chat-btn {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.floating-chat-btn:active {
+  transform: scale(0.95);
+}
+
+.floating-chat-btn svg {
+  width: 26px;
+  height: 26px;
+  color: var(--color-black);
+}
+
+.floating-chat-btn .chat-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  background: #e53935;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--color-bg);
+}
+
+.chat-window {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: calc(100% - 40px);
+  max-width: 380px;
+  height: 500px;
+  max-height: calc(100vh - 180px);
+  background: var(--color-white);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  display: none;
+  flex-direction: column;
+  z-index: 51;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.chat-window.is-open {
+  display: flex;
+}
+
+.chat-window.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.chat-header {
+  background: var(--color-primary);
+  padding: 16px 20px;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.chat-header-sub {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.65);
+  margin-top: 2px;
+}
+
+.chat-close-btn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-close-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.chat-close-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-black);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-message {
+  display: flex;
+  gap: 10px;
+  max-width: 85%;
+}
+
+.chat-message.me {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-black);
+  flex-shrink: 0;
+}
+
+.chat-message.admin .chat-avatar {
+  background: #000;
+  color: var(--color-primary);
+}
+
+.chat-bubble {
+  background: var(--color-white);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.chat-message.me .chat-bubble {
+  background: var(--color-primary);
+  color: var(--color-black);
+}
+
+.chat-message.admin .chat-bubble {
+  background: #000;
+  color: #fff;
+}
+
+.chat-time {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.chat-input-area {
+  padding: 12px 16px;
+  background: var(--color-white);
+  border-radius: 0 0 16px 16px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  max-height: 100px;
+  min-height: 40px;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 208, 44, 0.2);
+}
+
+.chat-send-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.chat-send-btn:active {
+  transform: scale(0.95);
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-send-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--color-black);
+}
+
+.chat-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.chat-empty svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.chat-empty-text {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.chat-empty-sub {
+  font-size: 12px;
+}
+
+@media (min-width: 600px) {
+  .floating-chat-btn {
+    right: calc((100% - var(--max-width)) / 2 + 20px);
+  }
+  
+  .chat-window {
+    right: calc((100% - var(--max-width)) / 2 + 20px);
+  }
+}
 CSS;
 
 const APP_JS = <<<'JS'
@@ -1395,17 +1679,6 @@ function render_bottom_nav($active_page) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h2"/></svg>
         <span>Submit</span>
     </a>
-    <a href="driver-messages.php" class="nav-item <?php echo $active_page === 'messages' ? 'active' : ''; ?>">
-        <?php 
-        $currentDriver = current_driver();
-        $unrepliedCount = !empty($currentDriver['id']) ? get_my_unread_reply_count($currentDriver['id']) : 0; 
-        ?>
-        <?php if ($unrepliedCount > 0): ?>
-            <span class="notif-badge"><?php echo $unrepliedCount > 9 ? '9+' : $unrepliedCount; ?></span>
-        <?php endif; ?>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span>Messages</span>
-    </a>
     <a href="driver-notifications.php" class="nav-item <?php echo $active_page === 'notif' ? 'active' : ''; ?>">
         <?php $unreadCount = get_unread_notification_count(); ?>
         <?php if ($unreadCount > 0): ?>
@@ -1422,9 +1695,219 @@ function render_bottom_nav($active_page) {
     <?php
 }
 
+function render_floating_chat() {
+    $driver = current_driver();
+    if (!$driver) return;
+    
+    $driver_id = $driver['driver_id'];
+    $unrepliedCount = get_my_unread_reply_count($driver_id);
+    ?>
+<!-- Floating Chat Button -->
+<button type="button" class="floating-chat-btn" id="chatToggleBtn" aria-label="Open chat">
+    <?php if ($unrepliedCount > 0): ?>
+        <span class="chat-badge"><?php echo $unrepliedCount > 9 ? '9+' : $unrepliedCount; ?></span>
+    <?php endif; ?>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+</button>
+
+<!-- Chat Window -->
+<div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+        <div>
+            <div class="chat-header-title">Message Admin</div>
+            <div class="chat-header-sub">BOFETODA Support</div>
+        </div>
+        <button type="button" class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <div class="chat-empty-text">Loading messages...</div>
+        </div>
+    </div>
+    
+    <div class="chat-input-area">
+        <div class="chat-input-row">
+            <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="1"></textarea>
+            <button type="button" class="chat-send-btn" id="chatSendBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var chatToggleBtn = document.getElementById('chatToggleBtn');
+    var chatWindow = document.getElementById('chatWindow');
+    var chatCloseBtn = document.getElementById('chatCloseBtn');
+    var chatMessages = document.getElementById('chatMessages');
+    var chatInput = document.getElementById('chatInput');
+    var chatSendBtn = document.getElementById('chatSendBtn');
+    var driverId = <?php echo json_encode($driver_id); ?>;
+    
+    function openChat() {
+        chatWindow.classList.add('is-open');
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                chatWindow.classList.add('is-visible');
+            });
+        });
+        loadMessages();
+    }
+    
+    function closeChat() {
+        chatWindow.classList.remove('is-visible');
+        setTimeout(function() {
+            chatWindow.classList.remove('is-open');
+        }, 250);
+    }
+    
+    function loadMessages() {
+        fetch('api-message-count.php?get_messages=1')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success && data.messages) {
+                    renderMessages(data.messages);
+                } else {
+                    showEmpty();
+                }
+            })
+            .catch(function() {
+                showEmpty('Failed to load messages');
+            });
+    }
+    
+    function renderMessages(messages) {
+        if (messages.length === 0) {
+            showEmpty();
+            return;
+        }
+        
+        var html = '';
+        messages.forEach(function(msg) {
+            var isMe = msg.sender_type === 'driver';
+            var time = new Date(msg.sent_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            var initials = isMe ? '<?php echo strtoupper(substr($driver["name"], 0, 1)); ?>' : 'A';
+            
+            html += '<div class="chat-message ' + (isMe ? 'me' : 'admin') + '">';
+            html += '  <div class="chat-avatar">' + initials + '</div>';
+            html += '  <div>';
+            html += '    <div class="chat-bubble">' + escapeHtml(msg.message) + '</div>';
+            html += '    <div class="chat-time">' + time + '</div>';
+            html += '  </div>';
+            html += '</div>';
+        });
+        
+        chatMessages.innerHTML = html;
+        scrollToBottom();
+    }
+    
+    function showEmpty(text) {
+        chatMessages.innerHTML = '<div class="chat-empty">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' +
+            '</svg>' +
+            '<div class="chat-empty-text">' + (text || 'No messages yet') + '</div>' +
+            '<div class="chat-empty-sub">Start a conversation with the admin</div>' +
+            '</div>';
+    }
+    
+    function sendMessage() {
+        var message = chatInput.value.trim();
+        if (!message) return;
+        
+        chatSendBtn.disabled = true;
+        chatInput.disabled = true;
+        
+        var formData = new FormData();
+        formData.append('message', message);
+        formData.append('send_message', '1');
+        
+        fetch('api-message-count.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                chatInput.value = '';
+                loadMessages();
+            } else {
+                alert(data.message || 'Failed to send message');
+            }
+        })
+        .catch(function() {
+            alert('Failed to send message');
+        })
+        .finally(function() {
+            chatSendBtn.disabled = false;
+            chatInput.disabled = false;
+            chatInput.focus();
+        });
+    }
+    
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Auto-resize textarea
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+    
+    // Send on Enter (but allow Shift+Enter for new line)
+    chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    chatToggleBtn.addEventListener('click', openChat);
+    chatCloseBtn.addEventListener('click', closeChat);
+    chatSendBtn.addEventListener('click', sendMessage);
+    
+    // Auto-refresh messages every 10 seconds when chat is open
+    setInterval(function() {
+        if (chatWindow.classList.contains('is-open')) {
+            loadMessages();
+        }
+    }, 10000);
+})();
+</script>
+    <?php
+}
+
 function render_footer($active_page = '') {
+    $showChat = in_array($active_page, ['home', 'notif', 'profile'], true);
+    
     if ($active_page !== '') {
         render_bottom_nav($active_page);
+    }
+    
+    if ($showChat) {
+        render_floating_chat();
     }
     
     // Include service worker registration for push notifications

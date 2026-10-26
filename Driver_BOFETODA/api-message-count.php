@@ -1,7 +1,9 @@
 <?php
 /**
- * API endpoint to get unread reply count for driver
- * Returns JSON with count
+ * API endpoint for driver messaging
+ * - Get unread reply count
+ * - Get all messages
+ * - Send new message
  */
 
 require 'driver-database.php';
@@ -11,10 +13,90 @@ try {
     $driver = require_driver();
     $driver_id = $driver['id'];
     
-    // Get unread reply count
+    // Handle POST request - send message
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
+        $message = trim($_POST['message'] ?? '');
+        
+        if (empty($message)) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Message cannot be empty'
+            ]);
+            exit;
+        }
+        
+        try {
+            $pdo = get_pdo();
+            $stmt = $pdo->prepare(
+                "INSERT INTO driver_messages (driver_id, sender_type, message, sent_at) 
+                 VALUES (:driver_id, 'driver', :message, NOW())"
+            );
+            $stmt->execute([
+                'driver_id' => $driver_id,
+                'message' => $message
+            ]);
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Message sent successfully'
+            ]);
+            exit;
+            
+        } catch (Exception $e) {
+            error_log("Failed to send message: " . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to send message'
+            ]);
+            exit;
+        }
+    }
+    
+    // Handle GET request - fetch messages
+    if (isset($_GET['get_messages'])) {
+        try {
+            $pdo = get_pdo();
+            $stmt = $pdo->prepare(
+                "SELECT message_id, sender_type, message, sent_at, is_read
+                 FROM driver_messages
+                 WHERE driver_id = :driver_id
+                 ORDER BY sent_at ASC
+                 LIMIT 100"
+            );
+            $stmt->execute(['driver_id' => $driver_id]);
+            $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Mark admin messages as read
+            $pdo->prepare(
+                "UPDATE driver_messages 
+                 SET is_read = 1 
+                 WHERE driver_id = :driver_id AND sender_type = 'admin' AND is_read = 0"
+            )->execute(['driver_id' => $driver_id]);
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'messages' => $messages
+            ]);
+            exit;
+            
+        } catch (Exception $e) {
+            error_log("Failed to fetch messages: " . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'messages' => []
+            ]);
+            exit;
+        }
+    }
+    
+    // Default: Get unread reply count
     $count = get_my_unread_reply_count($driver_id);
     
-    // Return JSON response
     header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
