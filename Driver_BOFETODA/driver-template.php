@@ -1356,6 +1356,23 @@ img {
   color: var(--color-primary);
 }
 
+.chat-message-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-sender-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  padding: 0 4px;
+}
+
+.chat-message.me .chat-sender-name {
+  text-align: right;
+}
+
 .chat-bubble {
   background: var(--color-white);
   border-radius: 12px;
@@ -1906,14 +1923,18 @@ function render_floating_chat() {
         }
         
         var html = '';
+        var driverName = '<?php echo addslashes($driver["name"]); ?>';
+        
         messages.forEach(function(msg) {
             var isMe = msg.sender_type === 'driver';
             var time = new Date(msg.sent_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             var initials = isMe ? '<?php echo strtoupper(substr($driver["name"], 0, 1)); ?>' : 'A';
+            var senderName = isMe ? driverName : 'Admin';
             
             html += '<div class="chat-message ' + (isMe ? 'me' : 'admin') + '">';
             html += '  <div class="chat-avatar">' + initials + '</div>';
-            html += '  <div>';
+            html += '  <div class="chat-message-content">';
+            html += '    <div class="chat-sender-name">' + escapeHtml(senderName) + '</div>';
             html += '    <div class="chat-bubble">';
             
             // Add text if exists
