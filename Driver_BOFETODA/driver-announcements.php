@@ -64,7 +64,7 @@ render_header([
 .filters-bar {
     background: white;
     padding: 16px;
-    border-radius: var(--radius);
+    border-radius: 16px;
     border: 1px solid var(--border);
     margin-bottom: 20px;
     box-shadow: var(--shadow-card);
@@ -136,7 +136,7 @@ render_header([
 .announcement-full {
     background: white;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 16px;
     padding: 24px;
     margin-bottom: 20px;
     box-shadow: var(--shadow-card);
@@ -282,7 +282,7 @@ render_header([
     padding: 60px 20px;
     background: white;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 16px;
 }
 
 .empty-state__icon {
