@@ -48,7 +48,7 @@ try {
     $tempFile = $tempDir . '/' . $filename;
     
     // Get database connection
-    $pdo = get_db();
+    $pdo = get_pdo();
     
     // Generate SQL backup content using PHP
     $sqlContent = "-- BOFETODA Automated Database Backup\n";

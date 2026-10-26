@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/db.php';
 require_role('president');
 
 set_time_limit(300); // 5 minutes max
@@ -17,7 +18,7 @@ $filename = "bofetoda_backup_{$timestamp}.sql";
 
 try {
     // Get database connection
-    $pdo = get_db();
+    $pdo = get_pdo();
     
     // Start output buffering
     ob_start();
