@@ -10,7 +10,8 @@ $apps    = d('applications_current_cycle');
 $drivers = d('drivers');
 
 $total    = count($apps);
-$pending  = array_filter($apps, fn($a) => in_array($a['status'], ['Pending', 'For Approval'], true));
+$pending  = array_filter($apps, fn($a) => $a['status'] === 'Pending'); // Need validation
+$forApproval = array_filter($apps, fn($a) => $a['status'] === 'For Approval'); // Ready for president
 $approved = array_filter($apps, fn($a) => $a['status'] === 'Approved');
 $rejected = array_filter($apps, fn($a) => $a['status'] === 'Rejected');
 $validated = array_filter($apps, fn($a) => $a['status'] === 'Validated');
@@ -23,6 +24,9 @@ $approvalRate = $totalDrivers > 0 ? round(($renewedDrivers / $totalDrivers) * 10
 $completionRate = $totalDrivers > 0 ? round(($total / $totalDrivers) * 100) : 0;
 $rejectionRate = $total > 0 ? round((count($rejected) / $total) * 100) : 0;
 
+// All items needing review (pending + for approval)
+$needsReview = count($pending) + count($forApproval);
+
 // Calculate trends (mock data for now - in production, compare with previous cycle)
 $trends = [
     'applications' => '+12%',
@@ -33,19 +37,23 @@ $trends = [
 
 // Action items - things requiring immediate attention
 $actionItems = [];
+
+// Secretary needs to validate these
 if (count($pending) > 0) {
     $actionItems[] = [
         'type' => 'warning',
-        'title' => count($pending) . ' applications awaiting review',
-        'action' => 'Review now',
-        'link' => BASE_URL . '/approval_workflow.php'
+        'title' => count($pending) . ' applications need validation',
+        'action' => 'Validate now',
+        'link' => BASE_URL . '/validation_tools.php'
     ];
 }
-if (count($validated) > 0) {
+
+// President needs to approve these (after validation)
+if (count($forApproval) > 0) {
     $actionItems[] = [
         'type' => 'info',
-        'title' => count($validated) . ' applications validated and ready for approval',
-        'action' => 'Review pending',
+        'title' => count($forApproval) . ' applications ready for final approval',
+        'action' => 'Review now',
         'link' => BASE_URL . '/approval_workflow.php'
     ];
 }
@@ -74,10 +82,10 @@ if ($completionRate < 50 && $unrenewedDrivers > 5) {
         'recommendation' => 'Send bulk reminders to unrenewed drivers'
     ];
 }
-if (count($pending) > 10) {
+if (count($pending) > 10 || count($forApproval) > 10) {
     $risks[] = [
         'level' => 'medium',
-        'message' => 'Processing backlog detected - ' . count($pending) . ' pending applications',
+        'message' => 'Processing backlog detected - ' . $needsReview . ' applications need review',
         'recommendation' => 'Allocate additional review time or delegate validation tasks'
     ];
 }
@@ -279,10 +287,10 @@ $page_sub     = "Decision Support & Performance Overview";
           <div class="progress-item">
             <div class="progress-item__head">
               <span class="progress-item__label">Pending Review</span>
-              <span class="progress-item__value"><?= count($pending) ?> / <?= $total ?></span>
+              <span class="progress-item__value"><?= $needsReview ?> / <?= $total ?></span>
             </div>
             <div class="progress-item__bar">
-              <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round((count($pending) / $total) * 100) : 0 ?>%"></div>
+              <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round(($needsReview / $total) * 100) : 0 ?>%"></div>
             </div>
           </div>
         </div>
@@ -303,10 +311,10 @@ $page_sub     = "Decision Support & Performance Overview";
           <div class="progress-item">
             <div class="progress-item__head">
               <span class="progress-item__label">⏳ Pending Review</span>
-              <span class="progress-item__value"><?= count($pending) ?></span>
+              <span class="progress-item__value"><?= $needsReview ?></span>
             </div>
             <div class="progress-item__bar">
-              <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round((count($pending) / $total) * 100) : 0 ?>%"></div>
+              <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round(($needsReview / $total) * 100) : 0 ?>%"></div>
             </div>
           </div>
 
