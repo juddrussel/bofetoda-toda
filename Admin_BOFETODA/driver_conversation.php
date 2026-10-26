@@ -200,7 +200,7 @@ if (count($nameParts) >= 2) {
       <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 sticky top-0 z-20" data-purpose="driver-summary-header" style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.95);">
         <div class="flex items-center justify-between mb-4">
           <a class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-toda-navy transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-100" href="driver_inbox.php">
-            <i class="fa-solid fa-arrow-left text-xs"></i>
+            <span style="font-size: 14px;">←</span>
             <span>Back to Driver Inbox</span>
           </a>
         </div>
@@ -226,7 +226,7 @@ if (count($nameParts) >= 2) {
               </div>
               <div class="flex flex-wrap items-center gap-y-1 gap-x-4 mt-1.5 text-xs sm:text-sm text-slate-500 font-medium">
                 <span class="flex items-center gap-1.5">
-                  <i class="fa-solid fa-id-badge text-slate-400"></i>
+                  <span style="font-size: 14px;">🆔</span>
                   <span class="text-slate-700">Driver ID:</span> <?= e($driver['driver_id']) ?>
                 </span>
               </div>
@@ -238,13 +238,13 @@ if (count($nameParts) >= 2) {
 
       <?php if ($success_message): ?>
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm font-medium">
-          <i class="fa-solid fa-check-circle mr-2"></i><?= e($success_message) ?>
+          <span style="font-size: 14px;">✅</span> <?= e($success_message) ?>
         </div>
       <?php endif; ?>
 
       <?php if ($error_message): ?>
         <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-sm font-medium">
-          <i class="fa-solid fa-exclamation-circle mr-2"></i><?= e($error_message) ?>
+          <span style="font-size: 14px;">⚠️</span> <?= e($error_message) ?>
         </div>
       <?php endif; ?>
 
@@ -384,7 +384,7 @@ if (count($nameParts) >= 2) {
                   
                   <!-- Status Receipt -->
                   <div class="text-[11px] text-slate-400 pr-1 flex items-center justify-end gap-1">
-                    <i class="fa-solid fa-check-double text-blue-500"></i>
+                    <span style="font-size: 12px; color: #3b82f6;">✓✓</span>
                     <span>Delivered</span>
                   </div>
                 </div>
@@ -401,7 +401,7 @@ if (count($nameParts) >= 2) {
       <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mt-2 sticky bottom-0 z-20" data-purpose="composer-reply-panel" style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.95);">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <i class="fa-regular fa-comment-dots text-amber-500"></i>
+            <span style="font-size: 16px;">💬</span>
             Send a Reply
           </h2>
           <span class="text-[11px] text-slate-400 hidden sm:inline-block">Replying as: <?= e($officer_name) ?></span>
@@ -425,7 +425,7 @@ if (count($nameParts) >= 2) {
             <div class="flex flex-wrap items-center gap-2">
               <!-- File Attach Trigger Button -->
               <label class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors">
-                <i class="fa-solid fa-paperclip text-slate-500"></i>
+                <span style="font-size: 14px;">📎</span>
                 <span>Attach Files</span>
                 <input 
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" 
@@ -444,7 +444,7 @@ if (count($nameParts) >= 2) {
                 Clear
               </button>
               <button class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-toda-navy hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow" type="submit">
-                <i class="fa-solid fa-paper-plane text-[11px] text-amber-400"></i>
+                <span style="font-size: 14px;">✈️</span>
                 <span>Send Reply</span>
               </button>
             </div>
@@ -452,7 +452,7 @@ if (count($nameParts) >= 2) {
           
           <!-- File Upload Helper Footnote -->
           <div class="flex items-center gap-1.5 text-[11px] text-slate-400 pt-0.5">
-            <i class="fa-solid fa-circle-info text-[10px] text-slate-400"></i>
+            <span style="font-size: 11px;">ℹ️</span>
             <span>Max 3 files • 5MB each • Supported formats: PDF, DOC, DOCX, JPG, PNG only</span>
           </div>
         </form>
