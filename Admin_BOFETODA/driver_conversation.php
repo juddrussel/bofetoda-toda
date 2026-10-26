@@ -102,560 +102,392 @@ if (count($nameParts) >= 2) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conversation with <?= e($driver['name']) ?> · <?= e(APP_NAME) ?></title>
-<?php render_shared_styles(); ?>
-<style>
-.conversation-header {
-    padding: 20px 28px;
-    background: white;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
 
-.back-link {
-    color: var(--navy);
-    text-decoration: none;
-    font-size: 24px;
-    font-weight: 700;
-    transition: opacity 0.2s;
-}
+<!-- Tailwind CSS CDN with forms and container queries plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-.back-link:hover {
-    opacity: 0.7;
-}
+<!-- Font Awesome for clean operational icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-.driver-header-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--navy);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    flex-shrink: 0;
-}
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-.driver-header-info {
-    flex: 1;
-}
-
-.driver-header-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 2px;
-}
-
-.driver-header-id {
-    font-size: 13px;
-    color: var(--text-muted);
-}
-
-.conversation-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.alert {
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 14px;
-}
-
-.alert-success {
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #6ee7b7;
-}
-
-.alert-error {
-    background: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
-}
-
-.messages-box {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
-    margin-bottom: 20px;
-    min-height: 400px;
-    max-height: 500px;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.messages-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-}
-
-.empty-state-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
-.empty-state-text {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.message-bubble {
-    display: flex;
-    flex-direction: column;
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    word-wrap: break-word;
-    position: relative;
-}
-
-.message-driver {
-    align-self: flex-start;
-    background: #e3f2fd;
-    border: 1px solid #90caf9;
-}
-
-.message-officer {
-    align-self: flex-end;
-    background: #f5f5f5;
-    border: 1px solid #e0e0e0;
-}
-
-.message-sender {
-    font-size: 12px;
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 4px;
-}
-
-.message-text {
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 6px;
-    white-space: pre-wrap;
-}
-
-.message-attachments {
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.attachment-image {
-    display: block;
-    max-width: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    text-decoration: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.attachment-image:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.attachment-image img {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    display: block;
-    border-radius: 8px 8px 0 0;
-}
-
-.image-filename {
-    display: block;
-    padding: 6px 8px;
-    font-size: 11px;
-    color: #555;
-    background: rgba(255, 255, 255, 0.95);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    word-break: break-word;
-}
-
-.attachment-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
-    font-size: 13px;
-    text-decoration: none;
-    color: #1976d2;
-    transition: background 0.2s;
-}
-
-.attachment-item:hover {
-    background: rgba(255, 255, 255, 0.9);
-}
-
-.attachment-icon {
-    font-size: 18px;
-}
-
-.attachment-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.attachment-name {
-    font-weight: 500;
-    word-break: break-word;
-}
-
-.attachment-size {
-    font-size: 11px;
-    color: #666;
-}
-
-.message-time {
-    font-size: 11px;
-    color: #888;
-    margin-top: 4px;
-    text-align: right;
-}
-
-.reply-form-box {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
-    padding: 20px;
-}
-
-.form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text);
-}
-
-.form-textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-    min-height: 100px;
-    margin-bottom: 12px;
-}
-
-.form-textarea:focus {
-    outline: none;
-    border-color: var(--navy);
-    box-shadow: 0 0 0 3px rgba(22,35,61,.08);
-}
-
-.file-upload-wrapper {
-    margin-bottom: 16px;
-}
-
-.file-upload-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: #f5f5f5;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.file-upload-label:hover {
-    background: #e8e8e8;
-}
-
-.file-upload-input {
-    display: none;
-}
-
-.file-upload-info {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
-}
-
-.selected-files {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.selected-file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 6px;
-    font-size: 13px;
-}
-
-.selected-file-name {
-    font-weight: 500;
-}
-
-.remove-file-btn {
-    background: none;
-    border: none;
-    color: #d32f2f;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.btn-send {
-    padding: 12px 32px;
-    background: var(--navy);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-send:hover:not(:disabled) {
-    opacity: 0.9;
-}
-
-.btn-send:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-@media (max-width: 600px) {
-    .conversation-container {
-        padding: 12px;
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            toda: {
+              navy: '#16233d',
+              navyLight: '#1e293b',
+              gold: '#f59e0b',
+              goldHover: '#d97706',
+              surface: '#f8fafc',
+              border: '#e2e8f0',
+            }
+          }
+        }
+      }
     }
-    
-    .conversation-header {
-        padding: 16px;
+</script>
+
+<!-- Style Block: Custom Layout Enhancements -->
+<style data-purpose="custom-scrollbars-and-shadows">
+    /* Subtle custom scrollbar for message thread */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
-    
-    .message-bubble {
-        max-width: 85%;
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
     }
-}
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
 </style>
 </head>
-<body>
-<?php render_sidebar('driver_inbox'); ?>
 
-<div class="main-col">
-  <?php render_topbar('Administration Portal', 'Driver Conversation'); ?>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+</style>
+</head>
 
-  <div class="page">
-    <a href="driver_inbox.php" class="back-link">←</a>
-    <div class="driver-header-avatar"><?= e($initials) ?></div>
-    <div class="driver-header-info">
-        <div class="driver-header-name"><?= e($driver['name']) ?></div>
-        <div class="driver-header-id">Driver ID: <?= e($driver['driver_id']) ?></div>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+<!-- BEGIN: TopNavigationBar -->
+<header class="bg-white border-b border-slate-200 sticky top-0 z-30" data-purpose="top-navigation-bar">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <!-- Left: Brand & Return Navigation -->
+    <div class="flex items-center space-x-4">
+      <a class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-toda-navy transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-100" href="driver_inbox.php">
+        <i class="fa-solid fa-arrow-left text-xs"></i>
+        <span>Back to Driver Inbox</span>
+      </a>
+      <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
+      <div class="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-500">
+        <span class="hover:text-slate-700 cursor-pointer">Admin Portal</span>
+        <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+        <span class="hover:text-slate-700 cursor-pointer">Driver Inbox</span>
+        <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+        <span class="text-slate-900 font-semibold"><?= e($driver['name']) ?></span>
+      </div>
     </div>
-</div>
+    
+    <!-- Right: System Info & Profile -->
+    <div class="flex items-center space-x-3">
+      <span class="text-sm text-slate-600 hidden md:inline">Logged in as: <strong><?= e($officer_name) ?></strong></span>
+    </div>
+  </div>
+</header>
+<!-- END: TopNavigationBar -->
 
-<div class="conversation-container">
-    <?php if ($success_message): ?>
-        <div class="alert alert-success">
-            ✓ <?= e($success_message) ?>
+<!-- BEGIN: MainContentContainer -->
+<main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6" data-purpose="main-chat-container">
+
+  <!-- BEGIN: DriverProfileHeaderCard -->
+  <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200" data-purpose="driver-summary-header">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <!-- Driver Profile Info -->
+      <div class="flex items-start sm:items-center space-x-4">
+        <!-- Avatar Initials -->
+        <div class="relative shrink-0">
+          <div class="w-14 h-14 rounded-2xl bg-toda-navy text-white flex items-center justify-center font-bold text-xl shadow-inner border border-slate-700">
+            <?= e($initials) ?>
+          </div>
+          <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" title="Active driver"></span>
         </div>
-    <?php endif; ?>
-
-    <?php if ($error_message): ?>
-        <div class="alert alert-error">
-            ✗ <?= e($error_message) ?>
+        
+        <!-- Names & Meta -->
+        <div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <h1 class="text-xl font-bold text-slate-900 leading-tight"><?= e($driver['name']) ?></h1>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+              Active Driver
+            </span>
+          </div>
+          <div class="flex flex-wrap items-center gap-y-1 gap-x-4 mt-1.5 text-xs sm:text-sm text-slate-500 font-medium">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-id-badge text-slate-400"></i>
+              <span class="text-slate-700">Driver ID:</span> <?= e($driver['driver_id']) ?>
+            </span>
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-motorcycle text-slate-400"></i>
+              <span class="text-slate-700">Body No:</span> <?= e($driver['body_no'] ?? 'N/A') ?>
+            </span>
+          </div>
         </div>
-    <?php endif; ?>
+      </div>
+    </div>
+  </section>
+  <!-- END: DriverProfileHeaderCard -->
 
-    <!-- Messages Display -->
-    <div class="messages-box" id="messagesBox">
-        <?php if (empty($messages)): ?>
-            <div class="empty-state">
-                <div class="empty-state-icon">💬</div>
-                <div class="empty-state-text">No messages in this conversation yet.</div>
+  <?php if ($success_message): ?>
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm font-medium">
+      <i class="fa-solid fa-check-circle mr-2"></i><?= e($success_message) ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($error_message): ?>
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-sm font-medium">
+      <i class="fa-solid fa-exclamation-circle mr-2"></i><?= e($error_message) ?>
+    </div>
+  <?php endif; ?>
+
+  <!-- BEGIN: ConversationThread -->
+  <section class="flex flex-col gap-5" data-purpose="messages-timeline-thread">
+    
+    <?php if (empty($messages)): ?>
+      <!-- Empty State -->
+      <div class="bg-white rounded-2xl p-12 text-center border border-slate-200">
+        <div class="text-5xl mb-4">💬</div>
+        <div class="text-slate-600 font-medium">No messages in this conversation yet.</div>
+      </div>
+    <?php else: ?>
+      
+      <!-- Date Divider -->
+      <div class="flex items-center justify-center my-1" data-purpose="timeline-date-divider">
+        <span class="bg-slate-200/80 text-slate-600 text-xs font-medium px-4 py-1 rounded-full uppercase tracking-wider shadow-sm">
+          <?= date('l • F j, Y') ?>
+        </span>
+      </div>
+
+      <?php foreach ($messages as $msg): ?>
+        <?php if ($msg['sender_type'] === 'driver'): ?>
+          <!-- Message: Driver Inbound -->
+          <article class="flex items-start gap-3 max-w-2xl self-start group" data-purpose="driver-message-item">
+            <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-1 shadow-sm">
+              <?= e($initials) ?>
             </div>
-        <?php else: ?>
-            <div class="messages-list">
-                <?php foreach ($messages as $msg): ?>
-                    <div class="message-bubble <?= $msg['sender_type'] === 'driver' ? 'message-driver' : 'message-officer' ?>">
-                        <div class="message-sender">
-                            <?php if ($msg['sender_type'] === 'driver'): ?>
-                                <?= e($driver['name']) ?>
-                            <?php else: ?>
-                                <?= e($msg['officer_name'] ?? 'Officer') ?>
-                            <?php endif; ?>
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 px-1">
+                <span class="text-xs font-bold text-slate-800"><?= e($driver['name']) ?></span>
+                <span class="text-[11px] text-slate-400"><?= format_relative_time($msg['sent_at']) ?></span>
+              </div>
+              
+              <!-- Card Bubble -->
+              <div class="bg-white rounded-2xl rounded-tl-sm border border-slate-200 p-3 shadow-sm hover:shadow transition-shadow max-w-md">
+                <?php if (!empty($msg['message_text'])): ?>
+                  <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap"><?= nl2br(e($msg['message_text'])) ?></p>
+                <?php endif; ?>
+                
+                <!-- Attachments -->
+                <?php if (!empty($msg['attachments'])): ?>
+                  <div class="space-y-2 <?= !empty($msg['message_text']) ? 'mt-2' : '' ?>">
+                    <?php foreach ($msg['attachments'] as $att): 
+                      $isImage = is_image_file_admin($att['file_name']);
+                    ?>
+                      <?php if ($isImage): ?>
+                        <!-- Image Attachment -->
+                        <div class="relative overflow-hidden rounded-xl bg-slate-100 border border-slate-200 group/img">
+                          <img alt="<?= e($att['file_name']) ?>" 
+                               class="w-full h-52 object-cover object-center transition duration-200 group-hover/img:scale-105" 
+                               src="download_message_attachment.php?id=<?= $att['id'] ?>"
+                               loading="lazy">
+                          <div class="absolute inset-0 bg-slate-900/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <a class="px-3 py-1.5 bg-white/95 rounded-lg text-xs font-semibold text-slate-800 hover:bg-white shadow" 
+                               href="download_message_attachment.php?id=<?= $att['id'] ?>" 
+                               target="_blank">
+                              <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> Preview
+                            </a>
+                            <a class="px-3 py-1.5 bg-white/95 rounded-lg text-xs font-semibold text-slate-800 hover:bg-white shadow" 
+                               download="" 
+                               href="download_message_attachment.php?id=<?= $att['id'] ?>">
+                              <i class="fa-solid fa-download mr-1"></i> Download
+                            </a>
+                          </div>
                         </div>
-                        <div class="message-text"><?= nl2br(e($msg['message_text'])) ?></div>
-                        
-                        <?php if (!empty($msg['attachments'])): ?>
-                            <div class="message-attachments">
-                                <?php foreach ($msg['attachments'] as $att): 
-                                    $isImage = is_image_file_admin($att['file_name']);
-                                ?>
-                                    <?php if ($isImage): ?>
-                                        <a href="download_message_attachment.php?id=<?= $att['id'] ?>" 
-                                           class="attachment-image" 
-                                           target="_blank">
-                                            <img src="download_message_attachment.php?id=<?= $att['id'] ?>" 
-                                                 alt="<?= e($att['file_name']) ?>"
-                                                 loading="lazy">
-                                            <span class="image-filename"><?= e($att['file_name']) ?></span>
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="download_message_attachment.php?id=<?= $att['id'] ?>" 
-                                           class="attachment-item" 
-                                           target="_blank">
-                                            <span class="attachment-icon"><?= get_file_icon_admin($att['file_name']) ?></span>
-                                            <div class="attachment-info">
-                                                <span class="attachment-name"><?= e($att['file_name']) ?></span>
-                                                <span class="attachment-size"><?= format_file_size_admin($att['file_size']) ?></span>
-                                            </div>
-                                        </a>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                        <!-- Attachment Metadata -->
+                        <div class="flex items-center justify-between px-1 text-xs">
+                          <div class="flex items-center gap-1.5 text-slate-700 font-medium">
+                            <i class="fa-regular fa-image text-slate-400"></i>
+                            <span><?= e($att['file_name']) ?></span>
+                          </div>
+                          <span class="text-slate-400 text-[11px]"><?= format_file_size_admin($att['file_size']) ?></span>
+                        </div>
+                      <?php else: ?>
+                        <!-- Document Attachment -->
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/80 transition-colors">
+                          <div class="flex items-center space-x-3 truncate">
+                            <div class="w-10 h-10 rounded-lg bg-red-100 border border-red-200 text-red-600 flex items-center justify-center shrink-0">
+                              <i class="fa-solid fa-file-pdf text-lg"></i>
                             </div>
-                        <?php endif; ?>
-                        
-                        <div class="message-time"><?= format_relative_time($msg['sent_at']) ?></div>
-                    </div>
-                <?php endforeach; ?>
+                            <div class="truncate text-left">
+                              <p class="text-xs font-semibold text-slate-800 truncate" title="<?= e($att['file_name']) ?>">
+                                <?= e($att['file_name']) ?>
+                              </p>
+                              <p class="text-[11px] text-slate-400"><?= format_file_size_admin($att['file_size']) ?> • Document</p>
+                            </div>
+                          </div>
+                          <a class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-white transition-all shrink-0 ml-2" 
+                             href="download_message_attachment.php?id=<?= $att['id'] ?>" 
+                             title="Download document">
+                            <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
+                          </a>
+                        </div>
+                      <?php endif; ?>
+                    <?php endforeach; ?>
+                  </div>
+                <?php endif; ?>
+              </div>
             </div>
+          </article>
+        
+        <?php else: ?>
+          <!-- Message: Admin Outbound Response -->
+          <article class="flex flex-row-reverse items-start gap-3 max-w-2xl self-end group" data-purpose="admin-response-item">
+            <div class="w-8 h-8 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center text-xs font-black shrink-0 mt-1 shadow-sm">
+              HQ
+            </div>
+            <div class="space-y-1.5 text-right">
+              <div class="flex items-center justify-end gap-2 px-1">
+                <span class="text-[11px] text-slate-400"><?= format_relative_time($msg['sent_at']) ?></span>
+                <span class="text-xs font-bold text-slate-800"><?= e($msg['officer_name'] ?? 'Admin') ?></span>
+              </div>
+              
+              <!-- Message Bubble -->
+              <div class="bg-toda-navy text-white text-left rounded-2xl rounded-tr-sm p-4 shadow-sm text-sm leading-relaxed max-w-md">
+                <?= nl2br(e($msg['message_text'])) ?>
+                
+                <!-- Attachments for admin messages -->
+                <?php if (!empty($msg['attachments'])): ?>
+                  <div class="space-y-2 mt-3">
+                    <?php foreach ($msg['attachments'] as $att): 
+                      $isImage = is_image_file_admin($att['file_name']);
+                    ?>
+                      <a href="download_message_attachment.php?id=<?= $att['id'] ?>" 
+                         class="block p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-xs">
+                        <i class="fa-solid <?= $isImage ? 'fa-image' : 'fa-file' ?> mr-1"></i>
+                        <?= e($att['file_name']) ?>
+                      </a>
+                    <?php endforeach; ?>
+                  </div>
+                <?php endif; ?>
+              </div>
+              
+              <!-- Status Receipt -->
+              <div class="text-[11px] text-slate-400 pr-1 flex items-center justify-end gap-1">
+                <i class="fa-solid fa-check-double text-blue-500"></i>
+                <span>Delivered</span>
+              </div>
+            </div>
+          </article>
         <?php endif; ?>
-    </div>
+      <?php endforeach; ?>
+      
+    <?php endif; ?>
+    
+  </section>
+  <!-- END: ConversationThread -->
 
-    <!-- Reply Form -->
-    <div class="reply-form-box">
-        <form method="post" enctype="multipart/form-data" id="replyForm">
-            <label class="form-label" for="messageText">Send a Reply</label>
-            <textarea 
-                name="message_text" 
-                id="messageText" 
-                class="form-textarea" 
-                placeholder="Type your reply here..."
-                required></textarea>
-            
-            <div class="file-upload-wrapper">
-                <label class="file-upload-label" for="fileInput">
-                    📎 Attach Files
-                </label>
-                <input 
-                    type="file" 
-                    name="attachments[]" 
-                    id="fileInput" 
-                    class="file-upload-input"
-                    multiple
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                <div class="file-upload-info">
-                    Max 3 files • 5MB each • PDF, DOC, DOCX, JPG, PNG only
-                </div>
-                <div id="selectedFiles" class="selected-files"></div>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-send">Send Reply</button>
-            </div>
-        </form>
+  <!-- BEGIN: MessageReplyComposer -->
+  <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mt-2" data-purpose="composer-reply-panel">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <i class="fa-regular fa-comment-dots text-amber-500"></i>
+        Send a Reply
+      </h2>
+      <span class="text-[11px] text-slate-400 hidden sm:inline-block">Replying as: <?= e($officer_name) ?></span>
     </div>
-</div>
+    
+    <form action="" method="POST" enctype="multipart/form-data" class="space-y-4" id="replyForm">
+      <!-- Reply Text Box -->
+      <div class="relative">
+        <textarea 
+          class="w-full text-sm rounded-xl border border-slate-300 focus:border-toda-navy focus:ring-1 focus:ring-toda-navy p-3.5 placeholder-slate-400 text-slate-800 resize-y" 
+          id="messageText"
+          name="message_text" 
+          placeholder="Type your reply here... (Shift + Enter for new line)" 
+          rows="4"
+          required></textarea>
+      </div>
+      
+      <!-- Attachment Bar & Quick Actions -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-slate-100">
+        <!-- Attachment Details & Dropdown -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- File Attach Trigger Button -->
+          <label class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors">
+            <i class="fa-solid fa-paperclip text-slate-500"></i>
+            <span>Attach Files</span>
+            <input 
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" 
+              class="hidden" 
+              id="fileInput"
+              name="attachments[]"
+              multiple 
+              type="file">
+          </label>
+          <div id="selectedFiles" class="text-xs text-slate-600"></div>
+        </div>
+        
+        <!-- Submission Controls -->
+        <div class="flex items-center justify-end gap-2">
+          <button class="px-3.5 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors" type="reset">
+            Clear
+          </button>
+          <button class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-toda-navy hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow" type="submit">
+            <i class="fa-solid fa-paper-plane text-[11px] text-amber-400"></i>
+            <span>Send Reply</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- File Upload Helper Footnote -->
+      <div class="flex items-center gap-1.5 text-[11px] text-slate-400 pt-0.5">
+        <i class="fa-solid fa-circle-info text-[10px] text-slate-400"></i>
+        <span>Max 3 files • 5MB each • Supported formats: PDF, DOC, DOCX, JPG, PNG only</span>
+      </div>
+    </form>
+  </section>
+  <!-- END: MessageReplyComposer -->
+
+</main>
+<!-- END: MainContentContainer -->
+
+<!-- BEGIN: MinimalFooter -->
+<footer class="mt-auto py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-400">
+  <p>© <?= date('Y') ?> Bocaue TODA Inc. • Transportation & Operators Management System</p>
+</footer>
+<!-- END: MinimalFooter -->
 
 <script>
-// Auto-scroll to bottom of messages
+// File upload preview
 document.addEventListener('DOMContentLoaded', function() {
-    const messagesBox = document.getElementById('messagesBox');
-    if (messagesBox) {
-        messagesBox.scrollTop = messagesBox.scrollHeight;
-    }
-    
-    // File upload preview
     const fileInput = document.getElementById('fileInput');
     const selectedFilesDiv = document.getElementById('selectedFiles');
     
-    fileInput.addEventListener('change', function() {
-        selectedFilesDiv.innerHTML = '';
-        
-        if (this.files.length > 3) {
-            alert('Maximum 3 files allowed');
-            this.value = '';
-            return;
-        }
-        
-        Array.from(this.files).forEach((file, index) => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'selected-file-item';
+    if (fileInput && selectedFilesDiv) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 3) {
+                alert('Maximum 3 files allowed');
+                this.value = '';
+                selectedFilesDiv.textContent = '';
+                return;
+            }
             
-            const fileName = document.createElement('span');
-            fileName.className = 'selected-file-name';
-            fileName.textContent = file.name;
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-file-btn';
-            removeBtn.textContent = '×';
-            removeBtn.type = 'button';
-            removeBtn.onclick = function() {
-                // Create a new FileList without this file
-                const dt = new DataTransfer();
-                Array.from(fileInput.files).forEach((f, i) => {
-                    if (i !== index) {
-                        dt.items.add(f);
-                    }
-                });
-                fileInput.files = dt.files;
-                
-                // Trigger change event to update display
-                fileInput.dispatchEvent(new Event('change'));
-            };
-            
-            fileItem.appendChild(fileName);
-            fileItem.appendChild(removeBtn);
-            selectedFilesDiv.appendChild(fileItem);
+            if (this.files.length > 0) {
+                const fileNames = Array.from(this.files).map(f => f.name).join(', ');
+                selectedFilesDiv.textContent = `${this.files.length} file(s) selected: ${fileNames}`;
+            } else {
+                selectedFilesDiv.textContent = '';
+            }
         });
-    });
+    }
 });
 </script>
 
-  </div><!-- /.page -->
-</div><!-- /.main-col -->
-
-<?php render_shared_script(); ?>
 </body>
-</html>
+</html>>
 
