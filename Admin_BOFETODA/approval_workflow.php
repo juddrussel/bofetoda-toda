@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$queue = get_pending_applications(); // Changed from get_for_approval_applications()
+$queue = get_for_approval_applications(); // Applications validated and ready for president approval
 
 // Pagination
 $page = max(1, (int) ($_GET['page'] ?? 1));
