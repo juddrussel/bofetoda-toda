@@ -61,14 +61,45 @@ try {
         try {
             $pdo = get_pdo();
             $stmt = $pdo->prepare(
-                "SELECT id as message_id, sender_type, message_text as message, sent_at, is_read
-                 FROM driver_messages
-                 WHERE driver_id = :driver_id
-                 ORDER BY sent_at ASC
+                "SELECT 
+                    dm.id as message_id, 
+                    dm.sender_type, 
+                    dm.message_text as message, 
+                    dm.sent_at, 
+                    dm.is_read,
+                    dm.has_attachments,
+                    GROUP_CONCAT(
+                        CONCAT(ma.file_name, '|', COALESCE(ma.r2_key, ma.file_path), '|', ma.file_type)
+                        SEPARATOR ':::'
+                    ) as attachments
+                 FROM driver_messages dm
+                 LEFT JOIN message_attachments ma ON dm.id = ma.message_id
+                 WHERE dm.driver_id = :driver_id
+                 GROUP BY dm.id
+                 ORDER BY dm.sent_at ASC
                  LIMIT 100"
             );
             $stmt->execute(['driver_id' => $driver_id]);
             $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Parse attachments
+            foreach ($messages as &$msg) {
+                $msg['attachment_list'] = [];
+                if ($msg['has_attachments'] && !empty($msg['attachments'])) {
+                    $attachments = explode(':::', $msg['attachments']);
+                    foreach ($attachments as $att) {
+                        $parts = explode('|', $att);
+                        if (count($parts) === 3) {
+                            $msg['attachment_list'][] = [
+                                'name' => $parts[0],
+                                'path' => $parts[1],
+                                'type' => $parts[2]
+                            ];
+                        }
+                    }
+                }
+                unset($msg['attachments']); // Remove raw string
+            }
             
             // Mark officer messages as read
             $pdo->prepare(

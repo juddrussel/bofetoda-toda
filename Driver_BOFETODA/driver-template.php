@@ -1375,6 +1375,22 @@ img {
   color: #fff;
 }
 
+.chat-bubble-image {
+  max-width: 200px;
+  border-radius: 8px;
+  margin-top: 6px;
+  cursor: pointer;
+  display: block;
+}
+
+.chat-bubble-image:first-child {
+  margin-top: 0;
+}
+
+.chat-bubble-text + .chat-bubble-image {
+  margin-top: 8px;
+}
+
 .chat-time {
   font-size: 10px;
   color: var(--color-text-muted);
@@ -1806,7 +1822,29 @@ function render_floating_chat() {
             html += '<div class="chat-message ' + (isMe ? 'me' : 'admin') + '">';
             html += '  <div class="chat-avatar">' + initials + '</div>';
             html += '  <div>';
-            html += '    <div class="chat-bubble">' + escapeHtml(msg.message) + '</div>';
+            html += '    <div class="chat-bubble">';
+            
+            // Add text if exists
+            if (msg.message && msg.message.trim()) {
+                html += '<div class="chat-bubble-text">' + escapeHtml(msg.message) + '</div>';
+            }
+            
+            // Add attachments if they exist
+            if (msg.attachment_list && msg.attachment_list.length > 0) {
+                msg.attachment_list.forEach(function(att) {
+                    if (att.type && att.type.startsWith('image/')) {
+                        // Show image
+                        var imgUrl = att.path.startsWith('http') ? att.path : 'download-attachment.php?file=' + encodeURIComponent(att.path);
+                        html += '<img src="' + imgUrl + '" class="chat-bubble-image" alt="' + escapeHtml(att.name) + '">';
+                    } else {
+                        // Show file download link
+                        var fileUrl = att.path.startsWith('http') ? att.path : 'download-attachment.php?file=' + encodeURIComponent(att.path);
+                        html += '<a href="' + fileUrl + '" target="_blank" style="color:inherit;text-decoration:underline;display:block;margin-top:4px;">📎 ' + escapeHtml(att.name) + '</a>';
+                    }
+                });
+            }
+            
+            html += '    </div>';
             html += '    <div class="chat-time">' + time + '</div>';
             html += '  </div>';
             html += '</div>';
