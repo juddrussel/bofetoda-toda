@@ -60,7 +60,7 @@ function current_driver() {
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
         'SELECT d.driver_id AS id, d.driver_id, d.name, d.age, d.birthday, d.contact_no, d.address,
-                d.body_no, b.name AS barangay, c.name AS color_code
+                d.body_no, b.name AS barangay, c.name AS color_code, c.name AS color
          FROM drivers d
          LEFT JOIN barangays b ON b.barangay_id = d.barangay_id
          LEFT JOIN colors    c ON c.color_id    = d.color_id
@@ -440,10 +440,18 @@ function submit_renewal_application(array $driver, array $documentPaths, $office
         $barangayId = $pdo->prepare('SELECT barangay_id FROM barangays WHERE name = :n');
         $barangayId->execute(['n' => $driver['barangay']]);
         $barangayId = $barangayId->fetchColumn();
+        
+        if (!$barangayId) {
+            throw new Exception("Barangay not found: {$driver['barangay']}");
+        }
 
         $colorId = $pdo->prepare('SELECT color_id FROM colors WHERE name = :n');
         $colorId->execute(['n' => $driver['color']]);
         $colorId = $colorId->fetchColumn();
+        
+        if (!$colorId) {
+            throw new Exception("Color not found: {$driver['color']}");
+        }
 
         // Build INSERT query with optional officer fields
         if ($officer_id) {
