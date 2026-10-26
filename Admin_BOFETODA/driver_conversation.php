@@ -399,7 +399,7 @@ if (count($nameParts) >= 2) {
       <!-- END: ConversationThread -->
 
       <!-- BEGIN: MessageReplyComposer -->
-      <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mt-2 sticky bottom-0 z-20" data-purpose="composer-reply-panel" style="backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.95);">
+      <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mt-2" data-purpose="composer-reply-panel" style="margin-bottom: 24px;">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <i class="fa-regular fa-comment-dots text-amber-500"></i>
