@@ -160,6 +160,17 @@ if (count($nameParts) >= 2) {
     .main-col {
       background: #f1f5f9 !important;
     }
+    
+    /* Ensure sidebar stays on top */
+    .sidebar {
+      position: relative;
+      z-index: 100 !important;
+    }
+    
+    /* Scope Tailwind to conversation content only */
+    .conversation-content * {
+      font-family: 'Inter', sans-serif !important;
+    }
 </style>
 </head>
 
@@ -178,6 +189,7 @@ if (count($nameParts) >= 2) {
 
   <div class="page" style="background: #f1f5f9;">
     
+    <div class="conversation-content">
     <!-- BEGIN: MainContentContainer -->
     <div class="max-w-5xl mx-auto flex flex-col gap-6">
 
@@ -448,6 +460,7 @@ if (count($nameParts) >= 2) {
     </div>
     <!-- END: MainContentContainer -->
     
+    </div><!-- /.conversation-content -->
   </div><!-- /.page -->
 </div><!-- /.main-col -->
 
