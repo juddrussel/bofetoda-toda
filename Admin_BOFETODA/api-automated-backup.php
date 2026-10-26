@@ -47,39 +47,73 @@ try {
     $tempDir = sys_get_temp_dir();
     $tempFile = $tempDir . '/' . $filename;
     
-    // Get database credentials
-    $host = getenv('DB_HOST') ?: '127.0.0.1';
-    $port = getenv('DB_PORT') ?: '3306';
-    $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASS') ?: '';
-    $dbname = getenv('DB_NAME') ?: 'bofetoda';
+    // Get database connection
+    $pdo = get_db();
     
-    // Build mysqldump command (save to temp file)
-    $command = sprintf(
-        'mysqldump --host=%s --port=%s --user=%s --password=%s --single-transaction --quick --lock-tables=false %s | gzip > %s',
-        escapeshellarg($host),
-        escapeshellarg($port),
-        escapeshellarg($user),
-        escapeshellarg($pass),
-        escapeshellarg($dbname),
-        escapeshellarg($tempFile)
-    );
+    // Generate SQL backup content using PHP
+    $sqlContent = "-- BOFETODA Automated Database Backup\n";
+    $sqlContent .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
+    $sqlContent .= "-- Host: " . (getenv('DB_HOST') ?: '127.0.0.1') . "\n";
+    $sqlContent .= "-- Database: " . (getenv('DB_NAME') ?: 'bofetoda') . "\n\n";
+    $sqlContent .= "SET NAMES utf8mb4;\n";
+    $sqlContent .= "SET FOREIGN_KEY_CHECKS = 0;\n\n";
     
-    // Execute mysqldump
-    $output = [];
-    $returnCode = 0;
-    exec($command . ' 2>&1', $output, $returnCode);
+    // Get all tables
+    $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
     
-    if ($returnCode !== 0) {
-        throw new Exception('mysqldump failed: ' . implode("\n", $output));
+    foreach ($tables as $table) {
+        $sqlContent .= "-- ----------------------------\n";
+        $sqlContent .= "-- Table structure for $table\n";
+        $sqlContent .= "-- ----------------------------\n";
+        $sqlContent .= "DROP TABLE IF EXISTS `$table`;\n";
+        
+        // Get CREATE TABLE statement
+        $createTable = $pdo->query("SHOW CREATE TABLE `$table`")->fetch(PDO::FETCH_ASSOC);
+        $sqlContent .= $createTable['Create Table'] . ";\n\n";
+        
+        // Get table data
+        $sqlContent .= "-- ----------------------------\n";
+        $sqlContent .= "-- Records of $table\n";
+        $sqlContent .= "-- ----------------------------\n";
+        
+        $rows = $pdo->query("SELECT * FROM `$table`")->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (count($rows) > 0) {
+            // Get column names
+            $columns = array_keys($rows[0]);
+            $columnList = '`' . implode('`, `', $columns) . '`';
+            
+            // Insert in batches of 100 rows
+            $batchSize = 100;
+            $batches = array_chunk($rows, $batchSize);
+            
+            foreach ($batches as $batch) {
+                $sqlContent .= "INSERT INTO `$table` ($columnList) VALUES\n";
+                
+                $values = [];
+                foreach ($batch as $row) {
+                    $escapedValues = array_map(function($value) use ($pdo) {
+                        if ($value === null) {
+                            return 'NULL';
+                        }
+                        return $pdo->quote($value);
+                    }, array_values($row));
+                    $values[] = '(' . implode(', ', $escapedValues) . ')';
+                }
+                
+                $sqlContent .= implode(",\n", $values) . ";\n\n";
+            }
+        }
     }
     
-    // Check if file was created and has content
-    if (!file_exists($tempFile) || filesize($tempFile) === 0) {
-        throw new Exception('Backup file is empty or was not created');
-    }
+    $sqlContent .= "SET FOREIGN_KEY_CHECKS = 1;\n";
     
-    $fileSize = filesize($tempFile);
+    // Compress and save to temp file
+    $compressed = gzencode($sqlContent, 9);
+    file_put_contents($tempFile, $compressed);
+    
+    $fileSize = strlen($compressed);
+    $originalSize = strlen($sqlContent);
     
     // Upload to R2
     $date = date('Y-m-d');
@@ -98,7 +132,7 @@ try {
     $deletedCount = cleanup_old_backups(7);
     
     // Log success
-    error_log("Automated backup completed: {$filename} ({$fileSize} bytes), cleaned up {$deletedCount} old backups");
+    error_log("Automated backup completed (PHP method): {$filename} ({$fileSize} bytes compressed from {$originalSize} bytes), cleaned up {$deletedCount} old backups");
     
     // Return success response
     echo json_encode([
@@ -107,9 +141,11 @@ try {
         'filename' => $filename,
         'size' => format_bytes($fileSize),
         'size_bytes' => $fileSize,
+        'original_size' => format_bytes($originalSize),
         'r2_key' => $r2Key,
         'timestamp' => date('Y-m-d H:i:s'),
-        'old_backups_deleted' => $deletedCount
+        'old_backups_deleted' => $deletedCount,
+        'method' => 'PHP-based'
     ]);
     
 } catch (Exception $e) {

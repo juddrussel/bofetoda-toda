@@ -88,7 +88,7 @@ $officer = current_officer();
                 </div>
             </div>
             <div class="card__body">
-                <a href="<?= BASE_URL ?>/api-manual-backup.php" class="btn btn-primary btn-block" id="manualBackupBtn">
+                <a href="<?= BASE_URL ?>/api-manual-backup-php.php" class="btn btn-primary btn-block" id="manualBackupBtn">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
@@ -96,6 +96,9 @@ $officer = current_officer();
                     </svg>
                     Download Backup Now
                 </a>
+                <p style="font-size:11.5px; color:var(--text-muted); margin-top:12px; text-align:center;">
+                    Creates a compressed SQL backup file
+                </p>
             </div>
         </div>
 
