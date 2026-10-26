@@ -134,21 +134,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
 
         if ($uploadResult['success']) {
             try {
-                error_log("Attempting to submit application for driver: {$driver['driver_id']}");
+                error_log("=== RENEWAL SUBMISSION START ===");
+                error_log("Driver ID: {$driver['driver_id']}");
+                error_log("Document paths: " . json_encode($uploadResult['paths']));
+                
                 $appNo = submit_renewal_application($driver, $uploadResult['paths']);
+                
                 error_log("Application submitted successfully: $appNo");
+                error_log("=== RENEWAL SUBMISSION END ===");
+                
                 header('Location: driver-home.php?state=submitted');
                 exit;
             } catch (Throwable $e) {
-                error_log('submit_renewal_application FAILED: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
-                $upload_error = 'Something went wrong while submitting. Please try again.';
+                error_log('=== RENEWAL SUBMISSION FAILED ===');
+                error_log('Error: ' . $e->getMessage());
+                error_log('File: ' . $e->getFile() . ':' . $e->getLine());
+                error_log('Trace: ' . $e->getTraceAsString());
+                error_log('=== END ERROR ===');
+                $upload_error = 'Something went wrong while submitting. Please try again. Error: ' . $e->getMessage();
                 $step = 3; // Stay on step 3 to show error
             }
         } else {
             // Log specific errors
+            error_log('=== UPLOAD FAILED ===');
             foreach ($uploadResult['errors'] as $docType => $error) {
                 error_log("Upload failed for $docType: $error");
             }
+            error_log('=== END UPLOAD ERRORS ===');
             $upload_error = 'Something went wrong while saving your documents. Please try again.';
         }
     } else {
@@ -443,29 +455,16 @@ document.addEventListener('DOMContentLoaded', function () {
       var form = document.getElementById('renewalForm');
       if (!form) return;
 
-      var fd = new FormData(form);
-      fd.append('confirm', '1');
-
       btnConfirm.disabled = true;
       btnConfirm.textContent = 'Submitting…';
 
-      fetch('driver-renewal.php?step=3', {
-        method: 'POST',
-        body: fd,
-      })
-      .then(function (res) {
-  
-        if (!res.ok) throw new Error('Server error');
-        // Close submit modal, open success modal.
-        closeModal('modal-submit');
-        setTimeout(function () { openModal('modal-success'); }, 180);
-      })
-      .catch(function () {
-        btnConfirm.disabled = false;
-        btnConfirm.textContent = 'Submit';
-        closeModal('modal-submit');
-        alert('Something went wrong. Please try again.');
-      });
+      // Use traditional form submit instead of fetch to allow PHP redirect
+      var confirmInput = document.createElement('input');
+      confirmInput.type = 'hidden';
+      confirmInput.name = 'confirm';
+      confirmInput.value = '1';
+      form.appendChild(confirmInput);
+      form.submit();
     });
   }
 
