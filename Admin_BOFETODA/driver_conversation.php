@@ -176,40 +176,20 @@ if (count($nameParts) >= 2) {
 <div class="main-col">
   <?php render_topbar('Administration Portal', 'Driver Conversation'); ?>
 
-  <div class="page" style="background: #f1f5f9; padding: 0;">
+  <div class="page" style="background: #f1f5f9;">
     
-    <!-- BEGIN: Breadcrumb Navigation Bar -->
-    <div class="bg-white border-b border-slate-200" style="margin: -24px -32px 0 -32px; padding: 16px 32px; position: relative; z-index: 1;">
-      <div class="flex items-center justify-between">
-        <!-- Left: Return Navigation -->
-        <div class="flex items-center space-x-4">
+    <!-- BEGIN: MainContentContainer -->
+    <div class="max-w-5xl mx-auto flex flex-col gap-6">
+
+      <!-- BEGIN: DriverProfileHeaderCard -->
+      <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200" data-purpose="driver-summary-header">
+        <div class="flex items-center justify-between mb-4">
           <a class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-toda-navy transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-100" href="driver_inbox.php">
             <i class="fa-solid fa-arrow-left text-xs"></i>
             <span>Back to Driver Inbox</span>
           </a>
-          <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
-          <div class="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span class="hover:text-slate-700 cursor-pointer">Admin Portal</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-            <span class="hover:text-slate-700 cursor-pointer">Driver Inbox</span>
-            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-            <span class="text-slate-900 font-semibold"><?= e($driver['name']) ?></span>
-          </div>
         </div>
         
-        <!-- Right: Officer Info -->
-        <div class="flex items-center space-x-3">
-          <span class="text-sm text-slate-600 hidden md:inline">Logged in as: <strong><?= e($officer_name) ?></strong></span>
-        </div>
-      </div>
-    </div>
-    <!-- END: Breadcrumb Navigation Bar -->
-
-    <!-- BEGIN: MainContentContainer -->
-    <div class="max-w-5xl mx-auto p-4 sm:p-6 flex flex-col gap-6" style="padding-top: 24px;">
-
-      <!-- BEGIN: DriverProfileHeaderCard -->
-      <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200" data-purpose="driver-summary-header">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <!-- Driver Profile Info -->
           <div class="flex items-start sm:items-center space-x-4">
