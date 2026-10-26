@@ -120,6 +120,18 @@ input, textarea, select {
   font-size: 16px !important;
 }
 
+/* Show container borders only on larger screens */
+@media (min-width: 421px) {
+  body > div {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-left: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+  }
+  body {
+    background: #e2e8f0;
+  }
+}
+
 /* Chat Window Styles */
 .chat-window {
   position: fixed;
@@ -379,9 +391,9 @@ input, textarea, select {
 
 </style>
 </head>
-<body class="bg-slate-100 text-toda-text min-h-screen flex justify-center">
+<body class="bg-slate-50 text-toda-text min-h-screen flex justify-center">
 
-<div class="w-full max-w-[420px] bg-slate-50 min-h-screen flex flex-col relative shadow-2xl border-x border-slate-200">
+<div class="w-full max-w-[420px] bg-slate-50 min-h-screen flex flex-col relative">
 
 <!-- Top Brand Bar -->
 <header class="pt-3 px-5 pb-1 flex items-center justify-between text-[11px] text-slate-400 font-medium tracking-wide">
