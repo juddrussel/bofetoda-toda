@@ -175,10 +175,7 @@ if (count($nameParts) >= 2) {
 </head>
 
 <body>
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-</style>
+<?php render_sidebar('driver_inbox'); ?></style>
 </head>
 
 <body>
