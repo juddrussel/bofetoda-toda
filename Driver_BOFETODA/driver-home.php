@@ -467,13 +467,69 @@ body {
 
   <!-- BEGIN: FloatingChatButton -->
   <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] z-40">
-    <a href="driver-messages.php" aria-label="Open messages" class="w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white">
+    <button type="button" onclick="toggleChat()" aria-label="Open chat" class="w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white">
       <svg class="w-6 h-6 fill-slate-950" viewBox="0 0 24 24">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
       </svg>
-    </a>
+    </button>
   </div>
   <!-- END: FloatingChatButton -->
+
+  <!-- BEGIN: ChatWidget -->
+  <div id="chatWidget" class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 hidden">
+    <!-- Chat Header -->
+    <div class="bg-gradient-to-r from-amber-400 to-amber-500 p-4 rounded-t-2xl flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-white font-bold text-sm">TODA Support</h3>
+          <p class="text-amber-100 text-xs">We're here to help</p>
+        </div>
+      </div>
+      <button onclick="toggleChat()" class="text-white hover:bg-white/20 rounded-full p-1 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Chat Messages Area -->
+    <div class="h-80 overflow-y-auto p-4 space-y-3 bg-slate-50">
+      <!-- Welcome Message -->
+      <div class="flex items-start space-x-2">
+        <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
+        <div class="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm max-w-[70%]">
+          <p class="text-sm text-slate-700">Hello! How can we help you today?</p>
+          <span class="text-xs text-slate-400 mt-1 block">Just now</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="p-3 bg-white border-t border-slate-100">
+      <p class="text-xs font-semibold text-slate-500 mb-2">Quick Actions</p>
+      <div class="space-y-2">
+        <a href="driver-messages.php" class="block w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors">
+          💬 View all messages
+        </a>
+        <a href="driver-notifications.php" class="block w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors">
+          🔔 Check notifications
+        </a>
+        <a href="driver-profile.php" class="block w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors">
+          👤 Contact support
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- END: ChatWidget -->
 
   <!-- BEGIN: BottomNavigationBar -->
   <nav class="fixed bottom-0 left-0 right-0 max-w-[420px] mx-auto bg-[#070b14] text-slate-400 border-t border-slate-800 z-50 px-2 py-2 shadow-nav">
@@ -545,7 +601,56 @@ function toggleMessage(annId) {
     toggleBtn.textContent = 'Read more...';
   }
 }
+
+function toggleChat() {
+  const chatWidget = document.getElementById('chatWidget');
+  if (chatWidget.classList.contains('hidden')) {
+    chatWidget.classList.remove('hidden');
+    // Add animation
+    chatWidget.style.animation = 'slideUp 0.3s ease-out';
+  } else {
+    chatWidget.style.animation = 'slideDown 0.3s ease-out';
+    setTimeout(() => {
+      chatWidget.classList.add('hidden');
+    }, 250);
+  }
+}
+
+// Close chat when clicking outside
+document.addEventListener('click', function(event) {
+  const chatWidget = document.getElementById('chatWidget');
+  const chatButton = event.target.closest('[onclick="toggleChat()"]');
+  const clickedInsideChat = chatWidget && chatWidget.contains(event.target);
+  
+  if (!chatButton && !clickedInsideChat && chatWidget && !chatWidget.classList.contains('hidden')) {
+    toggleChat();
+  }
+});
 </script>
+
+<style>
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+</style>
 
 </body>
 </html>
