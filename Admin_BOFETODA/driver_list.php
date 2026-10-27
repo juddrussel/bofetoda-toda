@@ -98,9 +98,13 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get view mode and search params
 $isArchived = (($_GET['view'] ?? 'active') === 'archived');
 $searchQuery = trim($_GET['q'] ?? '');
+$filterBarangay = trim($_GET['barangay'] ?? '');
+$filterStatus = trim($_GET['status'] ?? '');
 
 // Get drivers list
 $allDrivers = d($isArchived ? 'archived_drivers' : 'drivers');
+
+// Server-side search
 if ($searchQuery !== '') {
     $searchLower = strtolower($searchQuery);
     $allDrivers = array_filter($allDrivers, function($driver) use ($searchLower) {
@@ -110,6 +114,20 @@ if ($searchQuery !== '') {
             || strpos(strtolower($driver['status'] ?? ''), $searchLower) !== false
             || strpos(strtolower($driver['body_no'] ?? ''), $searchLower) !== false
             || strpos(strtolower($driver['contact'] ?? ''), $searchLower) !== false;
+    });
+}
+
+// Server-side filtering by Barangay
+if ($filterBarangay !== '') {
+    $allDrivers = array_filter($allDrivers, function($driver) use ($filterBarangay) {
+        return ($driver['barangay'] ?? '') === $filterBarangay;
+    });
+}
+
+// Server-side filtering by Status  
+if ($filterStatus !== '') {
+    $allDrivers = array_filter($allDrivers, function($driver) use ($filterStatus) {
+        return ($driver['status'] ?? '') === $filterStatus;
     });
 }
 
@@ -312,9 +330,12 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
         </h2>
         <p class="page-subtitle">
           Organizes, updates, and maintains all driver information.
-          <?php if ($searchQuery !== ''): ?>
-            <span style="color:var(--navy);font-weight:600;"> · Found <?= $paginatedList['total_items'] ?> result(s) for "<?= e($searchQuery) ?>"</span>
-            <a href="<?= BASE_URL ?>/driver_list.php<?= $isArchived ? '?view=archived' : '' ?>" style="color:var(--accent);margin-left:8px;">Clear search</a>
+          <?php if ($searchQuery !== '' || $filterBarangay !== '' || $filterStatus !== ''): ?>
+            <span style="color:var(--navy);font-weight:600;"> · Found <?= $paginatedList['total_items'] ?> result(s)</span>
+            <?php if ($searchQuery !== ''): ?> for "<?= e($searchQuery) ?>"<?php endif; ?>
+            <?php if ($filterBarangay !== ''): ?> in <?= e($filterBarangay) ?><?php endif; ?>
+            <?php if ($filterStatus !== ''): ?> with status "<?= e($filterStatus) ?>"<?php endif; ?>
+            <a href="<?= BASE_URL ?>/driver_list.php<?= $isArchived ? '?view=archived' : '' ?>" style="color:var(--accent);margin-left:8px;">Clear all</a>
           <?php endif; ?>
         </p>
       </div>
@@ -358,7 +379,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
             <select id="filterBarangay">
               <option value="">All Barangays</option>
               <?php foreach ($barangays as $b): ?>
-                <option value="<?= e($b) ?>"><?= e($b) ?></option>
+                <option value="<?= e($b) ?>" <?= $b === $filterBarangay ? 'selected' : '' ?>><?= e($b) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -366,11 +387,11 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
             <label for="filterStatus">Renewal Status</label>
             <select id="filterStatus">
               <option value="">All Status</option>
-              <option value="-">Not yet applied</option>
-              <option value="Pending Renewal">Pending Renewal</option>
-              <option value="Validated Renewal">Validated Renewal</option>
-              <option value="Approved Renewal">Approved Renewal</option>
-              <option value="Rejected Renewal">Rejected Renewal</option>
+              <option value="-" <?= $filterStatus === '-' ? 'selected' : '' ?>>Not yet applied</option>
+              <option value="Pending Renewal" <?= $filterStatus === 'Pending Renewal' ? 'selected' : '' ?>>Pending Renewal</option>
+              <option value="Validated Renewal" <?= $filterStatus === 'Validated Renewal' ? 'selected' : '' ?>>Validated Renewal</option>
+              <option value="Approved Renewal" <?= $filterStatus === 'Approved Renewal' ? 'selected' : '' ?>>Approved Renewal</option>
+              <option value="Rejected Renewal" <?= $filterStatus === 'Rejected Renewal' ? 'selected' : '' ?>>Rejected Renewal</option>
             </select>
           </div>
           <div class="filter-panel__foot">
@@ -460,6 +481,12 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
       $baseUrl = BASE_URL . '/driver_list.php?view=' . ($isArchived ? 'archived' : 'active');
       if ($searchQuery !== '') {
           $baseUrl .= '&q=' . urlencode($searchQuery);
+      }
+      if ($filterBarangay !== '') {
+          $baseUrl .= '&barangay=' . urlencode($filterBarangay);
+      }
+      if ($filterStatus !== '') {
+          $baseUrl .= '&status=' . urlencode($filterStatus);
       }
       render_pagination($paginatedList['page'], $paginatedList['total_pages'], $baseUrl); 
       ?>
@@ -851,23 +878,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function applyFilters() {
-    if (!table) return;
-
-    table.querySelectorAll('tbody tr').forEach(function(row) {
-      var matchesBarangay = !activeBarangay || row.getAttribute('data-barangay') === activeBarangay;
-      var matchesStatus   = !activeStatus   || row.getAttribute('data-status')   === activeStatus;
-      row.style.display = (matchesBarangay && matchesStatus) ? '' : 'none';
-    });
-
-    var activeCount = (activeBarangay ? 1 : 0) + (activeStatus ? 1 : 0);
-    if (filterCount) {
-      filterCount.textContent = activeCount;
-      filterCount.style.display = activeCount > 0 ? 'inline-flex' : 'none';
-    }
-    if (filterToggle) filterToggle.classList.toggle('has-active', activeCount > 0);
-  }
-
   if (filterToggle && filterPanel) {
     filterToggle.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -879,24 +889,50 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Server-side filtering - redirect with URL parameters
   if (filterApply) {
     filterApply.addEventListener('click', function () {
-      activeBarangay = filterBarangay ? filterBarangay.value : '';
-      activeStatus   = filterStatus ? filterStatus.value : '';
-      applyFilters();
-      filterPanel.classList.remove('is-open');
+      var url = new URL(window.location.href);
+      var barangayVal = filterBarangay ? filterBarangay.value : '';
+      var statusVal = filterStatus ? filterStatus.value : '';
+      
+      if (barangayVal) {
+        url.searchParams.set('barangay', barangayVal);
+      } else {
+        url.searchParams.delete('barangay');
+      }
+      
+      if (statusVal) {
+        url.searchParams.set('status', statusVal);
+      } else {
+        url.searchParams.delete('status');
+      }
+      
+      // Reset to page 1 when filtering
+      url.searchParams.delete('page');
+      
+      window.location.href = url.toString();
     });
   }
 
   if (filterClear) {
     filterClear.addEventListener('click', function () {
-      if (filterBarangay) filterBarangay.value = '';
-      if (filterStatus) filterStatus.value = '';
-      activeBarangay = '';
-      activeStatus   = '';
-      applyFilters();
-      filterPanel.classList.remove('is-open');
+      var url = new URL(window.location.href);
+      url.searchParams.delete('barangay');
+      url.searchParams.delete('status');
+      url.searchParams.delete('page');
+      window.location.href = url.toString();
     });
+  }
+  
+  // Update filter count badge on page load
+  var activeCount = <?= ($filterBarangay !== '' ? 1 : 0) + ($filterStatus !== '' ? 1 : 0) ?>;
+  if (filterCount) {
+    filterCount.textContent = activeCount;
+    filterCount.style.display = activeCount > 0 ? 'inline-flex' : 'none';
+  }
+  if (filterToggle && activeCount > 0) {
+    filterToggle.classList.add('has-active');
   }
 
   document.querySelectorAll('[data-submit-form]').forEach(function (btn) {
