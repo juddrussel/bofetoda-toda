@@ -1056,35 +1056,6 @@ function db_approve_application($appNo) {
         log_activity('Approved', $app['driver_id'], $officer['id'] ?? null, $officer['role'] ?? 'president');
 
         $pdo->commit();
-        
-        // Send push notification after successful approval
-        try {
-            require_once __DIR__ . '/notification-manager.php';
-            
-            trigger_notification(
-                $app['driver_id'],
-                'driver',
-                'status_change',
-                [
-                    'title' => 'Application Approved',
-                    'message' => "Your application {$appNo} has been approved! Your renewed permit is now issued.",
-                    'url' => '/Driver_BOFETODA/driver-home.php',
-                    'appNo' => $appNo,
-                    'metadata' => [
-                        'app_no' => $appNo,
-                        'status' => 'Approved',
-                        'approved_by' => $officer['id'] ?? null
-                    ]
-                ]
-            );
-            
-            error_log("Approval notification sent for application {$appNo} to driver {$app['driver_id']}");
-            
-        } catch (Exception $e) {
-            error_log('Failed to send approval notification: ' . $e->getMessage());
-            // Don't fail the approval if notification fails
-        }
-        
         return true;
     } catch (Throwable $e) {
         $pdo->rollBack();
@@ -1147,41 +1118,6 @@ function db_reject_application($appNo, $reasonText, $note) {
         log_activity('Reject', $app['driver_id'], $officer['id'] ?? null, $officer['role'] ?? 'secretary');
 
         $pdo->commit();
-        
-        // Send push notification after successful rejection
-        try {
-            require_once __DIR__ . '/notification-manager.php';
-            
-            $rejectionMessage = $note 
-                ? "Your application {$appNo} was rejected. Reason: {$note}" 
-                : "Your application {$appNo} was rejected. Please review and resubmit.";
-            
-            trigger_notification(
-                $app['driver_id'],
-                'driver',
-                'status_change',
-                [
-                    'title' => 'Application Update',
-                    'message' => $rejectionMessage,
-                    'url' => '/Driver_BOFETODA/driver-view-application.php?app_no=' . urlencode($appNo),
-                    'appNo' => $appNo,
-                    'metadata' => [
-                        'app_no' => $appNo,
-                        'status' => 'Rejected',
-                        'rejected_by' => $officer['id'] ?? null,
-                        'reason' => $reasonText,
-                        'note' => $note
-                    ]
-                ]
-            );
-            
-            error_log("Rejection notification sent for application {$appNo} to driver {$app['driver_id']}");
-            
-        } catch (Exception $e) {
-            error_log('Failed to send rejection notification: ' . $e->getMessage());
-            // Don't fail the rejection if notification fails
-        }
-        
         return true;
     } catch (Throwable $e) {
         $pdo->rollBack();
