@@ -478,7 +478,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
                         Restore
                       </button>
-                      <button type="button" class="icon-btn delete" data-open-modal="delete-<?= e($drv['driver_id']) ?>" title="Delete Permanently">
+                      <button type="button" class="icon-btn delete" data-open-modal="delete-permanent-<?= e($drv['driver_id']) ?>" title="Delete Permanently">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                       </button>
                     </div>
@@ -768,7 +768,7 @@ if ($isArchived) {
 
 <?php if ($canManage): ?>
 <?php foreach ($archivedForModals as $drv): ?>
-<div class="modal-backdrop" id="delete-<?= e($drv['driver_id']) ?>">
+<div class="modal-backdrop" id="delete-permanent-<?= e($drv['driver_id']) ?>">
   <div class="modal" style="max-width:480px;">
     <div class="modal__head" style="background: #dc2626; color: white;"><h3>⚠️ Permanent Deletion Warning</h3></div>
     <div class="modal__body">
@@ -784,7 +784,7 @@ if ($isArchived) {
       <input type="hidden" name="action" value="delete_driver">
       <input type="hidden" name="driver_id" value="<?= e($drv['driver_id']) ?>">
       <div class="modal__foot">
-        <button type="button" class="btn btn-outline btn-pill" data-close-modal="delete-<?= e($drv['driver_id']) ?>">Cancel</button>
+        <button type="button" class="btn btn-outline btn-pill" data-close-modal="delete-permanent-<?= e($drv['driver_id']) ?>">Cancel</button>
         <button type="submit" class="btn btn-pill" style="background: #dc2626; color: white;" onclick="return confirm('Are you absolutely sure? This driver will be PERMANENTLY deleted!');">Delete Permanently</button>
       </div>
     </form>
