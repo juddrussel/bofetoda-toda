@@ -554,6 +554,12 @@ if (!empty($_GET['load_modals'])) {
     // Use current page drivers for modals
     $allDrivers = $paginatedList['items'];
 }
+
+// For restore modals, we need archived drivers
+$archivedForModals = [];
+if ($isArchived) {
+    $archivedForModals = $allDrivers;
+}
 ?>
 
 <?php foreach ($allDrivers as $drv): ?>
@@ -747,7 +753,7 @@ if (!empty($_GET['load_modals'])) {
 <?php endforeach; ?>
 
 <?php if ($canManage): ?>
-<?php foreach ($archived as $drv): ?>
+<?php foreach ($archivedForModals as $drv): ?>
 <div class="modal-backdrop" id="restore-<?= e($drv['driver_id']) ?>">
   <div class="modal">
     <div class="modal__head"><h3>Restore Driver</h3></div>
