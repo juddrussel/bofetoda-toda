@@ -169,9 +169,13 @@ function driver_avatar_path(string $driverId): ?string {
 
 /** Public, cache-busted URL for a driver's profile photo, or null. */
 function driver_avatar_url(string $driverId): ?string {
+    error_log("driver_avatar_url called for: $driverId");
+    
     // Check R2 first if enabled
     if (function_exists('is_r2_enabled') && is_r2_enabled()) {
         $publicUrl = getenv('R2_PUBLIC_URL');
+        error_log("R2 is enabled, public URL: " . ($publicUrl ?: 'NOT SET'));
+        
         if ($publicUrl) {
             // Try to find avatar in R2 (check common extensions)
             foreach (['png', 'jpg', 'jpeg'] as $ext) {
@@ -186,21 +190,31 @@ function driver_avatar_url(string $driverId): ?string {
                 $localPath = driver_avatar_path($driverId);
                 if ($localPath) {
                     $localExt = pathinfo($localPath, PATHINFO_EXTENSION);
-                    return rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.' . $localExt . '?v=' . time();
+                    $finalUrl = rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.' . $localExt . '?v=' . time();
+                    error_log("Returning R2 URL (based on local ext): $finalUrl");
+                    return $finalUrl;
                 }
                 
                 // If no local file, assume PNG (most common)
-                return rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.png?v=' . time();
+                $defaultUrl = rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.png?v=' . time();
+                error_log("Returning R2 URL (default PNG): $defaultUrl");
+                return $defaultUrl;
             }
         }
+    } else {
+        error_log("R2 is NOT enabled or function doesn't exist");
     }
     
     // Fallback to local storage
     $path = driver_avatar_path($driverId);
     if (!$path) {
+        error_log("No local avatar found for: $driverId");
         return null;
     }
-    return 'uploads/avatars/' . basename($path) . '?v=' . filemtime($path);
+    
+    $localUrl = 'uploads/avatars/' . basename($path) . '?v=' . filemtime($path);
+    error_log("Returning local URL: $localUrl");
+    return $localUrl;
 }
 
 /**

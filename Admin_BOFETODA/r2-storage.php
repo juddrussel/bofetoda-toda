@@ -360,6 +360,7 @@ if (!function_exists('upload_driver_avatar_r2')) {
         $url = r2_upload_file($file, $r2Key);
         
         if ($url) {
+            error_log("R2 upload SUCCESS: $url");
             return [
                 'url' => $url,
                 'path' => $r2Key,
@@ -368,6 +369,8 @@ if (!function_exists('upload_driver_avatar_r2')) {
         }
         
         error_log('R2 upload failed for avatar, falling back to local storage');
+    } else {
+        error_log('R2 is not enabled, using local storage');
     }
     
     // Fallback to local storage
@@ -388,6 +391,7 @@ if (!function_exists('upload_driver_avatar_r2')) {
     $localPath = $uploadDir . $driverId . '.' . $extension;
     
     if (move_uploaded_file($file['tmp_name'], $localPath)) {
+        error_log("Local storage SUCCESS: uploads/avatars/" . $driverId . '.' . $extension);
         return [
             'url' => 'uploads/avatars/' . $driverId . '.' . $extension,
             'path' => 'uploads/avatars/' . $driverId . '.' . $extension,
@@ -395,6 +399,7 @@ if (!function_exists('upload_driver_avatar_r2')) {
         ];
     }
     
+    error_log("Local storage FAILED for: $localPath");
     return false;
     }
 }
