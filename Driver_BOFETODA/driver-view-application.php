@@ -200,28 +200,29 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
         <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
             <!-- Step Indicator Header -->
             <div class="relative px-2 pt-2 pb-5">
-                <!-- Connecting Line Behind Badges -->
-                <div class="absolute top-[26px] left-8 right-8 h-[2.5px] bg-slate-200 -z-0"></div>
-                <!-- Completed Line Portion -->
+                <!-- Connecting Line Behind Badges (Gray background) -->
+                <div class="absolute top-[26px] left-[50px] right-[50px] h-[3px] bg-slate-200 rounded-full"></div>
+                
+                <!-- Completed Line Portion (Green progress) -->
                 <?php 
                 $progressWidth = 0;
                 if ($status === 'Pending') {
-                    $progressWidth = 0; // Only first step complete
+                    $progressWidth = 0; // Only first step complete, no line
                 } elseif ($status === 'Validated') {
-                    $progressWidth = 33.33; // Up to step 2
+                    $progressWidth = 33.33; // Line to step 2
                 } elseif ($status === 'Approved') {
-                    $progressWidth = 100; // All steps complete
+                    $progressWidth = 100; // Line all the way
                 }
                 ?>
                 <?php if ($progressWidth > 0): ?>
-                <div class="absolute top-[26px] left-8 h-[2.5px] bg-emerald-500 -z-0 transition-all duration-500" style="width: <?php echo $progressWidth; ?>%"></div>
+                <div class="absolute top-[26px] left-[50px] h-[3px] bg-emerald-500 rounded-full transition-all duration-500 ease-in-out" style="width: calc(<?php echo $progressWidth; ?>% - 0px); max-width: calc(100% - 100px);"></div>
                 <?php endif; ?>
                 
                 <!-- Step Badges Row -->
                 <div class="relative z-10 flex justify-between items-start text-center">
                     <!-- Step 1: Submitted -->
                     <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-md ring-4 ring-emerald-100">
+                        <div class="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-md ring-4 ring-emerald-100">
                             <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
@@ -231,7 +232,7 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
                     
                     <!-- Step 2: Validated -->
                     <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full <?php echo $status === 'Validated' || $status === 'Approved' ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-100' : 'bg-white text-slate-600 border-2 border-slate-300 ring-4 ring-white'; ?> flex items-center justify-center font-semibold text-xs transition-all duration-300">
+                        <div class="w-9 h-9 rounded-full <?php echo $status === 'Validated' || $status === 'Approved' ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-100' : 'bg-white text-slate-600 border-2 border-slate-300 ring-4 ring-white'; ?> flex items-center justify-center font-semibold text-xs transition-all duration-300">
                             <?php if ($status === 'Validated' || $status === 'Approved'): ?>
                                 <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -245,7 +246,7 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
                     
                     <!-- Step 3: Approved -->
                     <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full <?php echo $status === 'Approved' ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-100' : 'bg-white text-slate-400 border-2 border-slate-200 ring-4 ring-white'; ?> flex items-center justify-center font-semibold text-xs transition-all duration-300">
+                        <div class="w-9 h-9 rounded-full <?php echo $status === 'Approved' ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-100' : 'bg-white text-slate-400 border-2 border-slate-200 ring-4 ring-white'; ?> flex items-center justify-center font-semibold text-xs transition-all duration-300">
                             <?php if ($status === 'Approved'): ?>
                                 <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -259,7 +260,7 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
                     
                     <!-- Step 4: Done -->
                     <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full <?php echo $status === 'Approved' ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-100' : 'bg-white text-slate-400 border-2 border-slate-200 ring-4 ring-white'; ?> flex items-center justify-center font-semibold text-xs transition-all duration-300">
+                        <div class="w-9 h-9 rounded-full <?php echo $status === 'Approved' ? 'bg-emerald-500 text-white shadow-md ring-4 ring-emerald-100' : 'bg-white text-slate-400 border-2 border-slate-200 ring-4 ring-white'; ?> flex items-center justify-center font-semibold text-xs transition-all duration-300">
                             <?php if ($status === 'Approved'): ?>
                                 <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
