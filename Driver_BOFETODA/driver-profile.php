@@ -34,6 +34,8 @@ if (isset($_GET['pwok'])) {
     $notice = 'Password updated successfully.';
 } elseif (isset($_GET['sqok'])) {
     $notice = 'Security question updated successfully.';
+} elseif (isset($_GET['avatar'])) {
+    $notice = 'Profile picture updated successfully!';
 }
 
 if (isset($_GET['sqerror'])) {
