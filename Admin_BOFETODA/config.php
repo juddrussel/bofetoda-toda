@@ -604,19 +604,9 @@ function db_update_driver($driverId, array $in) {
     $current->execute(['id' => $driverId]);
     $current = $current->fetch();
     
-    $needsNewId = false;
-    $newDriverId = $driverId;
-    
+    // Check if attempting to change barangay or body_no which would change driver_id
     if ($current && ($current['body_no'] !== $in['body_no'] || $current['barangay_id'] != $barangayId)) {
-        $needsNewId = true;
-        $newDriverId = next_driver_id($pdo, $in['barangay'], $in['body_no']);
-        
-        // Check if the new driver_id already exists
-        $existingDriver = $pdo->prepare('SELECT driver_id FROM drivers WHERE driver_id = :id AND driver_id != :current_id');
-        $existingDriver->execute(['id' => $newDriverId, 'current_id' => $driverId]);
-        if ($existingDriver->fetch()) {
-            throw new DriverValidationException('Cannot change to this barangay/body number combination. Driver ID "' . $newDriverId . '" already exists.');
-        }
+        throw new DriverValidationException('Cannot change barangay or body number as it would change the driver ID. Please archive this driver and create a new one if needed.');
     }
 
     $dupe = $pdo->prepare(
@@ -649,132 +639,27 @@ function db_update_driver($driverId, array $in) {
     }
     $newBirthday = date('Y-m-d', strtotime($in['birthday']));
 
-    // If driver_id needs to change, we need to handle it carefully
-    if ($needsNewId) {
-        // Strategy: Get all related data, delete old record, insert new record with new ID
-        // This avoids FK constraint issues with updating primary keys
-        try {
-            // Disable FK checks for the entire operation
-            $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
-            
-            $pdo->beginTransaction();
-            
-            // 1. Get all current driver data
-            $driverData = $pdo->prepare('SELECT * FROM drivers WHERE driver_id = :id');
-            $driverData->execute(['id' => $driverId]);
-            $driverData = $driverData->fetch(PDO::FETCH_ASSOC);
-            
-            // 2. Get all applications
-            $apps = $pdo->prepare('SELECT * FROM applications WHERE driver_id = :id');
-            $apps->execute(['id' => $driverId]);
-            $apps = $apps->fetchAll(PDO::FETCH_ASSOC);
-            
-            // 3. Get all activity logs
-            $logs = $pdo->prepare('SELECT * FROM activity_logs WHERE driver_id = :id');
-            $logs->execute(['id' => $driverId]);
-            $logs = $logs->fetchAll(PDO::FETCH_ASSOC);
-            
-            // 4. Get all notifications
-            $notifs = $pdo->prepare('SELECT * FROM notifications WHERE driver_id = :id');
-            $notifs->execute(['id' => $driverId]);
-            $notifs = $notifs->fetchAll(PDO::FETCH_ASSOC);
-            
-            // 5. Delete the old driver record (will cascade delete to related tables)
-            $pdo->prepare('DELETE FROM drivers WHERE driver_id = :id')
-                ->execute(['id' => $driverId]);
-            
-            // 6. Insert driver with new ID and updated data
-            $pdo->prepare(
-                'INSERT INTO drivers (
-                    driver_id, name, age, birthday, contact_no, address, 
-                    barangay_id, body_no, color_id, renewal_status, 
-                    password, is_archived, created_at, updated_at
-                ) VALUES (
-                    :driver_id, :name, :age, :birthday, :contact_no, :address,
-                    :barangay_id, :body_no, :color_id, :renewal_status,
-                    :password, :is_archived, :created_at, :updated_at
-                )'
-            )->execute([
-                'driver_id'      => $newDriverId,
-                'name'           => $in['name'],
-                'age'            => $in['age'],
-                'birthday'       => $newBirthday,
-                'contact_no'     => $in['contact'],
-                'address'        => $in['address'],
-                'barangay_id'    => $barangayId,
-                'body_no'        => $in['body_no'],
-                'color_id'       => $colorId,
-                'renewal_status' => $driverData['renewal_status'],
-                'password'       => $driverData['password'],
-                'is_archived'    => $driverData['is_archived'],
-                'created_at'     => $driverData['created_at'],
-                'updated_at'     => $driverData['updated_at'],
-            ]);
-            
-            // 7. Restore applications with new driver_id
-            foreach ($apps as $app) {
-                unset($app['id']); // Remove auto-increment ID
-                $app['driver_id'] = $newDriverId;
-                $cols = array_keys($app);
-                $placeholders = ':' . implode(', :', $cols);
-                $pdo->prepare("INSERT INTO applications (" . implode(', ', $cols) . ") VALUES ($placeholders)")
-                    ->execute($app);
-            }
-            
-            // 8. Restore activity logs with new driver_id
-            foreach ($logs as $log) {
-                unset($log['log_id']); // Remove auto-increment ID
-                $log['driver_id'] = $newDriverId;
-                $cols = array_keys($log);
-                $placeholders = ':' . implode(', :', $cols);
-                $pdo->prepare("INSERT INTO activity_logs (" . implode(', ', $cols) . ") VALUES ($placeholders)")
-                    ->execute($log);
-            }
-            
-            // 9. Restore notifications with new driver_id
-            foreach ($notifs as $notif) {
-                unset($notif['notification_id']); // Remove auto-increment ID
-                $notif['driver_id'] = $newDriverId;
-                $cols = array_keys($notif);
-                $placeholders = ':' . implode(', :', $cols);
-                $pdo->prepare("INSERT INTO notifications (" . implode(', ', $cols) . ") VALUES ($placeholders)")
-                    ->execute($notif);
-            }
-            
-            $pdo->commit();
-            
-            // Re-enable FK checks
-            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1'); // Re-enable even on error
-            throw $e;
-        }
-    } else {
-        // No driver_id change, just update fields normally
-        $pdo->prepare(
-            'UPDATE drivers SET
-                name = :name, age = :age, birthday = :birthday, contact_no = :contact_no,
-                address = :address, barangay_id = :barangay_id, body_no = :body_no,
-                color_id = :color_id
-             WHERE driver_id = :driver_id'
-        )->execute([
-            'name'        => $in['name'],
-            'age'         => $in['age'],
-            'birthday'    => $newBirthday,
-            'contact_no'  => $in['contact'],
-            'address'     => $in['address'],
-            'barangay_id' => $barangayId,
+    // Update driver information (barangay and body_no are now immutable)
+    $pdo->prepare(
+        'UPDATE drivers SET
+            name = :name, age = :age, birthday = :birthday, contact_no = :contact_no,
+            address = :address, barangay_id = :barangay_id, body_no = :body_no,
+            color_id = :color_id
+         WHERE driver_id = :driver_id'
+    )->execute([
+        'name'        => $in['name'],
+        'age'         => $in['age'],
+        'birthday'    => $newBirthday,
+        'contact_no'  => $in['contact'],
+        'address'     => $in['address'],
+        'barangay_id' => $barangayId,
         'body_no'     => $in['body_no'],
         'color_id'    => $colorId,
         'driver_id'   => $driverId,
     ]);
-    }
 
     $officer = current_officer();
-    log_activity('Update', $needsNewId ? $newDriverId : $driverId, $officer['id'] ?? null, $officer['role'] ?? 'secretary');
+    log_activity('Update', $driverId, $officer['id'] ?? null, $officer['role'] ?? 'secretary');
 
     $fieldLabels = [
         'name'       => 'Name',
