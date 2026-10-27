@@ -2352,22 +2352,22 @@ function get_general_announcements($filters = []) {
     
     if (isset($filters['category']) && $filters['category'] !== '') {
         $where[] = 'ga.category = :category';
-        $params['category'] = $filters['category'];
+        $params[':category'] = $filters['category'];
     }
     
     if (isset($filters['priority']) && $filters['priority'] !== '') {
         $where[] = 'ga.priority = :priority';
-        $params['priority'] = $filters['priority'];
+        $params[':priority'] = $filters['priority'];
     }
     
     if (isset($filters['is_active'])) {
         $where[] = 'ga.is_active = :is_active';
-        $params['is_active'] = $filters['is_active'] ? 1 : 0;
+        $params[':is_active'] = $filters['is_active'] ? 1 : 0;
     }
     
     if (isset($filters['search']) && trim($filters['search']) !== '') {
         $where[] = '(ga.title LIKE :search OR ga.message LIKE :search)';
-        $params['search'] = '%' . $filters['search'] . '%';
+        $params[':search'] = '%' . $filters['search'] . '%';
     }
     
     $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
