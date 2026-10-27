@@ -29,8 +29,8 @@ $total = $result['total'];
 
 render_header([
     'title' => 'Announcements',
-    'topbar_mode' => 'page',
-    'topbar_heading' => 'All Announcements',
+    'topbar_mode' => 'none',
+    'topbar_heading' => '',
 ]);
 ?>
 
@@ -125,7 +125,7 @@ render_header([
 </style>
 
 <!-- Main Content -->
-<div class="min-h-screen bg-gray-50 pb-20">
+<div class="min-h-screen bg-gray-50 pb-24">
     <div class="max-w-4xl mx-auto px-4 py-6">
         
         <!-- Header -->
