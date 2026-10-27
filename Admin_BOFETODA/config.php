@@ -678,11 +678,11 @@ function db_update_driver($driverId, array $in) {
                 'INSERT INTO drivers (
                     driver_id, name, age, birthday, contact_no, address, 
                     barangay_id, body_no, color_id, renewal_status, 
-                    is_archived, date_created
+                    password, is_archived, created_at, updated_at
                 ) VALUES (
                     :driver_id, :name, :age, :birthday, :contact_no, :address,
                     :barangay_id, :body_no, :color_id, :renewal_status,
-                    :is_archived, :date_created
+                    :password, :is_archived, :created_at, :updated_at
                 )'
             )->execute([
                 'driver_id'      => $newDriverId,
@@ -695,12 +695,15 @@ function db_update_driver($driverId, array $in) {
                 'body_no'        => $in['body_no'],
                 'color_id'       => $colorId,
                 'renewal_status' => $driverData['renewal_status'],
+                'password'       => $driverData['password'],
                 'is_archived'    => $driverData['is_archived'],
-                'date_created'   => $driverData['date_created'],
+                'created_at'     => $driverData['created_at'],
+                'updated_at'     => $driverData['updated_at'],
             ]);
             
             // 7. Restore applications with new driver_id
             foreach ($apps as $app) {
+                unset($app['id']); // Remove auto-increment ID
                 $app['driver_id'] = $newDriverId;
                 $cols = array_keys($app);
                 $placeholders = ':' . implode(', :', $cols);
@@ -710,6 +713,7 @@ function db_update_driver($driverId, array $in) {
             
             // 8. Restore activity logs with new driver_id
             foreach ($logs as $log) {
+                unset($log['log_id']); // Remove auto-increment ID
                 $log['driver_id'] = $newDriverId;
                 $cols = array_keys($log);
                 $placeholders = ':' . implode(', :', $cols);
@@ -719,6 +723,7 @@ function db_update_driver($driverId, array $in) {
             
             // 9. Restore notifications with new driver_id
             foreach ($notifs as $notif) {
+                unset($notif['notification_id']); // Remove auto-increment ID
                 $notif['driver_id'] = $newDriverId;
                 $cols = array_keys($notif);
                 $placeholders = ':' . implode(', :', $cols);
