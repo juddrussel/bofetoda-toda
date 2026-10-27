@@ -205,16 +205,11 @@ foreach ($statements as $index => $statement) {
     $statement = trim($statement);
     if (empty($statement) || strlen($statement) < 5) continue;
     
-    // Skip only specific control statements
+    // Skip only specific control statements and ALL SELECT queries
     $firstWord = strtoupper(substr($statement, 0, 6));
-    if ($firstWord === 'USE BO' || $firstWord === 'SET FO') {
-        continue;
-    }
-    
-    // Skip verification SELECT queries at the end
-    if (stripos($statement, "SELECT 'Officers restored'") !== false ||
-        stripos($statement, "SELECT 'Drivers restored'") !== false ||
-        stripos($statement, 'SELECT officer_id') !== false) {
+    if ($firstWord === 'USE BO' || 
+        $firstWord === 'SET FO' || 
+        $firstWord === 'SELECT') {
         continue;
     }
     
@@ -260,15 +255,22 @@ echo '<p><strong>Errors:</strong> <span style="color:#dc2626;">' . $errorCount .
 
 // Get counts from database
 try {
-    $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM officers");
-    $officerCount = $stmt->fetchColumn();
+    // Create a new PDO connection with buffered queries for counting
+    $countPdo = get_pdo();
+    $countPdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
     
-    $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM drivers");
-    $driverCount = $stmt->fetchColumn();
+    $officerCount = $countPdo->query("SELECT COUNT(*) FROM officers")->fetchColumn();
+    $driverCount = $countPdo->query("SELECT COUNT(*) FROM drivers")->fetchColumn();
 } catch (PDOException $e) {
-    $officerCount = 0;
-    $driverCount = 0;
-    echo '<div class="error">⚠️ Could not retrieve counts: ' . htmlspecialchars($e->getMessage()) . '</div>';
+    // Fallback: try to get counts directly
+    try {
+        $officerCount = $pdo->query("SELECT COUNT(*) FROM officers")->fetchColumn();
+        $driverCount = $pdo->query("SELECT COUNT(*) FROM drivers")->fetchColumn();
+    } catch (PDOException $e2) {
+        $officerCount = '?';
+        $driverCount = '?';
+        echo '<div class="error">⚠️ Could not retrieve counts: ' . htmlspecialchars($e2->getMessage()) . '</div>';
+    }
 }
 
 echo '<hr style="margin: 20px 0;">';
