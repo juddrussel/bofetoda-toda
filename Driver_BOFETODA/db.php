@@ -29,6 +29,9 @@ if (!function_exists('get_pdo')) {
         }
         
         $pdo = new PDO($dsn, $user, $pass, $options);
+        
+        // Set timezone to Philippine Time
+        $pdo->exec("SET time_zone = '+08:00'");
     } catch (PDOException $e) {
         // Don't leak connection details to the browser in production.
         error_log('DB connection failed: ' . $e->getMessage());
