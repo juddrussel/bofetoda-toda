@@ -177,35 +177,31 @@ function driver_avatar_url(string $driverId): ?string {
         error_log("R2 is enabled, public URL: " . ($publicUrl ?: 'NOT SET'));
         
         if ($publicUrl) {
-            // Try to find avatar in R2 (check common extensions)
-            foreach (['png', 'jpg', 'jpeg'] as $ext) {
-                $r2Key = 'avatars/' . $driverId . '.' . $ext;
-                $r2Url = rtrim($publicUrl, '/') . '/' . $r2Key;
+            // Check which extension exists locally to know what's in R2
+            foreach (['jpg', 'jpeg', 'png'] as $ext) {
+                $localPath = __DIR__ . '/uploads/avatars/' . $driverId . '.' . $ext;
+                error_log("Checking local path: $localPath, exists: " . (file_exists($localPath) ? 'YES' : 'NO'));
                 
-                // Simple check: try to get headers (but this is expensive)
-                // For better performance, we'll just return the first possible URL
-                // and let the browser handle 404s, or store the extension in DB
-                
-                // For now, check local fallback to determine extension
-                $localPath = driver_avatar_path($driverId);
-                if ($localPath) {
-                    $localExt = pathinfo($localPath, PATHINFO_EXTENSION);
-                    $finalUrl = rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.' . $localExt . '?v=' . time();
-                    error_log("Returning R2 URL (based on local ext): $finalUrl");
+                if (file_exists($localPath)) {
+                    $finalUrl = rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.' . $ext . '?v=' . time();
+                    error_log("Returning R2 URL (found local): $finalUrl");
                     return $finalUrl;
                 }
-                
-                // If no local file, assume PNG (most common)
-                $defaultUrl = rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.png?v=' . time();
-                error_log("Returning R2 URL (default PNG): $defaultUrl");
-                return $defaultUrl;
             }
+            
+            // If no local file found, try JPG as default (most uploads are JPG)
+            $defaultUrl = rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.jpg?v=' . time();
+            error_log("Returning R2 URL (default JPG, no local found): $defaultUrl");
+            return $defaultUrl;
+        } else {
+            error_log("R2 public URL not set in environment");
         }
     } else {
         error_log("R2 is NOT enabled or function doesn't exist");
     }
     
     // Fallback to local storage
+    error_log("Falling back to local storage");
     $path = driver_avatar_path($driverId);
     if (!$path) {
         error_log("No local avatar found for: $driverId");
