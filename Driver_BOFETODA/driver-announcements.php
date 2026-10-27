@@ -210,44 +210,46 @@ render_header([
                 <?php endif; ?>
             </div>
         <?php else: ?>
-            <div class="space-y-4">
+            <div class="space-y-4" style="display: flex; flex-direction: column; gap: 1rem;">
                 <?php foreach ($announcements as $ann): 
                     $catColor = get_category_color($ann['category']);
                     $isUrgent = $ann['priority'] === 'urgent';
                     $images = get_announcement_images($ann['id']);
                 ?>
-                    <div class="bg-white rounded-lg shadow-sm overflow-hidden <?= $isUrgent ? 'border-l-4 border-red-600' : '' ?>">
-                        <div class="p-6">
+                    <div class="announcement-card-modern" style="background: white; border-radius: 0.5rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); overflow: hidden; <?= $isUrgent ? 'border-left: 4px solid #dc2626;' : '' ?>">
+                        <div style="padding: 1.5rem;">
                             <!-- Badges -->
-                            <div class="flex flex-wrap gap-2 mb-3">
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
                                 <?php if ($isUrgent): ?>
-                                    <span class="px-2.5 py-1 bg-red-600 text-white text-xs font-bold rounded uppercase tracking-wide">
+                                    <span style="padding: 0.25rem 0.625rem; background-color: #dc2626; color: white; font-size: 0.75rem; font-weight: 700; border-radius: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
                                         🔥 URGENT
                                     </span>
                                 <?php endif; ?>
-                                <span class="px-2.5 py-1 text-white text-xs font-bold rounded uppercase tracking-wide" style="background-color: <?= h($catColor) ?>;">
+                                <span style="padding: 0.25rem 0.625rem; color: white; font-size: 0.75rem; font-weight: 700; border-radius: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; background-color: <?= h($catColor) ?>;">
                                     <?= h($ann['category']) ?>
                                 </span>
                             </div>
                             
                             <!-- Title -->
-                            <h2 class="text-xl font-bold text-gray-900 mb-3 leading-tight">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 0.75rem; line-height: 1.25;">
                                 <?= h($ann['title']) ?>
                             </h2>
                             
                             <!-- Message -->
-                            <div class="text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">
+                            <div style="color: #374151; line-height: 1.625; margin-bottom: 1rem; white-space: pre-wrap;">
                                 <?= nl2br(h($ann['message'])) ?>
                             </div>
                             
                             <!-- Images -->
                             <?php if (!empty($images)): ?>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 my-4">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
                                     <?php foreach ($images as $index => $img): ?>
                                         <img 
                                             src="<?= h(get_announcement_image_url($img['image_path'])) ?>" 
                                             alt="Announcement image <?= $index + 1 ?>" 
-                                            class="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:scale-105 transition-transform"
+                                            style="width: 100%; height: 8rem; object-fit: cover; border-radius: 0.5rem; border: 1px solid #e5e7eb; cursor: pointer; transition: transform 0.2s;"
+                                            onmouseover="this.style.transform='scale(1.05)'"
+                                            onmouseout="this.style.transform='scale(1)'"
                                             onclick="openLightbox(<?= (int)$ann['id'] ?>, <?= $index ?>)"
                                             loading="lazy"
                                         >
@@ -256,23 +258,23 @@ render_header([
                             <?php endif; ?>
                             
                             <!-- Metadata -->
-                            <div class="pt-4 border-t border-gray-200 space-y-2 text-sm text-gray-600">
+                            <div style="padding-top: 1rem; border-top: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; color: #6b7280;">
                                 <?php if ($ann['event_date']): ?>
-                                    <div class="flex items-start gap-2">
-                                        <span class="font-semibold text-gray-900 min-w-[80px]">📅 Event:</span>
+                                    <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                                        <span style="font-weight: 600; color: #111827; min-width: 80px;">📅 Event:</span>
                                         <span><?= h(format_event_date($ann['event_date'])) ?></span>
                                     </div>
                                 <?php endif; ?>
                                 
                                 <?php if ($ann['event_location']): ?>
-                                    <div class="flex items-start gap-2">
-                                        <span class="font-semibold text-gray-900 min-w-[80px]">📍 Location:</span>
+                                    <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                                        <span style="font-weight: 600; color: #111827; min-width: 80px;">📍 Location:</span>
                                         <span><?= h($ann['event_location']) ?></span>
                                     </div>
                                 <?php endif; ?>
                                 
-                                <div class="flex items-start gap-2">
-                                    <span class="font-semibold text-gray-900 min-w-[80px]">🕒 Posted:</span>
+                                <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                                    <span style="font-weight: 600; color: #111827; min-width: 80px;">🕒 Posted:</span>
                                     <span><?= h(date('F j, Y \a\t g:i A', strtotime($ann['created_at']))) ?></span>
                                 </div>
                             </div>
@@ -283,33 +285,33 @@ render_header([
             
             <!-- Pagination -->
             <?php if ($totalPages > 1): ?>
-                <div class="flex items-center justify-center gap-2 mt-8">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
                     <?php if ($page > 1): ?>
                         <a 
                             href="?page=<?= $page - 1 ?><?= $category ? '&category=' . urlencode($category) : '' ?><?= $search ? '&search=' . urlencode($search) : '' ?>" 
-                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+                            style="padding: 0.5rem 1rem; background: white; border: 1px solid #d1d5db; color: #374151; border-radius: 0.5rem; font-weight: 600; text-decoration: none; font-size: 0.875rem;"
                         >
                             ← Previous
                         </a>
                     <?php else: ?>
-                        <span class="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg font-semibold text-sm cursor-not-allowed">
+                        <span style="padding: 0.5rem 1rem; background: #f3f4f6; border: 1px solid #e5e7eb; color: #9ca3af; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: not-allowed;">
                             ← Previous
                         </span>
                     <?php endif; ?>
                     
-                    <span class="px-4 text-sm text-gray-600">
+                    <span style="padding: 0 1rem; font-size: 0.875rem; color: #6b7280;">
                         Page <?= $page ?> of <?= $totalPages ?>
                     </span>
                     
                     <?php if ($page < $totalPages): ?>
                         <a 
                             href="?page=<?= $page + 1 ?><?= $category ? '&category=' . urlencode($category) : '' ?><?= $search ? '&search=' . urlencode($search) : '' ?>" 
-                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+                            style="padding: 0.5rem 1rem; background: white; border: 1px solid #d1d5db; color: #374151; border-radius: 0.5rem; font-weight: 600; text-decoration: none; font-size: 0.875rem;"
                         >
                             Next →
                         </a>
                     <?php else: ?>
-                        <span class="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg font-semibold text-sm cursor-not-allowed">
+                        <span style="padding: 0.5rem 1rem; background: #f3f4f6; border: 1px solid #e5e7eb; color: #9ca3af; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; cursor: not-allowed;">
                             Next →
                         </span>
                     <?php endif; ?>
