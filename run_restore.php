@@ -224,12 +224,20 @@ foreach ($statements as $index => $statement) {
             echo '<div class="success">✅ Drivers restored (130 accounts)</div>';
         }
     } catch (PDOException $e) {
-        $errorCount++;
         $error = $e->getMessage();
-        $errors[] = "Statement " . ($index + 1) . ": " . $error;
         
-        // Only show error if it's not a duplicate entry (which is OK on re-run)
-        if (strpos($error, 'Duplicate entry') === false) {
+        // Duplicate entries are OK when re-running the script
+        if (strpos($error, 'Duplicate entry') !== false) {
+            $successCount++; // Count as success
+            if (stripos($statement, 'INSERT INTO officers') !== false) {
+                echo '<div class="info">ℹ️ Officers already exist (skipping)</div>';
+            } elseif (stripos($statement, 'INSERT INTO drivers') !== false) {
+                echo '<div class="info">ℹ️ Drivers already exist (skipping)</div>';
+            }
+        } else {
+            // Real error
+            $errorCount++;
+            $errors[] = "Statement " . ($index + 1) . ": " . $error;
             echo '<div class="error">❌ Error in statement ' . ($index + 1) . ': ' . htmlspecialchars($error) . '</div>';
             // Show first 200 chars of problematic statement
             echo '<pre style="background:#fee2e2;padding:10px;font-size:11px;max-height:100px;overflow:auto;">' . 
