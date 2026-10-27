@@ -532,12 +532,16 @@ function toggleMessage(annId) {
   const toggleBtn = document.getElementById('toggle-' + annId);
   
   if (fullEl.classList.contains('hidden')) {
-    msgEl.classList.add('hidden');
+    // Expand - show full message
+    msgEl.style.display = 'none';
     fullEl.classList.remove('hidden');
+    fullEl.style.display = 'block';
     toggleBtn.textContent = 'Show less';
   } else {
-    msgEl.classList.remove('hidden');
+    // Collapse - show truncated message
+    msgEl.style.display = 'block';
     fullEl.classList.add('hidden');
+    fullEl.style.display = 'none';
     toggleBtn.textContent = 'Read more...';
   }
 }
