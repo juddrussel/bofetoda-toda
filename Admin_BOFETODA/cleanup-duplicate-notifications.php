@@ -5,24 +5,18 @@
  * This web page removes duplicate notification records for the same driver/app_no/title combination,
  * keeping only the most recent one.
  * 
- * Access: Admin officers only
+ * Access: Use ?key=cleanup123 in URL
  */
 
-session_start();
-require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
-// Require admin login
-if (empty($_SESSION['officer_id'])) {
-    header('Location: login.php');
-    exit;
+// Simple security key check
+$requiredKey = 'cleanup123';
+if (!isset($_GET['key']) || $_GET['key'] !== $requiredKey) {
+    die('Access denied. Please use the correct URL with security key.');
 }
 
-$officer = current_officer();
-if (!$officer) {
-    header('Location: login.php');
-    exit;
-}
+$officer = ['name' => 'System Admin'];
 
 $message = '';
 $messageType = '';
