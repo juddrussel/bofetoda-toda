@@ -324,7 +324,7 @@ if (!function_exists('upload_driver_avatar_r2')) {
     function upload_driver_avatar_r2($driverId, $file) {
     // Validate file
     $allowedExt = ['jpg', 'jpeg', 'png'];
-    $maxSize = 4 * 1024 * 1024; // 4MB
+    $maxSize = 10 * 1024 * 1024; // 10MB
     
     if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
         return false;
