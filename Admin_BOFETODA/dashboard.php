@@ -116,92 +116,76 @@ $page_sub     = "Decision Support & Performance Overview";
 <title>Dashboard · <?= e(APP_NAME) ?></title>
 <?php render_shared_styles(); ?>
 <style>
-:root {
-  --section-spacing: 28px;
-  --card-padding: 24px;
-}
-
-.dashboard-container { max-width: 1400px; margin: 0 auto; }
-
-.kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:var(--section-spacing); }
-.kpi-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:22px 24px; box-shadow:var(--shadow-card); transition: transform 0.2s, box-shadow 0.2s; }
-.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.kpi-card__label{ font-size:12px; text-transform:uppercase; letter-spacing:.6px; font-weight:700; color:var(--text-muted); margin-bottom:12px; }
-.kpi-card__value{ font-size:36px; font-weight:800; color:var(--navy); line-height:1; margin-bottom:10px; }
-.kpi-card__trend{ font-size:12px; font-weight:600; display:flex; align-items:center; gap:5px; }
+.kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+.kpi-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-card); }
+.kpi-card__label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; color:var(--text-muted); margin-bottom:10px; }
+.kpi-card__value{ font-size:32px; font-weight:800; color:var(--navy); line-height:1; margin-bottom:8px; }
+.kpi-card__trend{ font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px; }
 .kpi-card__trend.is-up{ color:var(--green); }
 .kpi-card__trend.is-down{ color:var(--red); }
 .kpi-card__trend.is-neutral{ color:var(--text-muted); }
 
-.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.section-header__icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: var(--navy); color: white; border-radius: 6px; font-size: 14px; font-weight: 700; }
-.section-header__title { font-size: 18px; font-weight: 700; color: var(--navy); margin: 0; }
-
-.action-section{ margin-bottom:var(--section-spacing); }
-.action-list{ display:grid; gap:12px; }
-.action-item{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-card); display:flex; align-items:center; justify-content:space-between; gap:20px; transition: all 0.2s; }
-.action-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.action-item.is-warning{ border-left:4px solid var(--orange); background: #fffbf5; }
-.action-item.is-alert{ border-left:4px solid var(--red); background: #fff5f5; }
-.action-item.is-info{ border-left:4px solid #2563eb; background: #f5f8ff; }
+.action-section{ margin-bottom:20px; }
+.action-header{ font-size:17px; font-weight:700; color:var(--navy); margin-bottom:12px; }
+.action-list{ display:flex; flex-direction:column; gap:10px; }
+.action-item{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow-card); display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.action-item.is-warning{ border-left:4px solid var(--orange); }
+.action-item.is-alert{ border-left:4px solid var(--red); }
+.action-item.is-info{ border-left:4px solid #2563eb; }
 .action-item__content{ flex:1; }
-.action-item__title{ font-size:14px; font-weight:600; color:var(--text); line-height: 1.5; }
-.action-item__link{ font-size:13px; font-weight:600; color:var(--navy); text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:6px; background:white; border: 1px solid var(--border); transition:all .2s; white-space: nowrap; }
-.action-item__link:hover{ background:var(--navy); color:#fff; border-color: var(--navy); }
+.action-item__title{ font-size:14px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.action-item__link{ font-size:13px; font-weight:600; color:var(--navy); text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:6px; background:var(--gray-bg); transition:background .15s; }
+.action-item__link:hover{ background:var(--navy); color:#fff; }
 
-.progress-section{ margin-bottom:var(--section-spacing); }
-.progress-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:var(--card-padding); box-shadow:var(--shadow-card); }
-.progress-card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.progress-card__title{ font-size:16px; font-weight:700; color:var(--navy); margin: 0; }
-.progress-items-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:28px; }
+.progress-section{ margin-bottom:20px; }
+.progress-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
+.progress-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-card); }
+.progress-card--full{ grid-column:1 / -1; }
+.progress-card__title{ font-size:15px; font-weight:700; color:var(--navy); margin-bottom:16px; }
+.progress-items-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
 .progress-item{ margin-bottom:0; }
-.progress-item__head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.progress-item:last-child{ margin-bottom:0; }
+.progress-item__head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 .progress-item__label{ font-size:13px; font-weight:600; color:var(--text); }
-.progress-item__value{ font-size:14px; font-weight:700; color:var(--navy); }
-.progress-item__bar{ height:10px; background:var(--gray-bg); border-radius:999px; overflow:hidden; }
-.progress-item__fill{ height:100%; background:var(--navy); border-radius:999px; transition:width .4s cubic-bezier(0.4, 0, 0.2, 1); }
+.progress-item__value{ font-size:13px; font-weight:700; color:var(--navy); }
+.progress-item__bar{ height:8px; background:var(--gray-bg); border-radius:999px; overflow:hidden; }
+.progress-item__fill{ height:100%; background:var(--navy); border-radius:999px; transition:width .3s; }
 .progress-item__fill.is-success{ background:var(--green); }
 .progress-item__fill.is-warning{ background:var(--orange); }
 .progress-item__fill.is-danger{ background:var(--red); }
 
-.insights-section{ margin-bottom:var(--section-spacing); }
-.insights-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:var(--card-padding); box-shadow:var(--shadow-card); }
-.insights-card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.insights-card__title{ font-size:16px; font-weight:700; color:var(--navy); margin: 0; }
-.insight-item{ padding:16px 18px; border-radius:8px; margin-bottom:14px; border-left:4px solid; background: white; transition: all 0.2s; }
-.insight-item:hover { transform: translateX(4px); }
-.insight-item:last-child{ margin-bottom:0; }
-.insight-item.is-high{ background:#fef2f2; border-color:var(--red); }
-.insight-item.is-medium{ background:#fff7ed; border-color:var(--orange); }
-.insight-item.is-low{ background:#f0fdf4; border-color:var(--green); }
-.insight-item__message{ font-size:13px; font-weight:600; color:var(--text); margin-bottom:8px; line-height: 1.5; }
-.insight-item__recommendation{ font-size:12px; color:var(--text-muted); line-height: 1.5; padding-left: 20px; position: relative; }
-.insight-item__recommendation::before{ content:"→"; position: absolute; left: 0; font-weight: 700; color: var(--navy); }
+.risk-section{ margin-bottom:20px; }
+.risk-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-card); }
+.risk-card__title{ font-size:15px; font-weight:700; color:var(--navy); margin-bottom:16px; }
+.risk-item{ padding:14px 16px; border-radius:8px; margin-bottom:12px; border-left:4px solid; }
+.risk-item:last-child{ margin-bottom:0; }
+.risk-item.is-high{ background:#fef2f2; border-color:var(--red); }
+.risk-item.is-medium{ background:#fff7ed; border-color:var(--orange); }
+.risk-item.is-low{ background:#f0fdf4; border-color:var(--green); }
+.risk-item__message{ font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+.risk-item__recommendation{ font-size:12px; color:var(--text-muted); display:flex; align-items:flex-start; gap:6px; }
+.risk-item__recommendation::before{ content:"💡"; flex-shrink:0; }
 
-.chart-section { margin-bottom:var(--section-spacing); }
-.chart-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:var(--card-padding); box-shadow:var(--shadow-card); }
-.chart-card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.chart-card__title{ font-size:16px; font-weight:700; color:var(--navy); margin: 0; }
-.sub-chart{ display:flex; align-items:flex-end; gap:12px; overflow-x:auto; padding:20px 0 10px; }
-.sub-col{ flex:1; min-width:75px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:8px; }
-.sub-col__bar{ width:24px; background:var(--navy); border-radius:4px 4px 0 0; transition:all .2s; }
-.sub-col__bar:hover{ background:var(--navy-light); transform: scaleY(1.05); }
-.sub-col__val{ font-size:13px; font-weight:700; color:var(--navy); }
-.sub-col__label{ font-size:11px; color:var(--text-muted); text-align:center; word-break: break-word; max-width: 80px; }
+.chart-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-card); margin-bottom:20px; }
+.chart-card__title{ font-size:15px; font-weight:700; color:var(--navy); margin-bottom:16px; }
+.sub-chart{ display:flex; align-items:flex-end; gap:10px; overflow-x:auto; padding-top:10px; }
+.sub-col{ flex:1; min-width:70px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; }
+.sub-col__bar{ width:20px; background:var(--navy); border-radius:3px 3px 0 0; transition:background .15s; }
+.sub-col__bar:hover{ background:var(--navy-light); }
+.sub-col__val{ font-size:12px; font-weight:700; color:var(--navy); }
+.sub-col__label{ font-size:10.5px; color:var(--text-muted); text-align:center; white-space:nowrap; }
 
-.empty-state{ text-align:center; padding:50px 20px; color:var(--text-muted); }
-.empty-state__icon{ font-size:52px; margin-bottom:16px; opacity:0.2; }
-.empty-state__text{ font-size:14px; line-height: 1.6; }
+.empty-insights{ text-align:center; padding:40px 20px; color:var(--text-muted); }
+.empty-insights__icon{ font-size:48px; margin-bottom:12px; opacity:0.3; }
+.empty-insights__text{ font-size:14px; }
 
-@media (max-width:1200px){ 
+@media (max-width:1100px){ 
     .kpi-grid{ grid-template-columns:repeat(2,1fr); }
-    .progress-items-grid{ grid-template-columns:repeat(2, 1fr); gap:20px; }
-}
-@media (max-width:768px){ 
-    .kpi-grid{ grid-template-columns:1fr; }
+    .progress-grid{ grid-template-columns:1fr; }
     .progress-items-grid{ grid-template-columns:1fr; gap:16px; }
-    .action-item { flex-direction: column; align-items: stretch; }
-    .action-item__link { text-align: center; justify-content: center; }
+}
+@media (max-width:640px){ 
+    .kpi-grid{ grid-template-columns:1fr; }
 }
 </style>
 </head>
@@ -212,11 +196,10 @@ $page_sub     = "Decision Support & Performance Overview";
   <?php render_topbar('Administration Portal', 'Dashboard', $page_sub); ?>
 
   <div class="page">
-    <div class="dashboard-container">
 
-    <div style="margin-bottom:32px;">
-      <h2 style="font-size:28px; font-weight:800; color:var(--navy); margin: 0;"><?= e($page_heading) ?></h2>
-      <p style="font-size:14px; color:var(--text-muted); margin-top:6px;">Real-time insights and actionable intelligence for decision-making</p>
+    <div style="margin-bottom:24px;">
+      <h2 style="font-size:26px; font-weight:800; color:var(--navy);"><?= e($page_heading) ?></h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Real-time insights and actionable intelligence for decision-making</p>
     </div>
 
     <!-- KPI Cards -->
@@ -261,10 +244,7 @@ $page_sub     = "Decision Support & Performance Overview";
     <!-- Action Items -->
     <?php if (count($actionItems) > 0): ?>
     <div class="action-section">
-      <div class="section-header">
-        <div class="section-header__icon">!</div>
-        <h3 class="section-header__title">Action Required</h3>
-      </div>
+      <h3 class="action-header">⚡ Action Required</h3>
       <div class="action-list">
         <?php foreach ($actionItems as $item): ?>
         <div class="action-item is-<?= $item['type'] ?>">
@@ -283,12 +263,11 @@ $page_sub     = "Decision Support & Performance Overview";
 
     <!-- Progress Tracking -->
     <div class="progress-section">
-      <div class="progress-card">
-        <div class="progress-card__header">
+      <div class="progress-grid">
+        <div class="progress-card progress-card--full">
           <h3 class="progress-card__title">Renewal Progress</h3>
-        </div>
-        
-        <div class="progress-items-grid">
+          
+          <div class="progress-items-grid">
             <div class="progress-item">
               <div class="progress-item__head">
                 <span class="progress-item__label">Driver Participation</span>
@@ -325,43 +304,38 @@ $page_sub     = "Decision Support & Performance Overview";
 
     <!-- Risk Assessment -->
     <?php if (count($risks) > 0): ?>
-    <div class="insights-section">
-      <div class="insights-card">
-        <div class="insights-card__header">
-          <h3 class="insights-card__title">Insights & Recommendations</h3>
-        </div>
+    <div class="risk-section">
+      <div class="risk-card">
+        <h3 class="risk-card__title">🎯 Insights & Recommendations</h3>
         <?php foreach ($risks as $risk): ?>
-        <div class="insight-item is-<?= $risk['level'] ?>">
-          <div class="insight-item__message"><?= e($risk['message']) ?></div>
-          <div class="insight-item__recommendation"><?= e($risk['recommendation']) ?></div>
+        <div class="risk-item is-<?= $risk['level'] ?>">
+          <div class="risk-item__message"><?= e($risk['message']) ?></div>
+          <div class="risk-item__recommendation"><?= e($risk['recommendation']) ?></div>
         </div>
         <?php endforeach; ?>
       </div>
     </div>
     <?php else: ?>
-    <div class="insights-section">
-      <div class="insights-card">
-        <div class="insights-card__header">
-          <h3 class="insights-card__title">Insights & Recommendations</h3>
-        </div>
-        <div class="empty-state">
-          <div class="empty-state__text">All systems operating smoothly. No issues detected.</div>
+    <div class="risk-section">
+      <div class="risk-card">
+        <h3 class="risk-card__title">🎯 Insights & Recommendations</h3>
+        <div class="empty-insights">
+          <div class="empty-insights__icon">✨</div>
+          <div class="empty-insights__text">All systems operating smoothly. No issues detected.</div>
         </div>
       </div>
     </div>
     <?php endif; ?>
 
     <!-- Barangay Submissions Chart -->
-    <div class="chart-section">
-      <div class="chart-card">
-        <div class="chart-card__header">
-          <h3 class="chart-card__title">Submissions by Barangay</h3>
+    <div class="chart-card">
+      <h3 class="chart-card__title">📊 Submissions by Barangay</h3>
+      <?php if (!$total): ?>
+        <div class="empty-insights">
+          <div class="empty-insights__icon">📭</div>
+          <div class="empty-insights__text">No applications submitted yet this cycle.</div>
         </div>
-        <?php if (!$total): ?>
-          <div class="empty-state">
-            <div class="empty-state__text">No applications submitted yet this cycle.</div>
-          </div>
-        <?php else: ?>
+      <?php else: ?>
       <div class="sub-chart">
         <?php foreach ($submissionCounts as $bname => $count):
               $h = $maxSubmission ? max(20, round(($count / $maxSubmission) * 150)) : 20; ?>
@@ -373,7 +347,6 @@ $page_sub     = "Decision Support & Performance Overview";
         <?php endforeach; ?>
       </div>
       <?php endif; ?>
-    </div>
     </div>
 
   </div>
