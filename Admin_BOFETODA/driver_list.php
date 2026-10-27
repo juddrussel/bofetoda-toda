@@ -98,6 +98,28 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $drivers   = d('drivers');
 $archived  = d('archived_drivers');
 
+// Server-side search
+$searchQuery = trim($_GET['q'] ?? '');
+if ($searchQuery !== '') {
+    $searchLower = strtolower($searchQuery);
+    $drivers = array_filter($drivers, function($driver) use ($searchLower) {
+        return strpos(strtolower($driver['driver_id']), $searchLower) !== false
+            || strpos(strtolower($driver['name']), $searchLower) !== false
+            || strpos(strtolower($driver['barangay']), $searchLower) !== false
+            || strpos(strtolower($driver['status']), $searchLower) !== false
+            || strpos(strtolower($driver['body_no']), $searchLower) !== false
+            || strpos(strtolower($driver['contact']), $searchLower) !== false;
+    });
+    
+    $archived = array_filter($archived, function($driver) use ($searchLower) {
+        return strpos(strtolower($driver['driver_id']), $searchLower) !== false
+            || strpos(strtolower($driver['name']), $searchLower) !== false
+            || strpos(strtolower($driver['barangay']), $searchLower) !== false
+            || strpos(strtolower($driver['body_no']), $searchLower) !== false
+            || strpos(strtolower($driver['contact']), $searchLower) !== false;
+    });
+}
+
 // Pagination
 $page = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = 10; // Items per page
@@ -285,7 +307,13 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
           Driver List Management
           <?php if ($isArchived): ?><span class="is-archived-tag">- Archived</span><?php endif; ?>
         </h2>
-        <p class="page-subtitle">Organizes, updates, and maintains all driver information.</p>
+        <p class="page-subtitle">
+          Organizes, updates, and maintains all driver information.
+          <?php if ($searchQuery !== ''): ?>
+            <span style="color:var(--navy);font-weight:600;"> · Found <?= count($listToShow) ?> result(s) for "<?= e($searchQuery) ?>"</span>
+            <a href="<?= BASE_URL ?>/driver_list.php<?= $isArchived ? '?view=archived' : '' ?>" style="color:var(--accent);margin-left:8px;">Clear search</a>
+          <?php endif; ?>
+        </p>
       </div>
       <?php if ($canManage): ?>
       <div class="header-btns">
@@ -310,7 +338,10 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
 
     <div class="card" style="overflow:visible;">
       <div class="filter-bar">
-        <input type="search" placeholder="Search name, Barangay, Renewal Status, or ID..." id="drvSearch">
+        <form method="get" action="<?= BASE_URL ?>/driver_list.php" style="flex:1;margin:0;">
+          <?php if ($isArchived): ?><input type="hidden" name="view" value="archived"><?php endif; ?>
+          <input type="search" name="q" placeholder="Search name, Barangay, Renewal Status, or ID..." id="drvSearch" value="<?= e($searchQuery) ?>" style="width:100%;">
+        </form>
 
         <button type="button" class="btn-filter" id="filterToggleBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -424,6 +455,9 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
       </div>
       <?php 
       $baseUrl = BASE_URL . '/driver_list.php?view=' . ($isArchived ? 'archived' : 'active');
+      if ($searchQuery !== '') {
+          $baseUrl .= '&q=' . urlencode($searchQuery);
+      }
       render_pagination($paginatedList['page'], $paginatedList['total_pages'], $baseUrl); 
       ?>
     </div>
@@ -786,15 +820,24 @@ document.addEventListener('DOMContentLoaded', function() {
   var activeBarangay = '';
   var activeStatus   = '';
 
+  // Server-side search with debounce
+  var searchTimeout;
+  if (search) {
+    search.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(function() {
+        search.form.submit();
+      }, 500); // Wait 500ms after user stops typing
+    });
+  }
+
   function applyFilters() {
     if (!table) return;
-    var q = search ? search.value.trim().toLowerCase() : '';
 
     table.querySelectorAll('tbody tr').forEach(function(row) {
-      var matchesSearch   = !q || row.textContent.toLowerCase().includes(q);
       var matchesBarangay = !activeBarangay || row.getAttribute('data-barangay') === activeBarangay;
       var matchesStatus   = !activeStatus   || row.getAttribute('data-status')   === activeStatus;
-      row.style.display = (matchesSearch && matchesBarangay && matchesStatus) ? '' : 'none';
+      row.style.display = (matchesBarangay && matchesStatus) ? '' : 'none';
     });
 
     var activeCount = (activeBarangay ? 1 : 0) + (activeStatus ? 1 : 0);
@@ -804,8 +847,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (filterToggle) filterToggle.classList.toggle('has-active', activeCount > 0);
   }
-
-  if (search) search.addEventListener('input', applyFilters);
 
   if (filterToggle && filterPanel) {
     filterToggle.addEventListener('click', function (e) {
