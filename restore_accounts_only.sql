@@ -12,6 +12,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================================
 -- 1. INSERT OFFICERS (Admin Accounts)
 -- ============================================================================
+-- Delete existing officers first to avoid duplicates
+DELETE FROM officers WHERE officer_id IN ('OFF-20240001', 'OFF-20240002');
+
 INSERT INTO officers (officer_id, name, initials, password, role, is_active) VALUES
 ('OFF-20240001', 'Avelino Conception', 'AC', 'president123', 'president', 1),
 ('OFF-20240002', 'Arturo Ventura', 'AV', 'secretary123', 'secretary', 1);
@@ -19,6 +22,9 @@ INSERT INTO officers (officer_id, name, initials, password, role, is_active) VAL
 -- ============================================================================
 -- 2. INSERT ALL 130 DRIVERS
 -- ============================================================================
+-- Delete existing drivers first to avoid duplicates
+DELETE FROM drivers WHERE driver_id LIKE 'DRV-%';
+
 INSERT INTO drivers (driver_id, name, age, birthday, contact_no, address, barangay_id, body_no, color_id, renewal_status, password) VALUES
 -- Antipona drivers (DRV-NT prefix)
 ('DRV-NT0072', 'Bienvenido Roxas', 28, '1999-02-27', '09815908301', '112 Aguinaldo Street, Antipona, Bocaue, Bulacan', (SELECT barangay_id FROM barangays WHERE name='Antipona'), '0072', (SELECT color_id FROM colors WHERE name='Brown'), '-', 'bienvenido64'),
