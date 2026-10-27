@@ -138,10 +138,12 @@ $page_sub     = "Decision Support & Performance Overview";
 .action-item__link:hover{ background:var(--navy); color:#fff; }
 
 .progress-section{ margin-bottom:20px; }
-.progress-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.progress-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
 .progress-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-card); }
+.progress-card--full{ grid-column:1 / -1; }
 .progress-card__title{ font-size:15px; font-weight:700; color:var(--navy); margin-bottom:16px; }
-.progress-item{ margin-bottom:16px; }
+.progress-items-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
+.progress-item{ margin-bottom:0; }
 .progress-item:last-child{ margin-bottom:0; }
 .progress-item__head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 .progress-item__label{ font-size:13px; font-weight:600; color:var(--text); }
@@ -180,6 +182,7 @@ $page_sub     = "Decision Support & Performance Overview";
 @media (max-width:1100px){ 
     .kpi-grid{ grid-template-columns:repeat(2,1fr); }
     .progress-grid{ grid-template-columns:1fr; }
+    .progress-items-grid{ grid-template-columns:1fr; gap:16px; }
 }
 @media (max-width:640px){ 
     .kpi-grid{ grid-template-columns:1fr; }
@@ -261,36 +264,38 @@ $page_sub     = "Decision Support & Performance Overview";
     <!-- Progress Tracking -->
     <div class="progress-section">
       <div class="progress-grid">
-        <div class="progress-card">
+        <div class="progress-card progress-card--full">
           <h3 class="progress-card__title">Renewal Progress</h3>
           
-          <div class="progress-item">
-            <div class="progress-item__head">
-              <span class="progress-item__label">Driver Participation</span>
-              <span class="progress-item__value"><?= $total ?> / <?= $totalDrivers ?></span>
+          <div class="progress-items-grid">
+            <div class="progress-item">
+              <div class="progress-item__head">
+                <span class="progress-item__label">Driver Participation</span>
+                <span class="progress-item__value"><?= $total ?> / <?= $totalDrivers ?></span>
+              </div>
+              <div class="progress-item__bar">
+                <div class="progress-item__fill <?= $completionRate > 75 ? 'is-success' : ($completionRate > 50 ? 'is-warning' : 'is-danger') ?>" style="width:<?= $completionRate ?>%"></div>
+              </div>
             </div>
-            <div class="progress-item__bar">
-              <div class="progress-item__fill <?= $completionRate > 75 ? 'is-success' : ($completionRate > 50 ? 'is-warning' : 'is-danger') ?>" style="width:<?= $completionRate ?>%"></div>
-            </div>
-          </div>
 
-          <div class="progress-item">
-            <div class="progress-item__head">
-              <span class="progress-item__label">Approved Renewals</span>
-              <span class="progress-item__value"><?= count($approved) ?> / <?= $total ?></span>
+            <div class="progress-item">
+              <div class="progress-item__head">
+                <span class="progress-item__label">Approved Renewals</span>
+                <span class="progress-item__value"><?= count($approved) ?> / <?= $total ?></span>
+              </div>
+              <div class="progress-item__bar">
+                <div class="progress-item__fill is-success" style="width:<?= $total > 0 ? round((count($approved) / $total) * 100) : 0 ?>%"></div>
+              </div>
             </div>
-            <div class="progress-item__bar">
-              <div class="progress-item__fill is-success" style="width:<?= $total > 0 ? round((count($approved) / $total) * 100) : 0 ?>%"></div>
-            </div>
-          </div>
 
-          <div class="progress-item">
-            <div class="progress-item__head">
-              <span class="progress-item__label">Pending Review</span>
-              <span class="progress-item__value"><?= $needsReview ?> / <?= $total ?></span>
-            </div>
-            <div class="progress-item__bar">
-              <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round(($needsReview / $total) * 100) : 0 ?>%"></div>
+            <div class="progress-item">
+              <div class="progress-item__head">
+                <span class="progress-item__label">Pending Review</span>
+                <span class="progress-item__value"><?= $needsReview ?> / <?= $total ?></span>
+              </div>
+              <div class="progress-item__bar">
+                <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round(($needsReview / $total) * 100) : 0 ?>%"></div>
+              </div>
             </div>
           </div>
         </div>
