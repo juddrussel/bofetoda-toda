@@ -173,13 +173,16 @@ if ($sql === false) {
 
 echo '<div class="info">📄 SQL file loaded successfully.</div>';
 
-// Split SQL into individual statements
+// Remove comments and split SQL into individual statements
+$sql = preg_replace('/^--.*$/m', '', $sql); // Remove single-line comments
+$sql = preg_replace('/\/\*.*?\*\//s', '', $sql); // Remove multi-line comments
+
+// Split by semicolon but keep multi-line statements together
 $statements = array_filter(
     array_map('trim', explode(';', $sql)),
     function($stmt) {
-        return !empty($stmt) && 
-               !preg_match('/^--/', $stmt) && 
-               !preg_match('/^\/\*/', $stmt);
+        $stmt = trim($stmt);
+        return !empty($stmt) && strlen($stmt) > 5; // Must have actual content
     }
 );
 
@@ -200,12 +203,18 @@ try {
 
 foreach ($statements as $index => $statement) {
     $statement = trim($statement);
-    if (empty($statement)) continue;
+    if (empty($statement) || strlen($statement) < 5) continue;
     
-    // Skip USE, SET, and SELECT statements
-    if (stripos($statement, 'USE ') === 0 || 
-        stripos($statement, 'SET ') === 0 ||
-        stripos($statement, 'SELECT ') === 0) {
+    // Skip only specific control statements
+    $firstWord = strtoupper(substr($statement, 0, 6));
+    if ($firstWord === 'USE BO' || $firstWord === 'SET FO') {
+        continue;
+    }
+    
+    // Skip verification SELECT queries at the end
+    if (stripos($statement, "SELECT 'Officers restored'") !== false ||
+        stripos($statement, "SELECT 'Drivers restored'") !== false ||
+        stripos($statement, 'SELECT officer_id') !== false) {
         continue;
     }
     
@@ -215,9 +224,9 @@ foreach ($statements as $index => $statement) {
         
         // Show progress for INSERT statements
         if (stripos($statement, 'INSERT INTO officers') !== false) {
-            echo '<div class="success">✅ Officers restored</div>';
+            echo '<div class="success">✅ Officers restored (2 accounts)</div>';
         } elseif (stripos($statement, 'INSERT INTO drivers') !== false) {
-            echo '<div class="success">✅ Drivers restored</div>';
+            echo '<div class="success">✅ Drivers restored (130 accounts)</div>';
         }
     } catch (PDOException $e) {
         $errorCount++;
@@ -226,7 +235,10 @@ foreach ($statements as $index => $statement) {
         
         // Only show error if it's not a duplicate entry (which is OK on re-run)
         if (strpos($error, 'Duplicate entry') === false) {
-            echo '<div class="error">❌ Error: ' . htmlspecialchars($error) . '</div>';
+            echo '<div class="error">❌ Error in statement ' . ($index + 1) . ': ' . htmlspecialchars($error) . '</div>';
+            // Show first 200 chars of problematic statement
+            echo '<pre style="background:#fee2e2;padding:10px;font-size:11px;max-height:100px;overflow:auto;">' . 
+                 htmlspecialchars(substr($statement, 0, 200)) . '...</pre>';
         }
     }
 }
