@@ -143,7 +143,7 @@ $pdo = get_pdo();
         } else {
             // Show preview of what will be changed
             try {
-                $sql = "SELECT id, action, logged_at 
+                $sql = "SELECT log_id, action, logged_at 
                         FROM activity_logs 
                         WHERE action LIKE 'Assisted Renewal Submitted (App:%'
                         ORDER BY logged_at DESC 
@@ -164,12 +164,12 @@ $pdo = get_pdo();
                     
                     echo '<h3>Preview (showing first 20 records):</h3>';
                     echo '<table>';
-                    echo '<thead><tr><th>ID</th><th>Current Action</th><th>Will Become</th><th>Date</th></tr></thead>';
+                    echo '<thead><tr><th>Log ID</th><th>Current Action</th><th>Will Become</th><th>Date</th></tr></thead>';
                     echo '<tbody>';
                     
                     foreach ($entries as $entry) {
                         echo '<tr>';
-                        echo '<td>' . htmlspecialchars($entry['id']) . '</td>';
+                        echo '<td>' . htmlspecialchars($entry['log_id']) . '</td>';
                         echo '<td class="old-value">' . htmlspecialchars($entry['action']) . '</td>';
                         echo '<td class="new-value">Assisted Renewal</td>';
                         echo '<td>' . htmlspecialchars($entry['logged_at']) . '</td>';
