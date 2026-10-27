@@ -1468,7 +1468,7 @@ function log_assisted_renewal($officer_id, $driver_id, $app_no, $action) {
     $stmt->execute([
         $officer_id,
         $driver_id,
-        $action . ' (App: ' . $app_no . ')',
+        $action,
         $role
     ]);
 }
