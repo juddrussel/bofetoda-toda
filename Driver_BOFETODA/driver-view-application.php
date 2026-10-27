@@ -193,7 +193,12 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
             </div>
         </section>
 
-        <a href="driver-renewal.php?start=1" class="btn btn-primary" style="margin-top:16px;">Re-Apply</a>
+        <!-- Re-Apply Button -->
+        <div class="px-4 pb-4">
+            <a href="driver-renewal.php?start=1" class="block w-full py-3 px-4 bg-amber-400 hover:bg-amber-500 active:scale-[0.98] text-slate-900 font-extrabold text-sm rounded-xl shadow-sm hover:shadow transition-all text-center">
+                Re-Apply for Renewal
+            </a>
+        </div>
 
     <?php else: ?>
         <!-- Process Tracker Card -->
