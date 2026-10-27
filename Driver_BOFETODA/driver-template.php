@@ -2280,11 +2280,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
-      html += '<div style="display:flex;gap:10px;max-width:85%;' + (isMe ? 'align-self:flex-end;flex-direction:row-reverse;' : '') + '">';
-      html += '  <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;' + (isMe ? 'background:#F59E0B;color:#0F172A;' : 'background:#0F172A;color:#F59E0B;') + '">' + escapeHtml(initials) + '</div>';
-      html += '  <div style="flex:1;min-width:0;">';
-      html += '    <div style="font-size:11px;font-weight:600;color:#64748B;margin-bottom:4px;padding:0 4px;' + (isMe ? 'text-align:right;' : '') + '">' + escapeHtml(senderName) + '</div>';
-      html += '    <div style="border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.5;word-wrap:break-word;' + (isMe ? 'background:#F59E0B;color:#0F172A;' : 'background:white;color:#0F172A;border:1px solid #E2E8F0;') + '">';
+      html += '<div class="flex gap-2.5 max-w-[85%] ' + (isMe ? 'self-end flex-row-reverse' : '') + '">';
+      html += '  <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ' + (isMe ? 'bg-amber-400 text-slate-900' : 'bg-slate-900 text-amber-400') + '">' + escapeHtml(initials) + '</div>';
+      html += '  <div class="flex-1 min-w-0">';
+      html += '    <div class="text-[11px] font-semibold text-slate-500 mb-1 px-1 ' + (isMe ? 'text-right' : '') + '">' + escapeHtml(senderName) + '</div>';
+      html += '    <div class="rounded-xl px-3.5 py-2.5 text-sm leading-relaxed break-words ' + (isMe ? 'bg-amber-400 text-slate-900' : 'bg-white text-slate-900 border border-slate-200') + '">';
       
       if (msg.message && msg.message.trim()) {
         html += '<div>' + escapeHtml(msg.message).replace(/\n/g, '<br>') + '</div>';
@@ -2293,15 +2293,15 @@ document.addEventListener('DOMContentLoaded', function() {
       if (msg.attachment_list && msg.attachment_list.length > 0) {
         msg.attachment_list.forEach(function(att) {
           if (att.type && att.type.startsWith('image/')) {
-            html += '<img src="download-attachment.php?id=' + att.id + '" style="max-width:200px;border-radius:8px;margin-top:8px;cursor:pointer;border:1px solid #E2E8F0;" alt="' + escapeHtml(att.name) + '">';
+            html += '<img src="download-attachment.php?id=' + att.id + '" class="max-w-[200px] rounded-lg mt-2 cursor-pointer border border-slate-200" alt="' + escapeHtml(att.name) + '">';
           } else {
-            html += '<a href="download-attachment.php?id=' + att.id + '" target="_blank" style="display:block;margin-top:8px;color:#2563EB;text-decoration:underline;">📎 ' + escapeHtml(att.name) + '</a>';
+            html += '<a href="download-attachment.php?id=' + att.id + '" target="_blank" class="block mt-2 text-blue-600 underline">📎 ' + escapeHtml(att.name) + '</a>';
           }
         });
       }
       
       html += '    </div>';
-      html += '    <div style="font-size:10px;color:#94A3B8;margin-top:4px;padding:0 4px;">' + time + '</div>';
+      html += '    <div class="text-[10px] text-slate-400 mt-1 px-1">' + time + '</div>';
       html += '  </div>';
       html += '</div>';
     });
@@ -2311,33 +2311,33 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function showEmpty(text) {
-    chatMessages.innerHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#64748B;padding:40px 20px;">' +
-      '<svg style="width:48px;height:48px;margin-bottom:12px;opacity:0.4;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    chatMessages.innerHTML = '<div class="flex-1 flex flex-col items-center justify-center text-center text-slate-500 py-10">' +
+      '<svg class="w-12 h-12 mb-3 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
       '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' +
       '</svg>' +
-      '<div style="font-size:14px;font-weight:600;">' + (text || 'No messages yet') + '</div>' +
-      '<div style="font-size:12px;color:#94A3B8;margin-top:4px;">Start a conversation with the admin</div>' +
+      '<div class="text-sm font-semibold">' + (text || 'No messages yet') + '</div>' +
+      '<div class="text-xs text-slate-400 mt-1">Start a conversation with the admin</div>' +
       '</div>';
   }
   
   function updateAttachmentPreview() {
     if (selectedFiles.length === 0) {
-      chatAttachmentPreview.style.display = 'none';
+      chatAttachmentPreview.classList.add('hidden');
       chatAttachmentPreview.innerHTML = '';
       return;
     }
     
-    chatAttachmentPreview.style.display = 'flex';
+    chatAttachmentPreview.classList.remove('hidden');
     var html = '';
     selectedFiles.forEach(function(file, index) {
       var isImage = file.type.startsWith('image/');
-      html += '<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;background:#F1F5F9;border:1px solid #CBD5E1;">';
+      html += '<div class="relative w-[60px] h-[60px] rounded-lg overflow-hidden bg-slate-100 border border-slate-300">';
       if (isImage) {
-        html += '<img src="' + URL.createObjectURL(file) + '" style="width:100%;height:100%;object-fit:cover;" alt="' + escapeHtml(file.name) + '">';
+        html += '<img src="' + URL.createObjectURL(file) + '" class="w-full h-full object-cover" alt="' + escapeHtml(file.name) + '">';
       } else {
-        html += '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">📄</div>';
+        html += '<div class="w-full h-full flex items-center justify-center text-2xl">📄</div>';
       }
-      html += '<button type="button" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#DC2626;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;border:2px solid white;cursor:pointer;" data-index="' + index + '">×</button>';
+      html += '<button type="button" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold border-2 border-white cursor-pointer" data-index="' + index + '">×</button>';
       html += '</div>';
     });
     chatAttachmentPreview.innerHTML = html;
