@@ -108,6 +108,12 @@ if ($password !== $RESTORE_PASSWORD) {
 // Database connection
 require_once __DIR__ . '/Admin_BOFETODA/db.php';
 
+try {
+    $pdo = get_pdo();
+} catch (Exception $e) {
+    die('<h1 style="color:red;">❌ Database Connection Error: ' . htmlspecialchars($e->getMessage()) . '</h1>');
+}
+
 // Read and execute the SQL file
 $sqlFile = __DIR__ . '/restore_accounts_only.sql';
 
@@ -192,25 +198,20 @@ foreach ($statements as $index => $statement) {
     }
     
     try {
-        if (mysqli_query($conn, $statement)) {
-            $successCount++;
-            
-            // Show progress for INSERT statements
-            if (stripos($statement, 'INSERT INTO officers') !== false) {
-                echo '<div class="success">✅ Officers restored</div>';
-            } elseif (stripos($statement, 'INSERT INTO drivers') !== false) {
-                echo '<div class="success">✅ Drivers restored</div>';
-            }
-        } else {
-            $errorCount++;
-            $error = mysqli_error($conn);
-            $errors[] = "Statement " . ($index + 1) . ": " . $error;
-            echo '<div class="error">❌ Error: ' . htmlspecialchars($error) . '</div>';
+        $pdo->exec($statement);
+        $successCount++;
+        
+        // Show progress for INSERT statements
+        if (stripos($statement, 'INSERT INTO officers') !== false) {
+            echo '<div class="success">✅ Officers restored</div>';
+        } elseif (stripos($statement, 'INSERT INTO drivers') !== false) {
+            echo '<div class="success">✅ Drivers restored</div>';
         }
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $errorCount++;
-        $errors[] = "Statement " . ($index + 1) . ": " . $e->getMessage();
-        echo '<div class="error">❌ Exception: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        $error = $e->getMessage();
+        $errors[] = "Statement " . ($index + 1) . ": " . $error;
+        echo '<div class="error">❌ Error: ' . htmlspecialchars($error) . '</div>';
     }
 }
 
@@ -222,8 +223,8 @@ echo '<p><strong>Successful:</strong> <span style="color:#059669;">' . $successC
 echo '<p><strong>Errors:</strong> <span style="color:#dc2626;">' . $errorCount . '</span></p>';
 
 // Get counts from database
-$officerCount = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as cnt FROM officers"))['cnt'];
-$driverCount = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as cnt FROM drivers"))['cnt'];
+$officerCount = $pdo->query("SELECT COUNT(*) as cnt FROM officers")->fetchColumn();
+$driverCount = $pdo->query("SELECT COUNT(*) as cnt FROM drivers")->fetchColumn();
 
 echo '<hr style="margin: 20px 0;">';
 echo '<p><strong>👔 Officers in Database:</strong> ' . $officerCount . '</p>';
@@ -261,6 +262,4 @@ echo '<a href="../Admin_BOFETODA/login.php" class="button">🔐 Go to Admin Logi
 echo '<a href="../Driver_BOFETODA/driver-login.php" class="button">🚗 Go to Driver Login</a>';
 
 echo '</div></body></html>';
-
-mysqli_close($conn);
 ?>
