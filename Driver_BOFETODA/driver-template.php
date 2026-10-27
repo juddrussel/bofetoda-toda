@@ -1982,7 +1982,7 @@ function render_floating_chat() {
         
         messages.forEach(function(msg) {
             var isMe = msg.sender_type === 'driver';
-            var time = new Date(msg.sent_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            var time = new Date(msg.sent_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' });
             var initials = isMe ? '<?php echo strtoupper(substr($driver["name"], 0, 1)); ?>' : 'A';
             var senderName = isMe ? driverName : 'Admin';
             
@@ -2287,7 +2287,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var html = '';
     messages.forEach(function(msg) {
       var isMe = msg.sender_type === 'driver';
-      var time = new Date(msg.sent_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      var time = new Date(msg.sent_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' });
       var initials, senderName;
       
       if (isMe) {
