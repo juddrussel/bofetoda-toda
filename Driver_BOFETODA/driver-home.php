@@ -415,13 +415,64 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
 
   </main>
 
+  <?php
+  // Get unread message count for badge
+  require_once 'driver-database.php';
+  $unrepliedCount = get_unreplied_message_count($driver['driver_id']);
+  ?>
+  
   <!-- Floating Chat Button -->
-  <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] z-40">
-    <button onclick="window.location.href='driver-notifications.php'" aria-label="Open notifications" class="w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white">
-      <svg class="w-6 h-6 fill-slate-950" viewBox="0 0 24 24">
-        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-      </svg>
-    </button>
+  <button type="button" class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] w-14 h-14 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 z-40" id="chatToggleBtn" aria-label="Open chat">
+    <?php if ($unrepliedCount > 0): ?>
+    <span class="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1.5 border-2 border-white"><?= $unrepliedCount > 9 ? '9+' : $unrepliedCount ?></span>
+    <?php endif; ?>
+    <svg class="w-6 h-6 fill-slate-950" viewBox="0 0 24 24">
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+    </svg>
+  </button>
+
+  <!-- Chat Window -->
+  <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] w-[calc(100%-2rem)] max-w-[380px] h-[500px] max-h-[calc(100vh-180px)] bg-white rounded-2xl shadow-2xl hidden flex-col z-50 opacity-0 transform translate-y-5 scale-95 transition-all duration-250" id="chatWindow">
+    <div class="bg-amber-400 px-5 py-4 rounded-t-2xl flex items-center justify-between">
+      <div>
+        <div class="text-base font-bold text-slate-900">Message Admin</div>
+        <div class="text-[11px] text-slate-700">BOFETODA Support</div>
+      </div>
+      <button type="button" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 transition-colors" id="chatCloseBtn" aria-label="Close chat">
+        <svg class="w-5 h-5 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto p-4 bg-slate-50 flex flex-col gap-3 hide-scrollbar" id="chatMessages">
+      <div class="flex-1 flex flex-col items-center justify-center text-center text-slate-500 py-10">
+        <svg class="w-12 h-12 mb-3 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <div class="text-sm font-semibold">Loading messages...</div>
+      </div>
+    </div>
+    
+    <div class="p-3 bg-white rounded-b-2xl border-t border-slate-200">
+      <div class="hidden gap-2 pb-2 flex-wrap" id="chatAttachmentPreview"></div>
+      <div class="flex gap-2 items-end">
+        <button type="button" class="w-10 h-10 bg-slate-100 border border-slate-300 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors relative" title="Attach file">
+          <input type="file" id="chatFileInput" accept="image/*,.pdf,.doc,.docx" multiple class="absolute w-full h-full opacity-0 cursor-pointer">
+          <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+          </svg>
+        </button>
+        <textarea class="flex-1 bg-slate-100 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm resize-none max-h-24 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400" id="chatInput" placeholder="Type your message..." rows="1"></textarea>
+        <button type="button" class="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center hover:bg-amber-500 active:scale-95 transition-all" id="chatSendBtn">
+          <svg class="w-5 h-5 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Bottom Navigation Bar -->
@@ -483,6 +534,220 @@ function toggleMessage(annId) {
     toggleBtn.textContent = 'Read more...';
   }
 }
+
+// Chat functionality
+(function() {
+  var chatToggleBtn = document.getElementById('chatToggleBtn');
+  var chatWindow = document.getElementById('chatWindow');
+  var chatCloseBtn = document.getElementById('chatCloseBtn');
+  var chatMessages = document.getElementById('chatMessages');
+  var chatInput = document.getElementById('chatInput');
+  var chatSendBtn = document.getElementById('chatSendBtn');
+  var chatFileInput = document.getElementById('chatFileInput');
+  var chatAttachmentPreview = document.getElementById('chatAttachmentPreview');
+  var driverId = <?= json_encode($driver['driver_id']) ?>;
+  var selectedFiles = [];
+  
+  function openChat() {
+    chatWindow.classList.remove('hidden');
+    chatWindow.classList.add('flex');
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        chatWindow.classList.remove('opacity-0', 'translate-y-5', 'scale-95');
+        chatWindow.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+      });
+    });
+    loadMessages();
+  }
+  
+  function closeChat() {
+    chatWindow.classList.add('opacity-0', 'translate-y-5', 'scale-95');
+    chatWindow.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+    setTimeout(function() {
+      chatWindow.classList.remove('flex');
+      chatWindow.classList.add('hidden');
+    }, 250);
+  }
+  
+  function loadMessages() {
+    fetch('api-message-count.php?get_messages=1')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success && data.messages) {
+          renderMessages(data.messages);
+        } else {
+          showEmpty();
+        }
+      })
+      .catch(function() {
+        showEmpty('Failed to load messages');
+      });
+  }
+  
+  function renderMessages(messages) {
+    if (messages.length === 0) {
+      showEmpty();
+      return;
+    }
+    
+    var html = '';
+    var driverName = <?= json_encode($driver['name']) ?>;
+    var driverInitial = <?= json_encode($driverInitial) ?>;
+    
+    messages.forEach(function(msg) {
+      var isMe = msg.sender_type === 'driver';
+      var time = new Date(msg.sent_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      var initials = isMe ? driverInitial : 'A';
+      var senderName = isMe ? driverName : 'Admin';
+      
+      html += '<div class="flex gap-2.5 max-w-[85%] ' + (isMe ? 'self-end flex-row-reverse' : '') + '">';
+      html += '  <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ' + (isMe ? 'bg-amber-400 text-slate-900' : 'bg-slate-900 text-amber-400') + '">' + escapeHtml(initials) + '</div>';
+      html += '  <div class="flex-1 min-w-0">';
+      html += '    <div class="text-[11px] font-semibold text-slate-500 mb-1 px-1 ' + (isMe ? 'text-right' : '') + '">' + escapeHtml(senderName) + '</div>';
+      html += '    <div class="rounded-xl px-3.5 py-2.5 text-sm leading-relaxed break-words ' + (isMe ? 'bg-amber-400 text-slate-900' : 'bg-white text-slate-900 border border-slate-200') + '">';
+      
+      if (msg.message && msg.message.trim()) {
+        html += '<div>' + escapeHtml(msg.message).replace(/\n/g, '<br>') + '</div>';
+      }
+      
+      if (msg.attachment_list && msg.attachment_list.length > 0) {
+        msg.attachment_list.forEach(function(att) {
+          if (att.type && att.type.startsWith('image/')) {
+            html += '<img src="download-attachment.php?id=' + att.id + '" class="max-w-[200px] rounded-lg mt-2 cursor-pointer border border-slate-200" alt="' + escapeHtml(att.name) + '">';
+          } else {
+            html += '<a href="download-attachment.php?id=' + att.id + '" target="_blank" class="block mt-2 text-blue-600 hover:underline">📎 ' + escapeHtml(att.name) + '</a>';
+          }
+        });
+      }
+      
+      html += '    </div>';
+      html += '    <div class="text-[10px] text-slate-400 mt-1 px-1">' + time + '</div>';
+      html += '  </div>';
+      html += '</div>';
+    });
+    
+    chatMessages.innerHTML = html;
+    scrollToBottom();
+  }
+  
+  function showEmpty(text) {
+    chatMessages.innerHTML = '<div class="flex-1 flex flex-col items-center justify-center text-center text-slate-500 py-10">' +
+      '<svg class="w-12 h-12 mb-3 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+      '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' +
+      '</svg>' +
+      '<div class="text-sm font-semibold">' + (text || 'No messages yet') + '</div>' +
+      '<div class="text-xs text-slate-400 mt-1">Start a conversation with the admin</div>' +
+      '</div>';
+  }
+  
+  function updateAttachmentPreview() {
+    if (selectedFiles.length === 0) {
+      chatAttachmentPreview.classList.add('hidden');
+      chatAttachmentPreview.innerHTML = '';
+      return;
+    }
+    
+    chatAttachmentPreview.classList.remove('hidden');
+    var html = '';
+    selectedFiles.forEach(function(file, index) {
+      var isImage = file.type.startsWith('image/');
+      html += '<div class="relative w-15 h-15 rounded-lg overflow-hidden bg-slate-100 border border-slate-300">';
+      if (isImage) {
+        html += '<img src="' + URL.createObjectURL(file) + '" class="w-full h-full object-cover" alt="' + escapeHtml(file.name) + '">';
+      } else {
+        html += '<div class="w-full h-full flex items-center justify-center text-2xl">📄</div>';
+      }
+      html += '<button type="button" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold border-2 border-white hover:bg-red-700" data-index="' + index + '">×</button>';
+      html += '</div>';
+    });
+    chatAttachmentPreview.innerHTML = html;
+    
+    chatAttachmentPreview.querySelectorAll('button').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var index = parseInt(btn.getAttribute('data-index'));
+        selectedFiles.splice(index, 1);
+        updateAttachmentPreview();
+      });
+    });
+  }
+  
+  function sendMessage() {
+    var message = chatInput.value.trim();
+    if (!message && selectedFiles.length === 0) return;
+    
+    chatSendBtn.disabled = true;
+    chatInput.disabled = true;
+    chatFileInput.disabled = true;
+    
+    var formData = new FormData();
+    formData.append('message', message);
+    formData.append('send_message', '1');
+    
+    selectedFiles.forEach(function(file) {
+      formData.append('attachments[]', file);
+    });
+    
+    fetch('api-message-count.php', {
+      method: 'POST',
+      body: formData
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          chatInput.value = '';
+          selectedFiles = [];
+          updateAttachmentPreview();
+          loadMessages();
+        } else {
+          alert('Failed to send message: ' + (data.error || 'Unknown error'));
+        }
+      })
+      .catch(function() {
+        alert('Failed to send message');
+      })
+      .finally(function() {
+        chatSendBtn.disabled = false;
+        chatInput.disabled = false;
+        chatFileInput.disabled = false;
+        chatInput.focus();
+      });
+  }
+  
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  chatToggleBtn.addEventListener('click', openChat);
+  chatCloseBtn.addEventListener('click', closeChat);
+  chatSendBtn.addEventListener('click', sendMessage);
+  
+  chatInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  
+  chatFileInput.addEventListener('change', function() {
+    Array.from(chatFileInput.files).forEach(function(file) {
+      selectedFiles.push(file);
+    });
+    chatFileInput.value = '';
+    updateAttachmentPreview();
+  });
+  
+  // Auto-resize textarea
+  chatInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 96) + 'px';
+  });
+})();
 </script>
 
 </body>
