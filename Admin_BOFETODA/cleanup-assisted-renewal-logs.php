@@ -1,9 +1,9 @@
 <?php
 /**
- * Cleanup Script: Remove application numbers from Assisted Renewal log entries
+ * Cleanup Script: Change Assisted Renewal log entries to "Assistance"
  * 
  * This script updates all activity_logs entries that have "Assisted Renewal Submitted (App: ...)"
- * to just "Assisted Renewal"
+ * or "Assisted Renewal" to just "Assistance"
  * 
  * Access: https://yourdomain.com/Admin_BOFETODA/cleanup-assisted-renewal-logs.php?key=cleanup456
  */
@@ -117,8 +117,8 @@ $pdo = get_pdo();
             try {
                 // Update all entries that match the pattern
                 $sql = "UPDATE activity_logs 
-                        SET action = 'Assisted Renewal'
-                        WHERE action LIKE 'Assisted Renewal Submitted (App:%'";
+                        SET action = 'Assistance'
+                        WHERE action LIKE 'Assisted Renewal%' OR action LIKE '%Assisted Renewal%'";
                 
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute();
@@ -130,7 +130,7 @@ $pdo = get_pdo();
                 echo '</div>';
                 
                 if ($updated > 0) {
-                    echo '<p>All "Assisted Renewal Submitted (App: ...)" entries have been changed to "Assisted Renewal".</p>';
+                    echo '<p>All assisted renewal entries have been changed to "Assistance".</p>';
                 }
                 
             } catch (PDOException $e) {
@@ -145,7 +145,7 @@ $pdo = get_pdo();
             try {
                 $sql = "SELECT log_id, action, logged_at 
                         FROM activity_logs 
-                        WHERE action LIKE 'Assisted Renewal Submitted (App:%'
+                        WHERE action LIKE 'Assisted Renewal%' OR action LIKE '%Assisted Renewal%'
                         ORDER BY logged_at DESC 
                         LIMIT 20";
                 
@@ -154,7 +154,7 @@ $pdo = get_pdo();
                 $totalCount = count($entries);
                 
                 // Get total count
-                $countStmt = $pdo->query("SELECT COUNT(*) FROM activity_logs WHERE action LIKE 'Assisted Renewal Submitted (App:%'");
+                $countStmt = $pdo->query("SELECT COUNT(*) FROM activity_logs WHERE action LIKE 'Assisted Renewal%' OR action LIKE '%Assisted Renewal%'");
                 $totalCount = $countStmt->fetchColumn();
                 
                 if ($totalCount > 0) {
@@ -171,7 +171,7 @@ $pdo = get_pdo();
                         echo '<tr>';
                         echo '<td>' . htmlspecialchars($entry['log_id']) . '</td>';
                         echo '<td class="old-value">' . htmlspecialchars($entry['action']) . '</td>';
-                        echo '<td class="new-value">Assisted Renewal</td>';
+                        echo '<td class="new-value">Assistance</td>';
                         echo '<td>' . htmlspecialchars($entry['logged_at']) . '</td>';
                         echo '</tr>';
                     }
@@ -190,7 +190,7 @@ $pdo = get_pdo();
                 } else {
                     echo '<div class="success">';
                     echo '<strong>✓ No records need cleanup!</strong><br>';
-                    echo 'All assisted renewal log entries are already in the correct format.';
+                    echo 'All assisted renewal log entries are already set to "Assistance".';
                     echo '</div>';
                 }
                 
