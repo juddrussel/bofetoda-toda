@@ -72,9 +72,26 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (DriverValidationException $e) {
   
         $error = $e->getMessage();
+    } catch (PDOException $e) {
+        error_log('driver_list.php PDO error: ' . $e->getMessage());
+        // Check for specific database errors
+        if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+            if (strpos($e->getMessage(), 'body_no') !== false) {
+                $error = 'Body number already exists. Please use a different body number.';
+            } elseif (strpos($e->getMessage(), 'contact_no') !== false) {
+                $error = 'Contact number already exists. Please use a different contact number.';
+            } elseif (strpos($e->getMessage(), 'driver_id') !== false) {
+                $error = 'Driver ID already exists. This is a system error, please contact support.';
+            } else {
+                $error = 'Duplicate entry detected. Please check your input.';
+            }
+        } else {
+            $error = 'Database error: ' . $e->getMessage();
+        }
     } catch (Throwable $e) {
         error_log('driver_list.php action failed: ' . $e->getMessage());
-        $error = 'Something went wrong while saving. Please try again.';
+        error_log('Stack trace: ' . $e->getTraceAsString());
+        $error = 'Something went wrong while saving. Error: ' . $e->getMessage();
     }
 }
 
