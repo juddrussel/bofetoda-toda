@@ -172,129 +172,329 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm'])) {
 
 render_header([
     'title'          => "Submit Renewal - Step $step",
-    'topbar_mode'    => 'page',
-    'topbar_heading' => 'Submit Renewal Application',
-    'topbar_sub'     => get_current_application($driver['driver_id']),
+    'topbar_mode'    => 'simple',
+    'topbar_heading' => 'Submit Renewal',
 ]);
 ?>
 
-<div class="content">
-
-    <div class="progress-track">
-        <div class="progress-track-bar"><span style="width:<?php echo $step * 33; ?>%;"></span></div>
+<!-- BEGIN: StepperIndicator -->
+<div class="px-4 py-3.5 bg-slate-50">
+  <div class="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm">
+    <!-- Step Badge in Header -->
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+      <div class="text-xs font-semibold text-slate-600">Annual Franchise Clearance</div>
+      <div class="bg-amber-50 text-amber-700 border border-amber-200/70 font-bold text-xs px-3 py-1.5 rounded-full shadow-sm">
+        Step <?php echo $step; ?> of 3
+      </div>
     </div>
-    <div class="progress-label"><?php echo $step; ?> out of 3</div>
+    <!-- Step Titles & Icons -->
+    <div class="grid grid-cols-3 text-xs font-semibold pb-2">
+      <!-- Step 1 -->
+      <div class="flex items-center justify-center space-x-1.5 <?php echo $step === 1 ? 'text-amber-600' : 'text-slate-400'; ?>">
+        <span class="w-5 h-5 rounded-full <?php echo $step === 1 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'; ?> text-[11px] font-bold flex items-center justify-center">1</span>
+        <span class="<?php echo $step === 1 ? 'font-bold' : 'font-normal'; ?> tracking-tight">Profile</span>
+      </div>
+      <!-- Step 2 -->
+      <div class="flex items-center justify-center space-x-1.5 <?php echo $step === 2 ? 'text-amber-600' : 'text-slate-400'; ?>">
+        <span class="w-5 h-5 rounded-full <?php echo $step === 2 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'; ?> text-[11px] font-bold flex items-center justify-center">2</span>
+        <span class="<?php echo $step === 2 ? 'font-bold' : 'font-normal'; ?>">Vehicle</span>
+      </div>
+      <!-- Step 3 -->
+      <div class="flex items-center justify-center space-x-1.5 <?php echo $step === 3 ? 'text-amber-600' : 'text-slate-400'; ?>">
+        <span class="w-5 h-5 rounded-full <?php echo $step === 3 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'; ?> text-[11px] font-bold flex items-center justify-center">3</span>
+        <span class="<?php echo $step === 3 ? 'font-bold' : 'font-normal'; ?>">Docs</span>
+      </div>
+    </div>
+    <!-- Progress Bars -->
+    <div class="grid grid-cols-3 gap-2 px-1 pt-1">
+      <div class="h-1.5 <?php echo $step >= 1 ? 'bg-amber-500' : 'bg-slate-200'; ?> rounded-full"></div>
+      <div class="h-1.5 <?php echo $step >= 2 ? 'bg-amber-500' : 'bg-slate-200'; ?> rounded-full"></div>
+      <div class="h-1.5 <?php echo $step >= 3 ? 'bg-amber-500' : 'bg-slate-200'; ?> rounded-full"></div>
+    </div>
+  </div>
+</div>
+<!-- END: StepperIndicator -->
+
+<!-- BEGIN: MainContent -->
+<main class="px-4 flex-1 space-y-4 pb-6">
 
     <?php if ($step === 1): ?>
 
-        <div class="card">
-            <div class="card-title">Driver&rsquo;s Profile</div>
+        <!-- Profile Information Card -->
+        <section class="bg-white rounded-2xl border border-slate-150 p-4 shadow-card">
+            <!-- Card Header with Verified Badge -->
+            <div class="flex items-start justify-between pb-3.5 border-b border-slate-100">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 leading-tight">Driver's Profile</h2>
+                    <p class="text-xs text-slate-400 font-normal mt-0.5">Personal Information on Record</p>
+                </div>
+                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    Verified ID
+                </span>
+            </div>
 
-            <div class="readonly-field">
-                <label for="f_driver_id">Driver ID</label>
-                <input type="text" class="value-box" id="f_driver_id" name="driver_id" value="<?php echo h($driver['driver_id']); ?>" readonly>
+            <!-- Form Read-only Content -->
+            <div class="mt-3.5 space-y-3">
+                <!-- Field: Driver ID -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Driver ID</label>
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <div class="flex items-center space-x-2.5">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <span class="font-bold text-sm tracking-wide text-slate-900"><?php echo h($driver['driver_id']); ?></span>
+                        </div>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-200/70 px-2 py-0.5 rounded">LOCKED</span>
+                    </div>
+                </div>
+
+                <!-- Field: Full Name -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <div class="flex items-center space-x-2.5 overflow-hidden">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-slate-900 truncate"><?php echo h($driver['name']); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two-column: Age & Birthday -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <!-- Age -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Age</label>
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900">
+                            <?php echo h($driver['age']); ?>
+                        </div>
+                    </div>
+                    <!-- Birthday -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Birthday</label>
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900">
+                            <?php echo h($driver['birthday']); ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field: Contact Number -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Contact No.</label>
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <div class="flex items-center space-x-2.5">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-slate-900"><?php echo h($driver['contact_no']); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field: Address -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Registered Address</label>
+                    <div class="flex items-start space-x-2.5 bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-slate-800 leading-snug">
+                            <?php echo h($driver['address']); ?>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Notice / Disclaimer Box -->
+                <div class="bg-amber-50/70 border border-amber-200/70 rounded-xl p-3 mt-3 flex items-start space-x-2.5">
+                    <div class="mt-0.5 flex-shrink-0">
+                        <span class="w-4 h-4 rounded-full bg-amber-500 text-white font-bold text-[11px] flex items-center justify-center leading-none">i</span>
+                    </div>
+                    <p class="text-[12px] leading-relaxed text-amber-900/90 font-medium">
+                        This information is on file and shown here for review only — it can't be edited on this page. If any information needs updating, please contact TODA Admin.
+                    </p>
+                </div>
             </div>
-            <div class="readonly-field">
-                <label for="f_name">Name</label>
-                <input type="text" class="value-box" id="f_name" name="name" value="<?php echo h($driver['name']); ?>" readonly>
-            </div>
-            <div class="readonly-field">
-                <label for="f_age">Age</label>
-                <input type="text" class="value-box" id="f_age" name="age" value="<?php echo h($driver['age']); ?>" readonly>
-            </div>
-            <div class="readonly-field">
-                <label for="f_birthday">Birthday</label>
-                <input type="text" class="value-box" id="f_birthday" name="birthday" value="<?php echo h($driver['birthday']); ?>" readonly>
-            </div>
-            <div class="readonly-field">
-                <label for="f_contact_no">Contact No.</label>
-                <input type="text" class="value-box" id="f_contact_no" name="contact_no" value="<?php echo h($driver['contact_no']); ?>" readonly>
-            </div>
-            <div class="readonly-field" style="margin-bottom:0;">
-                <label for="f_address">Address</label>
-                <input type="text" class="value-box" id="f_address" name="address" value="<?php echo h($driver['address']); ?>" readonly>
-            </div>
-            <p class="text-muted" style="font-size:11px;margin-top:14px;">This information is on file and shown here for review only &mdash; it can&rsquo;t be edited on this page.</p>
+        </section>
+
+        <!-- BEGIN: ActionButtons -->
+        <div class="pt-2 space-y-2.5">
+            <!-- Next Button -->
+            <button type="button" id="btn-step1-next" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold text-base py-3.5 px-4 rounded-xl shadow-btn flex items-center justify-center space-x-2 transition duration-150">
+                <span>Next</span>
+                <svg class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </button>
+            <!-- Subtle Back to Portal / Cancel Link -->
+            <a href="driver-home.php" class="block w-full py-2.5 text-center text-xs font-semibold text-slate-500 hover:text-slate-700 transition">
+                Return to Dashboard
+            </a>
         </div>
-
-        <button type="button" id="btn-step1-next" class="btn btn-accent">Next</button>
+        <!-- END: ActionButtons -->
 
     <?php elseif ($step === 2): ?>
 
-        <div class="card">
-            <div class="card-title">Vehicle&rsquo;s Information</div>
+        <!-- Vehicle Information Card -->
+        <section class="bg-white rounded-2xl border border-slate-150 p-4 shadow-card">
+            <!-- Card Header -->
+            <div class="pb-3.5 border-b border-slate-100">
+                <h2 class="text-base font-bold text-slate-900 leading-tight">Vehicle's Information</h2>
+                <p class="text-xs text-slate-400 font-normal mt-0.5">Registered Vehicle Details</p>
+            </div>
 
-            <div class="readonly-field">
-                <label for="f_body_no">Body No.</label>
-                <input type="text" class="value-box" id="f_body_no" name="body_no" value="<?php echo h($driver['body_no']); ?>" readonly>
+            <!-- Form Read-only Content -->
+            <div class="mt-3.5 space-y-3">
+                <!-- Field: Body No. -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Body No.</label>
+                    <div class="flex items-center bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <span class="text-sm font-medium text-slate-900"><?php echo h($driver['body_no']); ?></span>
+                    </div>
+                </div>
+
+                <!-- Field: Barangay/Area -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Barangay/Area</label>
+                    <div class="flex items-center bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <span class="text-sm font-medium text-slate-900"><?php echo h($driver['barangay']); ?></span>
+                    </div>
+                </div>
+
+                <!-- Field: Color Code -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Color Code</label>
+                    <div class="flex items-center bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-slate-800">
+                        <span class="text-sm font-medium text-slate-900"><?php echo h($driver['color_code']); ?></span>
+                    </div>
+                </div>
+
+                <!-- Notice / Disclaimer Box -->
+                <div class="bg-amber-50/70 border border-amber-200/70 rounded-xl p-3 mt-3 flex items-start space-x-2.5">
+                    <div class="mt-0.5 flex-shrink-0">
+                        <span class="w-4 h-4 rounded-full bg-amber-500 text-white font-bold text-[11px] flex items-center justify-center leading-none">i</span>
+                    </div>
+                    <p class="text-[12px] leading-relaxed text-amber-900/90 font-medium">
+                        This information is on file and shown here for review only — it can't be edited on this page.
+                    </p>
+                </div>
             </div>
-            <div class="readonly-field">
-                <label for="f_barangay">Barangay/Area</label>
-                <input type="text" class="value-box" id="f_barangay" name="barangay" value="<?php echo h($driver['barangay']); ?>" readonly>
-            </div>
-            <div class="readonly-field" style="margin-bottom:0;">
-                <label for="f_color_code">Color Code</label>
-                <input type="text" class="value-box" id="f_color_code" name="color_code" value="<?php echo h($driver['color_code']); ?>" readonly>
-            </div>
-            <p class="text-muted" style="font-size:11px;margin-top:14px;">This information is on file and shown here for review only &mdash; it can&rsquo;t be edited on this page.</p>
+        </section>
+
+        <!-- BEGIN: ActionButtons -->
+        <div class="pt-2 space-y-2.5">
+            <!-- Next Button -->
+            <button type="button" id="btn-step2-next" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold text-base py-3.5 px-4 rounded-xl shadow-btn flex items-center justify-center space-x-2 transition duration-150">
+                <span>Next</span>
+                <svg class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </button>
+            <!-- Back Button -->
+            <a href="driver-renewal.php?step=1" class="block w-full py-3 text-center text-sm font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                Back
+            </a>
         </div>
+        <!-- END: ActionButtons -->
 
-        <button type="button" id="btn-step2-next" class="btn btn-accent">Next</button>
-        <a href="driver-renewal.php?step=1" class="btn btn-outline" style="margin-top:12px;">Back</a>
-
-    <?php else:?>
+    <?php else: // Step 3 ?>
 
         <?php if ($upload_error): ?>
-        <div class="card" style="border-color:#d32f2f;background:#fdecea;margin-bottom:14px;">
-            <p style="color:#d32f2f;font-size:13px;font-weight:600;"><?php echo h($upload_error); ?></p>
+        <div class="bg-red-50 border border-red-200 rounded-xl p-3.5 mb-4 flex items-start space-x-2.5">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <p class="text-sm font-semibold text-red-800"><?php echo h($upload_error); ?></p>
         </div>
         <?php endif; ?>
 
         <form id="renewalForm" method="post" action="driver-renewal.php?step=3" enctype="multipart/form-data">
-        <div class="card">
-            <div class="card-title" style="margin-bottom:6px;">Documents</div>
-            <p class="text-muted" style="font-size:12px;line-height:1.5;margin-bottom:18px;">
-                Please ensure all required documents are clearly and properly scanned.
-                Low-quality images or poorly scanned documents may result in the rejection of your renewal application.
-            </p>
-
-            <div class="upload-grid" id="upload-grid">
-                <?php
-                $docs = [
-                    'drivers_license' => "Driver&rsquo;s Licence",
-                    'payment_receipt' => 'Payment Receipt',
-                    'or_cr'           => 'Updated OR/CR',
-                    'picture_1x1'     => '1x1 Picture',
-                ];
-                foreach ($docs as $field => $label): ?>
-                <div class="upload-tile" data-doc="<?php echo h($field); ?>">
-                    <div class="upload-tile-label"><label for="doc_<?php echo h($field); ?>"><?php echo $label; ?></label></div>
-                    <label class="upload-tile-box" for="doc_<?php echo h($field); ?>">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <span>Choose File</span>
-                        <input type="file" id="doc_<?php echo h($field); ?>" name="<?php echo h($field); ?>" accept="image/*,.pdf" required>
-                    </label>
-                    <p class="field-error" style="display:none;margin-top:8px;">File must be a photo or PDF, under 4MB.</p>
+            <!-- Documents Card -->
+            <section class="bg-white rounded-2xl border border-slate-150 p-4 shadow-card">
+                <!-- Card Header -->
+                <div class="pb-3.5 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-900 leading-tight">Required Documents</h2>
+                    <p class="text-xs text-slate-400 font-normal mt-0.5">Upload all necessary documents</p>
                 </div>
-                <?php endforeach; ?>
-            </div>
-            <p class="text-muted" style="font-size:11px;margin-top:12px;">Accepted formats: JPG, PNG, or PDF. Maximum file size: 4MB.</p>
-            <p class="field-error" id="err-documents" style="display:none;margin-top:10px;">Please attach all 4 documents before submitting.</p>
-        </div>
 
-        <div class="btn-row">
-            <button type="button" class="btn btn-outline" data-modal-open="modal-cancel">Cancel</button>
-            <button type="button" id="btn-step3-submit" class="btn btn-accent">Submit</button>
-        </div>
+                <div class="mt-3.5">
+                    <p class="text-xs text-amber-900/90 bg-amber-50/70 border border-amber-200/70 rounded-lg p-3 mb-4">
+                        Please ensure all required documents are clearly and properly scanned. Low-quality images or poorly scanned documents may result in rejection.
+                    </p>
+
+                    <!-- Upload Grid -->
+                    <div class="grid grid-cols-1 gap-3" id="upload-grid">
+                        <?php
+                        $docs = [
+                            'drivers_license' => ["Driver's License", 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'],
+                            'payment_receipt' => ['Payment Receipt', 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z'],
+                            'or_cr' => ['Updated OR/CR', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                            'picture_1x1' => ['1x1 Picture', 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'],
+                        ];
+                        foreach ($docs as $field => $info):
+                            list($label, $iconPath) = $info;
+                        ?>
+                        <div class="upload-tile-modern border-2 border-dashed border-slate-200 rounded-xl p-3 hover:border-amber-400 transition-colors cursor-pointer" data-doc="<?php echo h($field); ?>">
+                            <label for="doc_<?php echo h($field); ?>" class="flex items-start space-x-3 cursor-pointer">
+                                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="<?php echo h($iconPath); ?>" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-semibold text-slate-900"><?php echo $label; ?></div>
+                                    <div class="text-xs text-slate-500 mt-0.5 file-name">Tap to upload file</div>
+                                    <input type="file" id="doc_<?php echo h($field); ?>" name="<?php echo h($field); ?>" accept="image/*,.pdf" required class="hidden">
+                                </div>
+                                <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </label>
+                            <p class="field-error text-xs text-red-600 mt-2" style="display:none;">File must be a photo or PDF, under 4MB.</p>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 mt-3">Accepted formats: JPG, PNG, or PDF. Maximum file size: 4MB.</p>
+                    <p class="field-error text-sm text-red-600 font-semibold mt-2" id="err-documents" style="display:none;">Please attach all 4 documents before submitting.</p>
+                </div>
+            </section>
+
+            <!-- BEGIN: ActionButtons -->
+            <div class="pt-4 space-y-2.5">
+                <!-- Submit Button -->
+                <button type="button" id="btn-step3-submit" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-900 font-bold text-base py-3.5 px-4 rounded-xl shadow-btn flex items-center justify-center space-x-2 transition duration-150">
+                    <span>Submit Application</span>
+                    <svg class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+                <!-- Back Button -->
+                <a href="driver-renewal.php?step=2" class="block w-full py-3 text-center text-sm font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                    Back
+                </a>
+                <!-- Cancel Link -->
+                <button type="button" data-modal-open="modal-cancel" class="w-full py-2.5 text-center text-xs font-semibold text-slate-500 hover:text-slate-700 transition">
+                    Cancel Application
+                </button>
+            </div>
+            <!-- END: ActionButtons -->
         </form>
 
     <?php endif; ?>
+
+</main>
+<!-- END: MainContent -->
 
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
   var btn1 = document.getElementById('btn-step1-next');
   if (btn1) {
     btn1.addEventListener('click', function () {
@@ -309,6 +509,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // File upload handling for modern tiles
+  document.querySelectorAll('#upload-grid input[type="file"]').forEach(function (input) {
+    input.addEventListener('change', function () {
+      var tile = input.closest('.upload-tile-modern');
+      var fileNameDisplay = tile ? tile.querySelector('.file-name') : null;
+      if (input.files && input.files.length > 0) {
+        var file = input.files[0];
+        if (fileNameDisplay) {
+          fileNameDisplay.textContent = file.name;
+          fileNameDisplay.classList.add('text-emerald-600', 'font-semibold');
+        }
+        if (tile) {
+          tile.classList.remove('border-slate-200');
+          tile.classList.add('border-emerald-400', 'bg-emerald-50/30');
+        }
+      }
+    });
+  });
 });
 </script>
 
@@ -392,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function validateStep3() {
     var ok = true;
     var errMsg = document.getElementById('err-documents');
-    document.querySelectorAll('#upload-grid .upload-tile').forEach(function (tile) {
+    document.querySelectorAll('#upload-grid .upload-tile-modern').forEach(function (tile) {
       var input = tile.querySelector('input[type="file"]');
       var filled = input.files && input.files.length > 0;
       var tileError = tile.querySelector('.field-error');
@@ -405,7 +623,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
 
-      tile.classList.toggle('has-error', !filled || !validFile);
+      if (!filled || !validFile) {
+        tile.classList.add('border-red-400', 'bg-red-50/30');
+        tile.classList.remove('border-slate-200', 'border-emerald-400', 'bg-emerald-50/30');
+      }
       if (tileError) tileError.style.display = (filled && !validFile) ? 'block' : 'none';
       if (!filled || !validFile) ok = false;
     });
@@ -415,19 +636,38 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.querySelectorAll('#upload-grid input[type="file"]').forEach(function (input) {
     input.addEventListener('change', function () {
-      var tile = input.closest('.upload-tile');
+      var tile = input.closest('.upload-tile-modern');
       var tileError = tile ? tile.querySelector('.field-error') : null;
+      var fileNameDisplay = tile ? tile.querySelector('.file-name') : null;
+      
       if (input.files && input.files.length > 0) {
         var file = input.files[0];
         var badType = ALLOWED_DOC_EXT.indexOf(fileExt(file.name)) === -1;
         var badSize = file.size > MAX_UPLOAD_BYTES;
+        
         if (badType || badSize) {
-          if (tile) tile.classList.add('has-error');
+          if (tile) {
+            tile.classList.add('border-red-400', 'bg-red-50/30');
+            tile.classList.remove('border-slate-200', 'border-emerald-400', 'bg-emerald-50/30');
+          }
           if (tileError) tileError.style.display = 'block';
+          if (fileNameDisplay) {
+            fileNameDisplay.textContent = 'Invalid file';
+            fileNameDisplay.classList.remove('text-emerald-600');
+            fileNameDisplay.classList.add('text-red-600');
+          }
           input.value = '';
         } else {
-          if (tile) tile.classList.remove('has-error');
+          if (tile) {
+            tile.classList.remove('border-slate-200', 'border-red-400', 'bg-red-50/30');
+            tile.classList.add('border-emerald-400', 'bg-emerald-50/30');
+          }
           if (tileError) tileError.style.display = 'none';
+          if (fileNameDisplay) {
+            fileNameDisplay.textContent = file.name;
+            fileNameDisplay.classList.remove('text-red-600');
+            fileNameDisplay.classList.add('text-emerald-600', 'font-semibold');
+          }
         }
       }
     });
