@@ -33,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_cleanup'])) {
             FROM notifications n1
             INNER JOIN notifications n2 
             WHERE n1.driver_id = n2.driver_id
-              AND n1.app_no = n2.app_no
+              AND COALESCE(n1.app_no, '') = COALESCE(n2.app_no, '')
               AND n1.title = n2.title
-              AND n1.id < n2.id
+              AND n1.notification_id < n2.notification_id
         ";
         $countStmt = $pdo->query($countSql);
         $duplicateCount = $countStmt->fetchColumn();
@@ -46,9 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_cleanup'])) {
                 DELETE n1 FROM notifications n1
                 INNER JOIN notifications n2 
                 WHERE n1.driver_id = n2.driver_id
-                  AND n1.app_no = n2.app_no
+                  AND COALESCE(n1.app_no, '') = COALESCE(n2.app_no, '')
                   AND n1.title = n2.title
-                  AND n1.id < n2.id
+                  AND n1.notification_id < n2.notification_id
             ";
             
             $deleteStmt = $pdo->prepare($deleteSql);
@@ -74,7 +74,7 @@ try {
     
     // Get ALL recent notifications to debug (last 20)
     $debugSql = "
-        SELECT id, driver_id, app_no, title, message, created_at
+        SELECT notification_id, driver_id, app_no, title, message, created_at
         FROM notifications
         ORDER BY created_at DESC
         LIMIT 20
@@ -90,7 +90,7 @@ try {
         WHERE n1.driver_id = n2.driver_id
           AND COALESCE(n1.app_no, '') = COALESCE(n2.app_no, '')
           AND n1.title = n2.title
-          AND n1.id < n2.id
+          AND n1.notification_id < n2.notification_id
     ";
     $countStmt = $pdo->query($countSql);
     $currentDuplicates = $countStmt->fetchColumn();
@@ -183,7 +183,7 @@ try {
                     <tbody>
                         <?php foreach ($allNotifications as $notif): ?>
                         <tr class="border-t border-slate-200">
-                            <td class="px-3 py-2"><?= htmlspecialchars($notif['id']) ?></td>
+                            <td class="px-3 py-2"><?= htmlspecialchars($notif['notification_id']) ?></td>
                             <td class="px-3 py-2"><?= htmlspecialchars($notif['driver_id']) ?></td>
                             <td class="px-3 py-2"><?= htmlspecialchars($notif['app_no'] ?? 'NULL') ?></td>
                             <td class="px-3 py-2"><?= htmlspecialchars($notif['title']) ?></td>
