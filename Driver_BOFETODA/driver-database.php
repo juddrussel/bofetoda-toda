@@ -169,6 +169,33 @@ function driver_avatar_path(string $driverId): ?string {
 
 /** Public, cache-busted URL for a driver's profile photo, or null. */
 function driver_avatar_url(string $driverId): ?string {
+    // Check R2 first if enabled
+    if (function_exists('is_r2_enabled') && is_r2_enabled()) {
+        $publicUrl = getenv('R2_PUBLIC_URL');
+        if ($publicUrl) {
+            // Try to find avatar in R2 (check common extensions)
+            foreach (['png', 'jpg', 'jpeg'] as $ext) {
+                $r2Key = 'avatars/' . $driverId . '.' . $ext;
+                $r2Url = rtrim($publicUrl, '/') . '/' . $r2Key;
+                
+                // Simple check: try to get headers (but this is expensive)
+                // For better performance, we'll just return the first possible URL
+                // and let the browser handle 404s, or store the extension in DB
+                
+                // For now, check local fallback to determine extension
+                $localPath = driver_avatar_path($driverId);
+                if ($localPath) {
+                    $localExt = pathinfo($localPath, PATHINFO_EXTENSION);
+                    return rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.' . $localExt . '?v=' . time();
+                }
+                
+                // If no local file, assume PNG (most common)
+                return rtrim($publicUrl, '/') . '/avatars/' . $driverId . '.png?v=' . time();
+            }
+        }
+    }
+    
+    // Fallback to local storage
     $path = driver_avatar_path($driverId);
     if (!$path) {
         return null;
