@@ -72,22 +72,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_cleanup'])) {
 try {
     $pdo = get_pdo();
     
-    // First, let's see all notifications to debug
+    // Get ALL recent notifications to debug (last 20)
     $debugSql = "
         SELECT id, driver_id, app_no, title, message, created_at
         FROM notifications
-        WHERE app_no = 'APP-20260007'
         ORDER BY created_at DESC
+        LIMIT 20
     ";
     $debugStmt = $pdo->query($debugSql);
     $allNotifications = $debugStmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Count duplicates: same driver_id, app_no, and title
     $countSql = "
         SELECT COUNT(*) as duplicate_count
         FROM notifications n1
         INNER JOIN notifications n2 
         WHERE n1.driver_id = n2.driver_id
-          AND n1.app_no = n2.app_no
+          AND COALESCE(n1.app_no, '') = COALESCE(n2.app_no, '')
           AND n1.title = n2.title
           AND n1.id < n2.id
     ";
@@ -96,6 +97,7 @@ try {
 } catch (Exception $e) {
     $currentDuplicates = 0;
     $allNotifications = [];
+    $debugError = $e->getMessage();
 }
 ?>
 <!DOCTYPE html>
@@ -157,9 +159,15 @@ try {
         </div>
 
         <!-- Debug: Show all APP-20260007 notifications -->
+        <?php if (isset($debugError)): ?>
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p class="text-red-800"><strong>Debug Error:</strong> <?= htmlspecialchars($debugError) ?></p>
+        </div>
+        <?php endif; ?>
+        
         <?php if (!empty($allNotifications)): ?>
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 class="text-lg font-semibold text-slate-800 mb-4">Debug: APP-20260007 Notifications</h2>
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Debug: Recent Notifications (Last 20)</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-slate-50">
@@ -177,9 +185,9 @@ try {
                         <tr class="border-t border-slate-200">
                             <td class="px-3 py-2"><?= htmlspecialchars($notif['id']) ?></td>
                             <td class="px-3 py-2"><?= htmlspecialchars($notif['driver_id']) ?></td>
-                            <td class="px-3 py-2"><?= htmlspecialchars($notif['app_no']) ?></td>
+                            <td class="px-3 py-2"><?= htmlspecialchars($notif['app_no'] ?? 'NULL') ?></td>
                             <td class="px-3 py-2"><?= htmlspecialchars($notif['title']) ?></td>
-                            <td class="px-3 py-2 text-xs"><?= htmlspecialchars($notif['message']) ?></td>
+                            <td class="px-3 py-2 text-xs"><?= htmlspecialchars(substr($notif['message'], 0, 50)) ?>...</td>
                             <td class="px-3 py-2 text-xs"><?= htmlspecialchars($notif['created_at']) ?></td>
                         </tr>
                         <?php endforeach; ?>
