@@ -11,15 +11,118 @@
 
 require_once __DIR__ . '/config.php';
 
-// Security check - must be logged in as admin
-if (!isset($_SESSION['officer_id']) || $_SESSION['role'] !== 'admin') {
-    die('Access denied. Admin access required.');
+// Simple password protection - no admin login required
+$authorized = false;
+
+if (isset($_POST['reset_password'])) {
+    // Check password (change this to your preferred password)
+    if ($_POST['reset_password'] === 'reset123') {
+        $_SESSION['reset_authorized'] = true;
+        $authorized = true;
+    } else {
+        $error = 'Incorrect password!';
+    }
+}
+
+if (isset($_SESSION['reset_authorized']) && $_SESSION['reset_authorized'] === true) {
+    $authorized = true;
+}
+
+// Show login form if not authorized
+if (!$authorized) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Database Reset - Authentication</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .container {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                padding: 40px;
+                max-width: 400px;
+                width: 100%;
+            }
+            h1 { color: #16233d; margin-bottom: 20px; font-size: 24px; }
+            .form-group { margin: 20px 0; }
+            label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; }
+            input[type="password"] {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 16px;
+            }
+            .btn {
+                width: 100%;
+                padding: 12px;
+                background: #16233d;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .btn:hover { background: #0f1729; }
+            .error {
+                background: #fee2e2;
+                color: #991b1b;
+                padding: 12px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+            }
+            .info {
+                background: #e0e7ff;
+                color: #3730a3;
+                padding: 12px;
+                border-radius: 6px;
+                margin-top: 20px;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔒 Database Reset - Authentication</h1>
+            <?php if (isset($error)): ?>
+                <div class="error"><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="reset_password">Enter Reset Password:</label>
+                    <input type="password" name="reset_password" id="reset_password" required autofocus>
+                </div>
+                <button type="submit" class="btn">Authenticate</button>
+            </form>
+            <div class="info">
+                <strong>Default password:</strong> reset123<br>
+                Change this in the PHP file for security.
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
 $executed = false;
 $results = [];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['understand'])) {
     try {
         $pdo = get_pdo();
         
