@@ -1743,11 +1743,7 @@ function render_header(array $opts = []) {
 <body>
 <div class="app-shell">
 <!-- Top Brand Bar (Tailwind) -->
-<div class="px-5 pt-3 pb-2 flex items-center justify-between text-[11px] text-slate-500 font-medium tracking-tight bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
-  <div class="flex items-center space-x-1.5">
-    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-    <span class="font-semibold text-slate-700">TODA Link Mobile</span>
-  </div>
+<div class="px-5 pt-3 pb-2 flex items-center justify-end text-[11px] text-slate-500 font-medium tracking-tight bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
   <div>&copy; <?php echo date('Y'); ?> Bocaue TODA Inc.</div>
 </div>
 <?php if ($topbar_mode !== 'none'): ?>
