@@ -36,6 +36,7 @@ foreach ($notifications as $n) {
 <section class="px-4 pt-3 pb-3 bg-white border-b border-slate-100">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
+            <span class="text-base font-bold text-slate-800">Notifications</span>
             <?php if ($unreadCount > 0): ?>
             <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200">
                 <?php echo $unreadCount; ?> Unread
