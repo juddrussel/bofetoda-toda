@@ -903,6 +903,71 @@ function db_set_driver_archived($driverId, $archived) {
     return true;
 }
 
+/**
+ * Permanently delete a driver and all related data
+ * 
+ * @param string $driverId Driver ID to delete
+ * @return void
+ */
+function db_delete_driver_permanently($driverId) {
+    $pdo = get_pdo();
+    
+    // Log the deletion before deleting
+    $officer = current_officer();
+    log_activity('Delete', $driverId, $officer['id'] ?? null, $officer['role'] ?? 'secretary');
+    
+    // Start transaction
+    $pdo->beginTransaction();
+    
+    try {
+        // Delete related records first (foreign key constraints)
+        
+        // Delete notifications
+        $pdo->prepare('DELETE FROM notifications WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Delete message attachments (via messages)
+        $pdo->prepare('DELETE ma FROM message_attachments ma 
+                       INNER JOIN driver_messages dm ON ma.message_id = dm.message_id 
+                       WHERE dm.driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Delete messages
+        $pdo->prepare('DELETE FROM driver_messages WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Delete application documents
+        $pdo->prepare('DELETE FROM application_documents WHERE app_no IN 
+                       (SELECT app_no FROM applications WHERE driver_id = :id)')
+            ->execute(['id' => $driverId]);
+        
+        // Delete applications
+        $pdo->prepare('DELETE FROM applications WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Delete activity logs
+        $pdo->prepare('DELETE FROM activity_logs WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Delete access logs
+        $pdo->prepare('DELETE FROM access_logs WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Finally delete the driver
+        $pdo->prepare('DELETE FROM drivers WHERE driver_id = :id')
+            ->execute(['id' => $driverId]);
+        
+        // Commit transaction
+        $pdo->commit();
+        
+    } catch (Exception $e) {
+        // Rollback on error
+        $pdo->rollBack();
+        error_log('Error deleting driver permanently: ' . $e->getMessage());
+        throw $e;
+    }
+}
+
 
 function db_add_announcement(array $in) {
     $pdo = get_pdo();

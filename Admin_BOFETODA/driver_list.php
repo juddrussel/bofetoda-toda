@@ -68,6 +68,15 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'restore_driver') {
             db_set_driver_archived($_POST['driver_id'] ?? '', false);
             $notice = 'Driver restored to the active list.';
+        
+        } elseif ($action === 'delete_driver') {
+            $driverId = $_POST['driver_id'] ?? '';
+            if ($driverId) {
+                db_delete_driver_permanently($driverId);
+                $notice = 'Driver permanently deleted.';
+            } else {
+                $error = 'Invalid driver ID.';
+            }
         }
     } catch (DriverValidationException $e) {
   
@@ -464,10 +473,15 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
                   <td>-</td>
                   <?php if ($canManage): ?>
                   <td>
-                    <button type="button" class="restore-link" data-open-modal="restore-<?= e($drv['driver_id']) ?>">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-                      Restore
-                    </button>
+                    <div class="action-btns" data-stop-row-click>
+                      <button type="button" class="restore-link" data-open-modal="restore-<?= e($drv['driver_id']) ?>" title="Restore">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                        Restore
+                      </button>
+                      <button type="button" class="icon-btn delete" data-open-modal="delete-<?= e($drv['driver_id']) ?>" title="Delete Permanently">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
                   </td>
                   <?php endif; ?>
                 </tr>
@@ -745,6 +759,33 @@ if ($isArchived) {
       <div class="modal__foot">
         <button type="button" class="btn btn-outline btn-pill" data-close-modal="restore-<?= e($drv['driver_id']) ?>">Cancel</button>
         <button type="submit" class="btn btn-primary btn-pill">Restore</button>
+      </div>
+    </form>
+  </div>
+</div>
+<?php endforeach; ?>
+<?php endif; ?>
+
+<?php if ($canManage): ?>
+<?php foreach ($archivedForModals as $drv): ?>
+<div class="modal-backdrop" id="delete-<?= e($drv['driver_id']) ?>">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal__head" style="background: #dc2626; color: white;"><h3>⚠️ Permanent Deletion Warning</h3></div>
+    <div class="modal__body">
+      <p style="margin-bottom: 16px;">You are about to <strong style="color: #dc2626;">permanently delete</strong> the following driver:</p>
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+        <p style="margin: 0; font-weight: 600;"><?= e($drv['name']) ?></p>
+        <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">ID: <?= e($drv['driver_id']) ?></p>
+      </div>
+      <p style="margin-bottom: 16px;"><strong style="color: #dc2626;">This action CANNOT be undone!</strong></p>
+      <p style="margin-bottom: 0; font-size: 14px; color: #6b7280;">All driver data, applications, and related records will be permanently removed from the system.</p>
+    </div>
+    <form method="post" action="<?= BASE_URL ?>/driver_list.php?view=archived">
+      <input type="hidden" name="action" value="delete_driver">
+      <input type="hidden" name="driver_id" value="<?= e($drv['driver_id']) ?>">
+      <div class="modal__foot">
+        <button type="button" class="btn btn-outline btn-pill" data-close-modal="delete-<?= e($drv['driver_id']) ?>">Cancel</button>
+        <button type="submit" class="btn btn-pill" style="background: #dc2626; color: white;" onclick="return confirm('Are you absolutely sure? This driver will be PERMANENTLY deleted!');">Delete Permanently</button>
       </div>
     </form>
   </div>
