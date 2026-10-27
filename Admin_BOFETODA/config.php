@@ -647,7 +647,10 @@ function db_update_driver($driverId, array $in) {
         // Update driver_id in drivers table and related tables
         $pdo->beginTransaction();
         try {
-            // First, update the driver_id in the drivers table
+            // Temporarily disable foreign key checks to allow the update
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+            
+            // Update the driver_id in the drivers table
             // The foreign key with ON UPDATE CASCADE will auto-update related tables
             $pdo->prepare(
                 'UPDATE drivers SET
@@ -669,8 +672,22 @@ function db_update_driver($driverId, array $in) {
                 'old_driver_id' => $driverId,
             ]);
             
+            // Manually update related tables since FK checks are disabled
+            $pdo->prepare('UPDATE applications SET driver_id = :new WHERE driver_id = :old')
+                ->execute(['new' => $newDriverId, 'old' => $driverId]);
+            
+            $pdo->prepare('UPDATE activity_logs SET driver_id = :new WHERE driver_id = :old')
+                ->execute(['new' => $newDriverId, 'old' => $driverId]);
+            
+            $pdo->prepare('UPDATE notifications SET driver_id = :new WHERE driver_id = :old')
+                ->execute(['new' => $newDriverId, 'old' => $driverId]);
+            
+            // Re-enable foreign key checks
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+            
             $pdo->commit();
         } catch (Exception $e) {
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1'); // Re-enable even on error
             $pdo->rollBack();
             throw $e;
         }
