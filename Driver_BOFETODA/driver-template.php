@@ -2154,7 +2154,7 @@ function render_footer($active_page = '') {
   </button>
 
   <!-- Chat Window -->
-  <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] w-[calc(100%-2rem)] max-w-[380px] h-[500px] max-h-[calc(100vh-180px)] bg-white rounded-2xl shadow-2xl hidden flex-col z-50 opacity-0 transform translate-y-5 scale-95 transition-all duration-250" id="chatWindow" style="display:none;">
+  <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] w-[calc(100%-2rem)] max-w-[380px] h-[500px] max-h-[calc(100vh-180px)] bg-white rounded-2xl shadow-2xl hidden flex-col z-50 opacity-0 translate-y-5 scale-95 transition-all duration-250" id="chatWindow">
     <div class="bg-amber-400 px-5 py-4 rounded-t-2xl flex items-center justify-between">
       <div>
         <div class="text-base font-bold text-slate-900">Message Admin</div>
@@ -2220,21 +2220,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function openChat() {
-    chatWindow.style.display = 'flex';
+    chatWindow.classList.remove('hidden');
+    chatWindow.classList.add('flex');
     requestAnimationFrame(function() {
       requestAnimationFrame(function() {
-        chatWindow.style.opacity = '1';
-        chatWindow.style.transform = 'translateY(0) scale(1)';
+        chatWindow.classList.remove('opacity-0', 'translate-y-5', 'scale-95');
+        chatWindow.classList.add('opacity-100', 'translate-y-0', 'scale-100');
       });
     });
     loadMessages();
   }
   
   function closeChat() {
-    chatWindow.style.opacity = '0';
-    chatWindow.style.transform = 'translateY(20px) scale(0.95)';
+    chatWindow.classList.add('opacity-0', 'translate-y-5', 'scale-95');
+    chatWindow.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
     setTimeout(function() {
-      chatWindow.style.display = 'none';
+      chatWindow.classList.remove('flex');
+      chatWindow.classList.add('hidden');
     }, 250);
   }
   
