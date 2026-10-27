@@ -928,7 +928,7 @@ function db_delete_driver_permanently($driverId) {
         
         // Delete message attachments (via messages)
         $pdo->prepare('DELETE ma FROM message_attachments ma 
-                       INNER JOIN driver_messages dm ON ma.message_id = dm.message_id 
+                       INNER JOIN driver_messages dm ON ma.message_id = dm.id 
                        WHERE dm.driver_id = :id')
             ->execute(['id' => $driverId]);
         
