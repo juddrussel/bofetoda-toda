@@ -180,19 +180,22 @@ try {
             $stmt = $pdo->prepare(
                 "SELECT 
                     dm.id as message_id, 
-                    dm.sender_type, 
+                    dm.sender_type,
+                    dm.sender_id,
                     dm.message_text as message, 
                     dm.sent_at, 
                     dm.is_read,
                     dm.has_attachments,
+                    o.name as officer_name,
                     GROUP_CONCAT(
                         CONCAT(ma.id, '|', ma.file_name, '|', ma.file_type)
                         SEPARATOR ':::'
                     ) as attachments
                  FROM driver_messages dm
                  LEFT JOIN message_attachments ma ON dm.id = ma.message_id
+                 LEFT JOIN officers o ON dm.sender_type = 'officer' AND dm.sender_id = o.officer_id
                  WHERE dm.driver_id = :driver_id
-                 GROUP BY dm.id
+                 GROUP BY dm.id, dm.sender_type, dm.sender_id, dm.message_text, dm.sent_at, dm.is_read, dm.has_attachments, o.name
                  ORDER BY dm.sent_at ASC
                  LIMIT 100"
             );

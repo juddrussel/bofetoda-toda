@@ -597,8 +597,21 @@ function toggleMessage(annId) {
     messages.forEach(function(msg) {
       var isMe = msg.sender_type === 'driver';
       var time = new Date(msg.sent_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      var initials = isMe ? driverInitial : 'A';
-      var senderName = isMe ? driverName : 'Admin';
+      var initials, senderName;
+      
+      if (isMe) {
+        initials = driverInitial;
+        senderName = driverName;
+      } else {
+        // Officer message - show officer name if available
+        if (msg.officer_name) {
+          senderName = msg.officer_name;
+          initials = msg.officer_name.substring(0, 1).toUpperCase();
+        } else {
+          senderName = 'Admin';
+          initials = 'A';
+        }
+      }
       
       html += '<div class="flex gap-2.5 max-w-[85%] ' + (isMe ? 'self-end flex-row-reverse' : '') + '">';
       html += '  <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ' + (isMe ? 'bg-amber-400 text-slate-900' : 'bg-slate-900 text-amber-400') + '">' + escapeHtml(initials) + '</div>';
