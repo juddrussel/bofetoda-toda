@@ -15,8 +15,7 @@ try {
 
 render_header([
     'title'          => 'Notifications',
-    'topbar_mode'    => 'simple',
-    'topbar_heading' => 'Notifications',
+    'topbar_mode'    => 'none',
 ]);
 
 // Get notification count
@@ -34,10 +33,9 @@ foreach ($notifications as $n) {
 ?>
 
 <!-- Page Header with Unread Count and Mark All Read -->
-<section class="px-4 pt-2 pb-3 bg-white border-b border-slate-100">
+<section class="px-4 pt-3 pb-3 bg-white border-b border-slate-100">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Notifications</h1>
             <?php if ($unreadCount > 0): ?>
             <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200">
                 <?php echo $unreadCount; ?> Unread
