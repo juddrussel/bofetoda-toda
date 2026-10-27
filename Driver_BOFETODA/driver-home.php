@@ -467,11 +467,11 @@ body {
 
   <!-- BEGIN: FloatingChatButton -->
   <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] z-40">
-    <button type="button" aria-label="Open support chat" class="w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white">
+    <a href="driver-messages.php" aria-label="Open messages" class="w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white">
       <svg class="w-6 h-6 fill-slate-950" viewBox="0 0 24 24">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
       </svg>
-    </button>
+    </a>
   </div>
   <!-- END: FloatingChatButton -->
 
