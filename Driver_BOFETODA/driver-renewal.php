@@ -190,13 +190,29 @@ render_header([
     <!-- Step Titles & Icons -->
     <div class="grid grid-cols-3 text-xs font-semibold pb-2">
       <!-- Step 1 -->
-      <div class="flex items-center justify-center space-x-1.5 <?php echo $step === 1 ? 'text-amber-600' : 'text-slate-400'; ?>">
-        <span class="w-5 h-5 rounded-full <?php echo $step === 1 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'; ?> text-[11px] font-bold flex items-center justify-center">1</span>
+      <div class="flex items-center justify-center space-x-1.5 <?php echo $step > 1 ? 'text-emerald-600' : ($step === 1 ? 'text-amber-600' : 'text-slate-400'); ?>">
+        <span class="w-5 h-5 rounded-full <?php echo $step > 1 ? 'bg-emerald-500 text-white' : ($step === 1 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'); ?> text-[11px] font-bold flex items-center justify-center">
+          <?php if ($step > 1): ?>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          <?php else: ?>
+            1
+          <?php endif; ?>
+        </span>
         <span class="<?php echo $step === 1 ? 'font-bold' : 'font-normal'; ?> tracking-tight">Profile</span>
       </div>
       <!-- Step 2 -->
-      <div class="flex items-center justify-center space-x-1.5 <?php echo $step === 2 ? 'text-amber-600' : 'text-slate-400'; ?>">
-        <span class="w-5 h-5 rounded-full <?php echo $step === 2 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'; ?> text-[11px] font-bold flex items-center justify-center">2</span>
+      <div class="flex items-center justify-center space-x-1.5 <?php echo $step > 2 ? 'text-emerald-600' : ($step === 2 ? 'text-amber-600' : 'text-slate-400'); ?>">
+        <span class="w-5 h-5 rounded-full <?php echo $step > 2 ? 'bg-emerald-500 text-white' : ($step === 2 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'); ?> text-[11px] font-bold flex items-center justify-center">
+          <?php if ($step > 2): ?>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          <?php else: ?>
+            2
+          <?php endif; ?>
+        </span>
         <span class="<?php echo $step === 2 ? 'font-bold' : 'font-normal'; ?>">Vehicle</span>
       </div>
       <!-- Step 3 -->
@@ -207,8 +223,8 @@ render_header([
     </div>
     <!-- Progress Bars -->
     <div class="grid grid-cols-3 gap-2 px-1 pt-1">
-      <div class="h-1.5 <?php echo $step >= 1 ? 'bg-amber-500' : 'bg-slate-200'; ?> rounded-full"></div>
-      <div class="h-1.5 <?php echo $step >= 2 ? 'bg-amber-500' : 'bg-slate-200'; ?> rounded-full"></div>
+      <div class="h-1.5 <?php echo $step >= 1 ? ($step > 1 ? 'bg-emerald-500' : 'bg-amber-500') : 'bg-slate-200'; ?> rounded-full"></div>
+      <div class="h-1.5 <?php echo $step >= 2 ? ($step > 2 ? 'bg-emerald-500' : 'bg-amber-500') : 'bg-slate-200'; ?> rounded-full"></div>
       <div class="h-1.5 <?php echo $step >= 3 ? 'bg-amber-500' : 'bg-slate-200'; ?> rounded-full"></div>
     </div>
   </div>
