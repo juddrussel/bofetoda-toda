@@ -359,6 +359,15 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
           </thead>
           <tbody>
             <?php if (!$isArchived): ?>
+              <?php if (empty($paginatedList['items'])): ?>
+                <tr>
+                  <td colspan="<?= $canManage ? '6' : '5' ?>" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;opacity:0.5;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div style="font-weight:600; font-size:15px; margin-bottom:6px;">No drivers found</div>
+                    <div style="font-size:13px;">Click "Add New" to create your first driver account.</div>
+                  </td>
+                </tr>
+              <?php else: ?>
               <?php foreach ($paginatedList['items'] as $drv): ?>
                 <tr class="is-clickable <?= row_class_for_status($drv['status']) ?>" data-open-modal="view-<?= e($drv['driver_id']) ?>" title="View driver details" data-barangay="<?= e($drv['barangay']) ?>" data-status="<?= e($drv['status']) ?>">
                   <td class="id-col"><?= e($drv['driver_id']) ?></td>
@@ -380,7 +389,17 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
                   <?php endif; ?>
                 </tr>
               <?php endforeach; ?>
+              <?php endif; ?>
             <?php else: ?>
+              <?php if (empty($paginatedList['items'])): ?>
+                <tr>
+                  <td colspan="<?= $canManage ? '6' : '5' ?>" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:12px;opacity:0.5;"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+                    <div style="font-weight:600; font-size:15px; margin-bottom:6px;">No archived drivers</div>
+                    <div style="font-size:13px;">Archived drivers will appear here.</div>
+                  </td>
+                </tr>
+              <?php else: ?>
               <?php foreach ($paginatedList['items'] as $drv): ?>
                 <tr data-barangay="<?= e($drv['barangay']) ?>" data-status="-">
                   <td class="id-col"><?= e($drv['driver_id']) ?></td>
@@ -398,6 +417,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
                   <?php endif; ?>
                 </tr>
               <?php endforeach; ?>
+              <?php endif; ?>
             <?php endif; ?>
           </tbody>
         </table>
