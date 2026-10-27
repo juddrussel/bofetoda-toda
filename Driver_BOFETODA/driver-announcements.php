@@ -29,277 +29,12 @@ $total = $result['total'];
 
 render_header([
     'title' => 'Announcements',
-    'topbar_mode' => 'normal',
+    'topbar_mode' => 'page',
     'topbar_heading' => 'All Announcements',
 ]);
 ?>
 
 <style>
-.announcements-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.announcements-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--navy);
-}
-
-.back-link {
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.back-link:hover {
-    text-decoration: underline;
-}
-
-.filters-bar {
-    background: white;
-    padding: 16px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-card);
-}
-
-.filters-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.filter-input,
-.filter-select {
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-}
-
-.filter-input {
-    flex: 1;
-    min-width: 250px;
-}
-
-.filter-select {
-    min-width: 150px;
-}
-
-.filter-btn {
-    padding: 10px 20px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.filter-btn:hover {
-    background: var(--accent-dark, #0056b3);
-}
-
-.clear-btn {
-    padding: 10px 20px;
-    background: white;
-    color: var(--navy);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.clear-btn:hover {
-    background: #f3f4f6;
-}
-
-.results-info {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 16px;
-}
-
-.announcement-full {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-card);
-}
-
-.announcement-full.is-urgent {
-    border-left: 4px solid #dc2626;
-    background: #fef2f2;
-}
-
-.ann-full-badges {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-}
-
-.ann-full-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: white;
-}
-
-.ann-full-badge--urgent {
-    background: #dc2626;
-}
-
-.ann-full-badge--category {
-    background: var(--cat-color);
-}
-
-.ann-full-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 12px;
-    line-height: 1.3;
-}
-
-.ann-full-message {
-    font-size: 15px;
-    color: var(--text);
-    line-height: 1.7;
-    margin-bottom: 16px;
-    white-space: pre-wrap;
-}
-
-.ann-full-images {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
-    margin: 20px 0;
-}
-
-.ann-full-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.ann-full-image:hover {
-    transform: scale(1.03);
-}
-
-.ann-full-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    font-size: 14px;
-    color: var(--text-muted);
-}
-
-.ann-full-meta-row {
-    display: flex;
-    gap: 6px;
-    align-items: flex-start;
-}
-
-.ann-full-meta strong {
-    color: var(--navy);
-    font-weight: 600;
-    min-width: 80px;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 30px;
-    padding: 20px 0;
-}
-
-.pagination-btn {
-    padding: 8px 16px;
-    background: white;
-    color: var(--navy);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.pagination-btn:hover:not(.is-disabled) {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-.pagination-btn.is-active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-.pagination-btn.is-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.pagination-info {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin: 0 12px;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-}
-
-.empty-state__icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
-.empty-state h3 {
-    color: var(--navy);
-    margin-bottom: 8px;
-}
-
-.empty-state p {
-    color: var(--text-muted);
-    margin-bottom: 20px;
-}
-
 /* Lightbox */
 .lightbox {
     display: none;
@@ -387,159 +122,203 @@ render_header([
     font-size: 14px;
     font-weight: 600;
 }
-
-@media (max-width: 768px) {
-    .filters-row {
-        flex-direction: column;
-    }
-    
-    .filter-input {
-        min-width: 100%;
-    }
-    
-    .ann-full-images {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-    
-    .ann-full-image {
-        height: 120px;
-    }
-}
 </style>
 
-<div class="content">
-    <div class="announcements-header">
-        <h1 class="announcements-title">📢 All Announcements</h1>
-        <a href="driver-home.php" class="back-link">← Back to Home</a>
-    </div>
-    
-    <!-- Filters -->
-    <form class="filters-bar" method="GET" action="">
-        <div class="filters-row">
-            <input type="text" name="search" class="filter-input" placeholder="Search announcements..." value="<?= h($search) ?>">
-            
-            <select name="category" class="filter-select">
-                <option value="">All Categories</option>
-                <option value="Event" <?= $category === 'Event' ? 'selected' : '' ?>>Event</option>
-                <option value="Reminder" <?= $category === 'Reminder' ? 'selected' : '' ?>>Reminder</option>
-                <option value="Update" <?= $category === 'Update' ? 'selected' : '' ?>>Update</option>
-                <option value="News" <?= $category === 'News' ? 'selected' : '' ?>>News</option>
-                <option value="Other" <?= $category === 'Other' ? 'selected' : '' ?>>Other</option>
-            </select>
-            
-            <button type="submit" class="filter-btn">Search</button>
-            <a href="driver-announcements.php" class="clear-btn">Clear</a>
-        </div>
-    </form>
-    
-    <?php if ($total > 0): ?>
-        <div class="results-info">
-            Showing <?= count($announcements) ?> of <?= $total ?> announcement<?= $total !== 1 ? 's' : '' ?>
-            <?php if ($category): ?>
-                in <strong><?= h($category) ?></strong>
-            <?php endif; ?>
-            <?php if ($search): ?>
-                matching "<strong><?= h($search) ?></strong>"
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
-    
-    <!-- Announcements List -->
-    <?php if (empty($announcements)): ?>
-        <div class="empty-state">
-            <div class="empty-state__icon">🔍</div>
-            <h3>No Announcements Found</h3>
-            <p>
-                <?php if ($search || $category): ?>
-                    Try adjusting your search or filter criteria.
-                <?php else: ?>
-                    There are no announcements at this time.
-                <?php endif; ?>
-            </p>
-            <?php if ($search || $category): ?>
-                <a href="driver-announcements.php" class="btn btn-accent">View All Announcements</a>
-            <?php endif; ?>
-        </div>
-    <?php else: ?>
-        <?php foreach ($announcements as $ann): 
-            $catColor = get_category_color($ann['category']);
-            $isUrgent = $ann['priority'] === 'urgent';
-            $images = get_announcement_images($ann['id']);
-        ?>
-            <div class="announcement-full <?= $isUrgent ? 'is-urgent' : '' ?>">
-                <div class="ann-full-badges">
-                    <?php if ($isUrgent): ?>
-                        <span class="ann-full-badge ann-full-badge--urgent">🔥 URGENT</span>
-                    <?php endif; ?>
-                    <span class="ann-full-badge ann-full-badge--category" style="--cat-color: <?= h($catColor) ?>; background: <?= h($catColor) ?>;">
-                        <?= h($ann['category']) ?>
-                    </span>
-                </div>
-                
-                <h2 class="ann-full-title"><?= h($ann['title']) ?></h2>
-                
-                <div class="ann-full-message"><?= nl2br(h($ann['message'])) ?></div>
-                
-                <?php if (!empty($images)): ?>
-                    <div class="ann-full-images">
-                        <?php foreach ($images as $index => $img): ?>
-                            <img src="<?= h(get_announcement_image_url($img['image_path'])) ?>" 
-                                 alt="Announcement image <?= $index + 1 ?>" 
-                                 class="ann-full-image"
-                                 onclick="openLightbox(<?= (int)$ann['id'] ?>, <?= $index ?>)"
-                                 loading="lazy">
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-                
-                <div class="ann-full-meta">
-                    <?php if ($ann['event_date']): ?>
-                        <div class="ann-full-meta-row">
-                            <strong>📅 Event:</strong>
-                            <span><?= h(format_event_date($ann['event_date'])) ?></span>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($ann['event_location']): ?>
-                        <div class="ann-full-meta-row">
-                            <strong>📍 Location:</strong>
-                            <span><?= h($ann['event_location']) ?></span>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <div class="ann-full-meta-row">
-                        <strong>🕒 Posted:</strong>
-                        <span><?= h(date('F j, Y \a\t g:i A', strtotime($ann['created_at']))) ?></span>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
+<!-- Main Content -->
+<div class="min-h-screen bg-gray-50 pb-20">
+    <div class="max-w-4xl mx-auto px-4 py-6">
         
-        <!-- Pagination -->
-        <?php if ($totalPages > 1): ?>
-            <div class="pagination">
-                <?php if ($page > 1): ?>
-                    <a href="?page=<?= $page - 1 ?><?= $category ? '&category=' . urlencode($category) : '' ?><?= $search ? '&search=' . urlencode($search) : '' ?>" class="pagination-btn">
-                        ← Previous
-                    </a>
-                <?php else: ?>
-                    <span class="pagination-btn is-disabled">← Previous</span>
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">📢 All Announcements</h1>
+            <a href="driver-home.php" class="text-sm font-semibold text-blue-600 hover:text-blue-700">
+                ← Back to Home
+            </a>
+        </div>
+        
+        <!-- Search and Filter Bar -->
+        <form method="GET" action="" class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <!-- Search Input -->
+                <div class="flex-1">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        placeholder="Search announcements..." 
+                        value="<?= h($search) ?>"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                </div>
+                
+                <!-- Category Filter -->
+                <select 
+                    name="category" 
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                    <option value="">All Categories</option>
+                    <option value="Event" <?= $category === 'Event' ? 'selected' : '' ?>>Event</option>
+                    <option value="Reminder" <?= $category === 'Reminder' ? 'selected' : '' ?>>Reminder</option>
+                    <option value="Update" <?= $category === 'Update' ? 'selected' : '' ?>>Update</option>
+                    <option value="News" <?= $category === 'News' ? 'selected' : '' ?>>News</option>
+                    <option value="Other" <?= $category === 'Other' ? 'selected' : '' ?>>Other</option>
+                </select>
+                
+                <!-- Buttons -->
+                <button 
+                    type="submit" 
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-sm"
+                >
+                    Search
+                </button>
+                <a 
+                    href="driver-announcements.php" 
+                    class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition text-sm text-center"
+                >
+                    Clear
+                </a>
+            </div>
+        </form>
+        
+        <!-- Results Info -->
+        <?php if ($total > 0): ?>
+            <div class="text-sm text-gray-600 mb-4">
+                Showing <?= count($announcements) ?> of <?= $total ?> announcement<?= $total !== 1 ? 's' : '' ?>
+                <?php if ($category): ?>
+                    in <strong class="text-gray-900"><?= h($category) ?></strong>
                 <?php endif; ?>
-                
-                <span class="pagination-info">
-                    Page <?= $page ?> of <?= $totalPages ?>
-                </span>
-                
-                <?php if ($page < $totalPages): ?>
-                    <a href="?page=<?= $page + 1 ?><?= $category ? '&category=' . urlencode($category) : '' ?><?= $search ? '&search=' . urlencode($search) : '' ?>" class="pagination-btn">
-                        Next →
-                    </a>
-                <?php else: ?>
-                    <span class="pagination-btn is-disabled">Next →</span>
+                <?php if ($search): ?>
+                    matching "<strong class="text-gray-900"><?= h($search) ?></strong>"
                 <?php endif; ?>
             </div>
         <?php endif; ?>
-    <?php endif; ?>
+        
+        <!-- Announcements List -->
+        <?php if (empty($announcements)): ?>
+            <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+                <div class="text-5xl mb-4">🔍</div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Announcements Found</h3>
+                <p class="text-gray-600 mb-6">
+                    <?php if ($search || $category): ?>
+                        Try adjusting your search or filter criteria.
+                    <?php else: ?>
+                        There are no announcements at this time.
+                    <?php endif; ?>
+                </p>
+                <?php if ($search || $category): ?>
+                    <a href="driver-announcements.php" class="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                        View All Announcements
+                    </a>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <div class="space-y-4">
+                <?php foreach ($announcements as $ann): 
+                    $catColor = get_category_color($ann['category']);
+                    $isUrgent = $ann['priority'] === 'urgent';
+                    $images = get_announcement_images($ann['id']);
+                ?>
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden <?= $isUrgent ? 'border-l-4 border-red-600' : '' ?>">
+                        <div class="p-6">
+                            <!-- Badges -->
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <?php if ($isUrgent): ?>
+                                    <span class="px-2.5 py-1 bg-red-600 text-white text-xs font-bold rounded uppercase tracking-wide">
+                                        🔥 URGENT
+                                    </span>
+                                <?php endif; ?>
+                                <span class="px-2.5 py-1 text-white text-xs font-bold rounded uppercase tracking-wide" style="background-color: <?= h($catColor) ?>;">
+                                    <?= h($ann['category']) ?>
+                                </span>
+                            </div>
+                            
+                            <!-- Title -->
+                            <h2 class="text-xl font-bold text-gray-900 mb-3 leading-tight">
+                                <?= h($ann['title']) ?>
+                            </h2>
+                            
+                            <!-- Message -->
+                            <div class="text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">
+                                <?= nl2br(h($ann['message'])) ?>
+                            </div>
+                            
+                            <!-- Images -->
+                            <?php if (!empty($images)): ?>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 my-4">
+                                    <?php foreach ($images as $index => $img): ?>
+                                        <img 
+                                            src="<?= h(get_announcement_image_url($img['image_path'])) ?>" 
+                                            alt="Announcement image <?= $index + 1 ?>" 
+                                            class="w-full h-32 object-cover rounded-lg border border-gray-200 cursor-pointer hover:scale-105 transition-transform"
+                                            onclick="openLightbox(<?= (int)$ann['id'] ?>, <?= $index ?>)"
+                                            loading="lazy"
+                                        >
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <!-- Metadata -->
+                            <div class="pt-4 border-t border-gray-200 space-y-2 text-sm text-gray-600">
+                                <?php if ($ann['event_date']): ?>
+                                    <div class="flex items-start gap-2">
+                                        <span class="font-semibold text-gray-900 min-w-[80px]">📅 Event:</span>
+                                        <span><?= h(format_event_date($ann['event_date'])) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if ($ann['event_location']): ?>
+                                    <div class="flex items-start gap-2">
+                                        <span class="font-semibold text-gray-900 min-w-[80px]">📍 Location:</span>
+                                        <span><?= h($ann['event_location']) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="flex items-start gap-2">
+                                    <span class="font-semibold text-gray-900 min-w-[80px]">🕒 Posted:</span>
+                                    <span><?= h(date('F j, Y \a\t g:i A', strtotime($ann['created_at']))) ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            
+            <!-- Pagination -->
+            <?php if ($totalPages > 1): ?>
+                <div class="flex items-center justify-center gap-2 mt-8">
+                    <?php if ($page > 1): ?>
+                        <a 
+                            href="?page=<?= $page - 1 ?><?= $category ? '&category=' . urlencode($category) : '' ?><?= $search ? '&search=' . urlencode($search) : '' ?>" 
+                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+                        >
+                            ← Previous
+                        </a>
+                    <?php else: ?>
+                        <span class="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg font-semibold text-sm cursor-not-allowed">
+                            ← Previous
+                        </span>
+                    <?php endif; ?>
+                    
+                    <span class="px-4 text-sm text-gray-600">
+                        Page <?= $page ?> of <?= $totalPages ?>
+                    </span>
+                    
+                    <?php if ($page < $totalPages): ?>
+                        <a 
+                            href="?page=<?= $page + 1 ?><?= $category ? '&category=' . urlencode($category) : '' ?><?= $search ? '&search=' . urlencode($search) : '' ?>" 
+                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
+                        >
+                            Next →
+                        </a>
+                    <?php else: ?>
+                        <span class="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg font-semibold text-sm cursor-not-allowed">
+                            Next →
+                        </span>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+        
+    </div>
 </div>
 
 <!-- Lightbox -->
