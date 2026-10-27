@@ -44,8 +44,8 @@
             margin-bottom: 30px;
         }
         .logo {
-            width: 100px;
-            height: 100px;
+            width: 140px;
+            height: 140px;
             object-fit: contain;
         }
         h1 {
