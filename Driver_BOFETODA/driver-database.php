@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!defined('MAX_UPLOAD_BYTES')) {
-    define('MAX_UPLOAD_BYTES', 4 * 1024 * 1024);
+    define('MAX_UPLOAD_BYTES', 10 * 1024 * 1024); // 10MB
 }
 
 
