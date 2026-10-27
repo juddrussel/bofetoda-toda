@@ -294,40 +294,6 @@ $page_sub     = "Decision Support & Performance Overview";
             </div>
           </div>
         </div>
-
-        <div class="progress-card">
-          <h3 class="progress-card__title">Application Status Breakdown</h3>
-          
-          <div class="progress-item">
-            <div class="progress-item__head">
-              <span class="progress-item__label">✅ Approved</span>
-              <span class="progress-item__value"><?= count($approved) ?></span>
-            </div>
-            <div class="progress-item__bar">
-              <div class="progress-item__fill is-success" style="width:<?= $total > 0 ? round((count($approved) / $total) * 100) : 0 ?>%"></div>
-            </div>
-          </div>
-
-          <div class="progress-item">
-            <div class="progress-item__head">
-              <span class="progress-item__label">⏳ Pending Review</span>
-              <span class="progress-item__value"><?= $needsReview ?></span>
-            </div>
-            <div class="progress-item__bar">
-              <div class="progress-item__fill is-warning" style="width:<?= $total > 0 ? round(($needsReview / $total) * 100) : 0 ?>%"></div>
-            </div>
-          </div>
-
-          <div class="progress-item">
-            <div class="progress-item__head">
-              <span class="progress-item__label">❌ Rejected</span>
-              <span class="progress-item__value"><?= count($rejected) ?></span>
-            </div>
-            <div class="progress-item__bar">
-              <div class="progress-item__fill is-danger" style="width:<?= $total > 0 ? round((count($rejected) / $total) * 100) : 0 ?>%"></div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
