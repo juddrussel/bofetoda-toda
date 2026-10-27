@@ -647,6 +647,9 @@ function db_update_driver($driverId, array $in) {
         // Strategy: Get all related data, delete old record, insert new record with new ID
         // This avoids FK constraint issues with updating primary keys
         try {
+            // Disable FK checks for the entire operation
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+            
             $pdo->beginTransaction();
             
             // 1. Get all current driver data
@@ -732,10 +735,14 @@ function db_update_driver($driverId, array $in) {
             }
             
             $pdo->commit();
+            
+            // Re-enable FK checks
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
         } catch (Exception $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1'); // Re-enable even on error
             throw $e;
         }
     } else {
