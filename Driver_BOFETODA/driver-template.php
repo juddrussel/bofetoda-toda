@@ -2198,6 +2198,7 @@ function render_footer($active_page = '') {
   </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 (function() {
   var chatToggleBtn = document.getElementById('chatToggleBtn');
   var chatWindow = document.getElementById('chatWindow');
@@ -2211,6 +2212,12 @@ function render_footer($active_page = '') {
   var driverName = <?= json_encode($driver['name']) ?>;
   var driverInitial = <?= json_encode($driverInitial) ?>;
   var selectedFiles = [];
+  
+  // Exit if elements not found
+  if (!chatToggleBtn || !chatWindow) {
+    console.error('Chat elements not found');
+    return;
+  }
   
   function openChat() {
     chatWindow.style.display = 'flex';
@@ -2422,6 +2429,7 @@ function render_footer($active_page = '') {
     });
   }
 })();
+});
 </script>
             <?php
         }
