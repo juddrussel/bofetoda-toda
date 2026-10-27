@@ -2350,6 +2350,9 @@ function get_general_announcements($filters = []) {
     $where = [];
     $params = [];
     
+    // Debug logging
+    error_log("get_general_announcements called with filters: " . print_r($filters, true));
+    
     if (isset($filters['category']) && $filters['category'] !== '') {
         $where[] = 'ga.category = :category';
         $params['category'] = $filters['category'];
@@ -2383,8 +2386,20 @@ function get_general_announcements($filters = []) {
                 CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
                 ga.created_at DESC";
     
+    // Debug logging
+    error_log("SQL: " . $sql);
+    error_log("Params: " . print_r($params, true));
+    
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    
+    try {
+        $stmt->execute($params);
+    } catch (PDOException $e) {
+        error_log("PDO Error: " . $e->getMessage());
+        error_log("SQL: " . $sql);
+        error_log("Params: " . print_r($params, true));
+        throw $e;
+    }
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
