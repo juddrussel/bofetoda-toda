@@ -647,15 +647,8 @@ function db_update_driver($driverId, array $in) {
         // Update driver_id in drivers table and related tables
         $pdo->beginTransaction();
         try {
-            // Update applications table
-            $pdo->prepare('UPDATE applications SET driver_id = :new WHERE driver_id = :old')
-                ->execute(['new' => $newDriverId, 'old' => $driverId]);
-            
-            // Update activity_logs table
-            $pdo->prepare('UPDATE activity_logs SET driver_id = :new WHERE driver_id = :old')
-                ->execute(['new' => $newDriverId, 'old' => $driverId]);
-            
-            // Update the driver_id in drivers table along with other fields
+            // First, update the driver_id in the drivers table
+            // The foreign key with ON UPDATE CASCADE will auto-update related tables
             $pdo->prepare(
                 'UPDATE drivers SET
                     driver_id = :new_driver_id,
