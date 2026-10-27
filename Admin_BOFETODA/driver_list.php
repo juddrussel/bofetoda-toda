@@ -156,11 +156,20 @@ $dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS conta
             ORDER BY d.name
             LIMIT :limit OFFSET :offset";
 $dataStmt = $pdo->prepare($dataSQL);
-foreach ($params as $key => $val) {
-    $dataStmt->bindValue($key, $val);
+
+// Bind all parameters including limit and offset
+$dataParams = $params;
+$dataParams['limit'] = $perPage;
+$dataParams['offset'] = $offset;
+
+foreach ($dataParams as $key => $val) {
+    if ($key === 'limit' || $key === 'offset') {
+        $dataStmt->bindValue(":$key", $val, PDO::PARAM_INT);
+    } else {
+        $dataStmt->bindValue(":$key", $val);
+    }
 }
-$dataStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-$dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
 $dataStmt->execute();
 $drivers = $dataStmt->fetchAll();
 
