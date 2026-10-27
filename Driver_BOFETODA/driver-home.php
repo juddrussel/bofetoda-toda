@@ -115,26 +115,15 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
 
   <!-- User Greeting Header -->
   <section class="px-5 pt-3 pb-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Good Day!</p>
-        <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight mt-0.5">
-          <?= h($driver['name']) ?>
-        </h1>
-        <div class="flex items-center gap-2 mt-1">
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
-            Active Member
-          </span>
-        </div>
-      </div>
-      
-      <!-- Profile Avatar -->
-      <div class="flex-shrink-0 ml-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 p-0.5 shadow-sm">
-          <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center font-bold text-amber-600 text-lg">
-            <?= h($driverInitial) ?>
-          </div>
-        </div>
+    <div>
+      <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Good Day!</p>
+      <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+        <?= h($driver['name']) ?>
+      </h1>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+          Active Member
+        </span>
       </div>
     </div>
   </section>
