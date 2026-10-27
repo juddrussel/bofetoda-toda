@@ -23,7 +23,11 @@ render_header([
 $notifications = get_notifications();
 $unreadCount = 0;
 foreach ($notifications as $n) {
-    if (!$n['is_read']) {
+    // Check if is_read key exists and is 0/false
+    if (isset($n['is_read']) && !$n['is_read']) {
+        $unreadCount++;
+    } elseif (!isset($n['is_read'])) {
+        // If is_read doesn't exist, treat as unread
         $unreadCount++;
     }
 }
@@ -84,10 +88,13 @@ foreach ($notifications as $n) {
                 <div class="flex items-start space-x-3">
                     <!-- Status Dot and Icon -->
                     <div class="mt-1 relative flex-shrink-0">
-                        <?php if (!$n['is_read']): ?>
+                        <?php 
+                        $isUnread = !isset($n['is_read']) || !$n['is_read'];
+                        if ($isUnread): 
+                        ?>
                         <span class="w-2.5 h-2.5 bg-amber-500 rounded-full block absolute -top-0.5 -left-0.5 ring-2 ring-white"></span>
                         <?php endif; ?>
-                        <div class="w-9 h-9 rounded-xl <?php echo !$n['is_read'] ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'; ?> flex items-center justify-center font-bold">
+                        <div class="w-9 h-9 rounded-xl <?php echo $isUnread ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'; ?> flex items-center justify-center font-bold">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
                             </svg>
