@@ -417,8 +417,7 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
 
   <?php
   // Get unread message count for badge
-  require_once 'driver-database.php';
-  $unrepliedCount = get_unreplied_message_count($driver['driver_id']);
+  $unrepliedCount = get_my_unread_reply_count($driver['driver_id']);
   ?>
   
   <!-- Floating Chat Button -->
@@ -498,8 +497,14 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
             <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <?php 
-          $unreadCount = get_unread_notification_count($driver['driver_id']);
-          if ($unreadCount > 0): 
+          $notifCount = 0;
+          try {
+            $pdo = get_pdo();
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM notifications WHERE driver_id = :driver_id AND is_read = 0');
+            $stmt->execute(['driver_id' => $driver['driver_id']]);
+            $notifCount = (int)$stmt->fetchColumn();
+          } catch (Exception $e) {}
+          if ($notifCount > 0): 
           ?>
           <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-slate-900"></span>
           <?php endif; ?>
