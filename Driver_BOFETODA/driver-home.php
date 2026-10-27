@@ -55,602 +55,386 @@ if ($currentAppStatus && !in_array($currentAppStatus, ['Approved', 'Rejected'], 
     $state = 'none';
 }
 
+render_header([
+    'title'          => 'Home',
+    'topbar_mode'    => 'home',
+    'topbar_heading' => $driver['name'],
+]);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title><?= h($driver['name']) ?> - BOFETODA Driver Portal</title>
+<style>
+.gen-ann-section {
+    margin-bottom: 24px;
+}
 
-<!-- Tailwind CSS CDN with forms and container queries -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        toda: {
-          yellow: '#F59E0B',
-          'yellow-hover': '#D97706',
-          'yellow-light': '#FEF3C7',
-          dark: '#0A0F1D',
-          card: '#FFFFFF',
-          border: '#E2E8F0',
-          text: '#0F172A',
-          muted: '#64748B',
-          blue: '#2563EB',
-          'blue-soft': '#EFF6FF',
-        }
-      },
-      boxShadow: {
-        'card': '0 2px 10px -2px rgba(15, 23, 42, 0.05), 0 1px 3px -1px rgba(15, 23, 42, 0.03)',
-        'floating': '0 10px 25px -5px rgba(245, 158, 11, 0.35)',
-        'nav': '0 -4px 20px -2px rgba(0, 0, 0, 0.15)'
-      },
-      fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-      }
-    }
-  }
+.gen-ann-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 }
-</script>
-<style data-purpose="custom-scroll-and-ios">
-/* iOS Momentum Scrolling & Safe Area handling */
-body {
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+
+.gen-ann-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
 }
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+
+.gen-ann-link {
+    font-size: 14px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
 }
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+.gen-ann-link:hover {
+    text-decoration: underline;
+}
+
+.gen-ann-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-card);
+    position: relative;
+}
+
+.gen-ann-card.is-urgent {
+    border-left: 4px solid #dc2626;
+    background: #fef2f2;
+}
+
+.gen-ann-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.gen-ann-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+.gen-ann-badge--urgent {
+    background: #dc2626;
+}
+
+.gen-ann-badge--category {
+    background: var(--cat-color);
+}
+
+.gen-ann-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.gen-ann-card__message {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.gen-ann-card__message.is-truncated {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gen-ann-read-more {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.gen-ann-read-more:hover {
+    text-decoration: underline;
+}
+
+.gen-ann-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.gen-ann-meta-row {
+    display: flex;
+    gap: 4px;
+}
+
+.gen-ann-meta strong {
+    color: var(--navy);
+    font-weight: 600;
+}
+
+.gen-ann-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 6px;
+    margin-top: 12px;
+    border: 1px solid var(--border);
+}
+
+.gen-ann-images {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.gen-ann-images img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.gen-ann-images img:hover {
+    transform: scale(1.05);
+}
+
+.no-announcements {
+    text-align: center;
+    padding: 30px 20px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.expand-content {
+    display: none;
+}
+
+.expand-content.is-expanded {
+    display: block;
 }
 </style>
-</head>
 
-<body class="bg-slate-100 text-toda-text min-h-screen flex justify-center">
+<div class="content">
 
-<!-- Mobile Screen Container (390px iOS standard view) -->
-<div class="w-full max-w-[420px] bg-slate-50 min-h-screen flex flex-col relative shadow-2xl border-x border-slate-200">
-
-  <!-- BEGIN: TopBrandBar -->
-  <header class="pt-3 px-5 pb-1 flex items-center justify-between text-[11px] text-slate-400 font-medium tracking-wide">
-    <div class="flex items-center space-x-1.5">
-      <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span class="text-slate-600 font-semibold">TODA Link Mobile</span>
-    </div>
-    <span>© 2026 Bocaue TODA Inc.</span>
-  </header>
-  <!-- END: TopBrandBar -->
-
-  <!-- BEGIN: UserGreetingHeader -->
-  <section class="px-5 pt-3 pb-4" data-purpose="driver-greeting">
-    <div class="flex items-center justify-between">
-      <div>
-        <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Good Day!</p>
-        <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight mt-0.5">
-          <?= h($driver['name']) ?>
-        </h1>
-        <div class="flex items-center gap-2 mt-1">
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-            Franchise ID: <?= h($driver['driver_id']) ?>
-          </span>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
-            Active Member
-          </span>
-        </div>
-      </div>
-      <!-- Profile Avatar Placeholder -->
-      <div class="relative flex-shrink-0 ml-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 p-0.5 shadow-sm">
-          <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center font-bold text-amber-600 text-lg">
-            <?= strtoupper(substr($driver['name'], 0, 2)) ?>
-          </div>
-        </div>
-        <div class="absolute -bottom-1 -right-1 bg-emerald-500 w-3.5 h-3.5 rounded-full border-2 border-white"></div>
-      </div>
-    </div>
-  </section>
-  <!-- END: UserGreetingHeader -->
-
-  <!-- Main Content Area -->
-  <main class="flex-1 px-4 space-y-4 pb-28">
-
-    <!-- BEGIN: AnnouncementsSection -->
+    <!-- General Announcements Section -->
     <?php if (!empty($generalAnnouncements)): ?>
-    <section data-purpose="announcements-section">
-      <!-- Section Header -->
-      <div class="flex items-center justify-between px-1 mb-2.5">
-        <div class="flex items-center space-x-2">
-          <span class="p-1 rounded-md bg-rose-50 text-rose-500">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h3l-1 4h2l1-4h8l1 4h2l-1-4h3c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z"/>
-            </svg>
-          </span>
-          <h2 class="text-base font-bold text-slate-800 tracking-tight">Announcements</h2>
-        </div>
-        <a href="driver-announcements.php" class="text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 transition-colors">
-          View All
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
-          </svg>
-        </a>
-      </div>
-
-      <!-- Announcements Loop -->
-      <?php foreach ($generalAnnouncements as $ann): 
-        $truncated = truncate_text($ann['message'], 150);
-        $isUrgent = $ann['priority'] === 'urgent';
-        $images = $ann['image_count'] > 0 ? get_announcement_images($ann['id']) : [];
-      ?>
-      <article class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-card transition-all hover:shadow-md mb-3" id="ann-<?= (int)$ann['id'] ?>">
-        <!-- Tag Header -->
-        <div class="flex items-center justify-between mb-2">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-extrabold tracking-wide uppercase <?= $ann['event_date'] ? 'bg-blue-600 text-white' : ($isUrgent ? 'bg-red-600 text-white' : 'bg-slate-600 text-white') ?> shadow-sm">
-            <?= $ann['event_date'] ? 'EVENT' : ($isUrgent ? 'URGENT' : h($ann['category'])) ?>
-          </span>
-          <span class="text-[11px] text-slate-400 font-medium"><?= h(date('M j, Y', strtotime($ann['created_at']))) ?></span>
-        </div>
-
-        <!-- Title -->
-        <h3 class="text-sm font-bold text-slate-900 leading-snug hover:text-blue-600 transition-colors">
-          <?= h($ann['title']) ?>
-        </h3>
-
-        <!-- Teaser Body -->
-        <div class="text-xs text-slate-600 mt-1.5 leading-relaxed" id="msg-<?= (int)$ann['id'] ?>">
-          <?= nl2br(h($truncated['text'])) ?>
-        </div>
-        
-        <?php if ($truncated['is_truncated']): ?>
-          <div class="text-xs text-slate-600 leading-relaxed hidden" id="full-<?= (int)$ann['id'] ?>">
-            <?= nl2br(h($ann['message'])) ?>
-          </div>
-          <a href="javascript:void(0)" onclick="toggleMessage(<?= (int)$ann['id'] ?>)" id="toggle-<?= (int)$ann['id'] ?>" class="inline-block text-xs font-bold text-blue-600 hover:underline mt-1">
-            Read more...
-          </a>
-        <?php endif; ?>
-
-        <!-- Media & Thumbnail -->
-        <?php if (!empty($images) || $ann['event_date'] || $ann['event_location']): ?>
-        <div class="mt-3 flex items-start space-x-3">
-          <?php if (!empty($images)): ?>
-          <div class="relative w-24 h-20 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 shadow-sm">
-            <img src="<?= h(get_announcement_image_url($images[0]['image_path'])) ?>" alt="Announcement image" class="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-300">
-            <span class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm text-white text-[9px] px-1.5 py-0.5 rounded font-mono font-medium">
-              Photo
-            </span>
-          </div>
-          <?php endif; ?>
-          
-          <!-- Meta details block -->
-          <?php if ($ann['event_date'] || $ann['event_location']): ?>
-          <div class="space-y-1.5 pt-0.5 flex-1">
-            <?php if ($ann['event_date']): ?>
-            <div class="flex items-center text-xs text-slate-700 font-medium">
-              <span class="w-4 h-4 mr-1.5 text-blue-500 inline-flex items-center justify-center flex-shrink-0">📅</span>
-              <span class="truncate"><strong>Event:</strong> <?= h(format_event_date($ann['event_date'])) ?></span>
+        <div class="gen-ann-section">
+            <div class="gen-ann-header">
+                <h2 class="gen-ann-title">📢 Announcements</h2>
+                <a href="driver-announcements.php" class="gen-ann-link">View All →</a>
             </div>
-            <?php endif; ?>
             
-            <?php if ($ann['event_location']): ?>
-            <div class="flex items-center text-xs text-slate-700 font-medium">
-              <span class="w-4 h-4 mr-1.5 text-rose-500 inline-flex items-center justify-center flex-shrink-0">📍</span>
-              <span><strong>Location:</strong> <?= h($ann['event_location']) ?></span>
+            <?php foreach ($generalAnnouncements as $ann): 
+                $truncated = truncate_text($ann['message'], 150);
+                $catColor = get_category_color($ann['category']);
+                $isUrgent = $ann['priority'] === 'urgent';
+            ?>
+                <div class="gen-ann-card <?= $isUrgent ? 'is-urgent' : '' ?>" id="ann-<?= (int)$ann['id'] ?>">
+                    <div class="gen-ann-badges">
+                        <?php if ($isUrgent): ?>
+                            <span class="gen-ann-badge gen-ann-badge--urgent">🔥 URGENT</span>
+                        <?php endif; ?>
+                        <span class="gen-ann-badge gen-ann-badge--category" style="--cat-color: <?= h($catColor) ?>; background: <?= h($catColor) ?>;">
+                            <?= h($ann['category']) ?>
+                        </span>
+                    </div>
+                    
+                    <h3 class="gen-ann-card__title"><?= h($ann['title']) ?></h3>
+                    
+                    <div class="gen-ann-card__message <?= $truncated['is_truncated'] ? 'is-truncated' : '' ?>" id="msg-<?= (int)$ann['id'] ?>">
+                        <?= nl2br(h($truncated['text'])) ?>
+                    </div>
+                    
+                    <?php if ($truncated['is_truncated']): ?>
+                        <span class="expand-content" id="full-<?= (int)$ann['id'] ?>">
+                            <?= nl2br(h($ann['message'])) ?>
+                        </span>
+                        <a href="javascript:void(0)" class="gen-ann-read-more" onclick="toggleMessage(<?= (int)$ann['id'] ?>)" id="toggle-<?= (int)$ann['id'] ?>">
+                            Read more...
+                        </a>
+                    <?php endif; ?>
+                    
+                    <?php if ($ann['image_count'] > 0): 
+                        $images = get_announcement_images($ann['id']);
+                        if (!empty($images)):
+                    ?>
+                        <div class="gen-ann-images">
+                            <?php foreach (array_slice($images, 0, 4) as $img): ?>
+                                <img src="<?= h(get_announcement_image_url($img['image_path'])) ?>" alt="Announcement image" loading="lazy">
+                            <?php endforeach; ?>
+                            <?php if (count($images) > 4): ?>
+                                <div style="width:80px;height:80px;border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;font-size:14px;font-weight:700;color:var(--text-muted);">
+                                    +<?= count($images) - 4 ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; endif; ?>
+                    
+                    <div class="gen-ann-meta">
+                        <?php if ($ann['event_date']): ?>
+                            <div class="gen-ann-meta-row">
+                                <strong>📅 Event:</strong> <?= h(format_event_date($ann['event_date'])) ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if ($ann['event_location']): ?>
+                            <div class="gen-ann-meta-row">
+                                <strong>📍 Location:</strong> <?= h($ann['event_location']) ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="gen-ann-meta-row">
+                            <strong>Posted:</strong> <?= h(date('M j, Y', strtotime($ann['created_at']))) ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Renewal Status Section (existing code) -->
+
+    <?php if ($state === 'open'): ?>
+        <div class="card" style="position:relative;">
+            <span class="badge badge--open status-tag">OPEN</span>
+            <div class="announcement-title"><?php echo h($openAnnouncement['title']); ?></div>
+            <p class="announcement-text"><?php echo h($openAnnouncement['message']); ?></p>
+            <div class="announcement-meta"><strong>Date Open:</strong> <span><?php echo h($openAnnouncement['opened']); ?></span></div>
+            <div class="announcement-meta"><strong>Deadline:</strong> <span><?php echo h($openAnnouncement['deadline']); ?></span></div>
+            <a href="driver-renewal.php" class="card-cta">Submit now!</a>
+        </div>
+
+    <?php elseif ($state === 'upcoming'): ?>
+        <div class="card" style="position:relative;">
+            <span class="badge badge--pending status-tag">UPCOMING</span>
+            <div class="announcement-title"><?php echo h($upcomingAnnouncement['title']); ?></div>
+            <p class="announcement-text"><?php echo h($upcomingAnnouncement['message']); ?></p>
+            <div class="announcement-meta"><strong>Opens:</strong> <span><?php echo h($upcomingAnnouncement['opened']); ?></span></div>
+            <div class="announcement-meta"><strong>Deadline:</strong> <span><?php echo h($upcomingAnnouncement['deadline']); ?></span></div>
+            <p class="text-muted" style="font-size:12.5px;margin-top:10px;">Submission will open on the date above. Come back then to apply.</p>
+        </div>
+
+    <?php elseif ($state === 'submitted'): ?>
+        <div class="card">
+            <div class="card-title" style="margin-bottom:4px;">Current Status</div>
+            <div class="text-muted" style="font-size:13px;margin-bottom:18px;">Application No. <?php echo h($currentAppNo); ?></div>
+
+            <div class="stepper">
+                <div class="step done">
+                    <div class="step-circle">&#10003;</div>
+                    <div class="step-label" style="font-size:10px;">Submitted</div>
+                    <div class="step-date"><?php echo !empty($currentDetail['submitted_at']) ? h(date('M j, Y', strtotime($currentDetail['submitted_at']))) : ''; ?></div>
+                </div>
+                <div class="step <?php echo $currentAppStatus !== 'Pending' ? 'done' : ''; ?>">
+                    <div class="step-line"></div>
+                    <div class="step-circle"><?php echo $currentAppStatus !== 'Pending' ? '&#10003;' : '2'; ?></div>
+                    <div class="step-label" style="font-size:10px;">Validated</div>
+                    <div class="step-date"><?php echo !empty($currentDetail['validated_at']) ? h(date('M j, Y', strtotime($currentDetail['validated_at']))) : ''; ?></div>
+                </div>
+                <div class="step <?php echo in_array($currentAppStatus, ['Approved'], true) ? 'done' : ''; ?>">
+                    <div class="step-line"></div>
+                    <div class="step-circle"><?php echo $currentAppStatus === 'Approved' ? '&#10003;' : '3'; ?></div>
+                    <div class="step-label" style="font-size:10px;">Approved</div>
+                    <div class="step-date"><?php echo (!empty($currentDetail['approved_at']) && $currentAppStatus === 'Approved') ? h(date('M j, Y', strtotime($currentDetail['approved_at']))) : ''; ?></div>
+                </div>
+                <div class="step">
+                    <div class="step-line"></div>
+                    <div class="step-circle">4</div>
+                    <div class="step-label" style="font-size:10px;">Done</div>
+                    <div class="step-date"><?php echo (!empty($currentDetail['approved_at']) && $currentAppStatus === 'Approved') ? h(date('M j, Y', strtotime($currentDetail['approved_at']))) : ''; ?></div>
+                </div>
             </div>
+
+            <a href="driver-view-application.php" class="btn btn-accent">View Details</a>
+        </div>
+
+    <?php elseif ($state === 'rejected'): ?>
+        <div class="card" style="position:relative;">
+            <span class="badge badge--rejected status-tag">REJECTED</span>
+            <?php if ($openAnnouncement): ?>
+                <div class="announcement-title"><?php echo h($openAnnouncement['title']); ?></div>
+                <p class="announcement-text"><?php echo h($openAnnouncement['message']); ?></p>
+                <div class="announcement-meta"><strong>Date Open:</strong> <span><?php echo h($openAnnouncement['opened']); ?></span></div>
+                <div class="announcement-meta"><strong>Deadline:</strong> <span><?php echo h($openAnnouncement['deadline']); ?></span></div>
+            <?php else: ?>
+                <div class="card-title" style="margin-bottom:2px;">Admin Remarks</div>
             <?php endif; ?>
-            
-            <div class="flex items-center text-[11px] text-slate-400">
-              <span class="w-4 h-4 mr-1.5 inline-flex items-center justify-center flex-shrink-0">🕒</span>
-              <span>Posted: <?= h(date('M j, Y', strtotime($ann['created_at']))) ?></span>
-            </div>
-          </div>
-          <?php endif; ?>
+            <p style="font-weight:700;font-size:14px;margin-top:16px;margin-bottom:8px;"><?php echo h($currentDetail['reject_reason'] ?? 'Application Rejected'); ?></p>
+            <p class="text-muted" style="font-size:13px;"><?php echo h($currentDetail['reject_note'] ?: 'Please review and resubmit your application.'); ?></p>
+            <a href="driver-renewal.php?start=1" class="card-cta">Re-Apply</a>
         </div>
-        <?php endif; ?>
-      </article>
-      <?php endforeach; ?>
-    </section>
+
+    <?php elseif ($state === 'approved'): ?>
+        <div class="card" style="position:relative;">
+            <span class="badge badge--approved status-tag">APPROVED</span>
+            <div class="card-title" style="margin-bottom:4px;">Current Status</div>
+            <div class="text-muted" style="font-size:13px;">Application No. <?php echo h($currentAppNo); ?></div>
+            <p class="text-muted" style="font-size:13px;margin-top:12px;">Your renewal for this cycle has been approved. There&rsquo;s nothing else to submit right now.</p>
+            <a href="driver-view-application.php" class="btn btn-accent" style="margin-top:14px;">View Details</a>
+        </div>
+
     <?php endif; ?>
-    <!-- END: AnnouncementsSection -->
 
-    <!-- BEGIN: CurrentStatusSection -->
-    <?php if ($state !== 'none'): ?>
-    <section class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-card" data-purpose="current-status-section">
-      
-      <?php if ($state === 'open'): ?>
-        <!-- Status Header -->
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h2 class="text-base font-black text-slate-900 tracking-tight">Current Status</h2>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Renewal Period Open</p>
-          </div>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Open
-          </span>
-        </div>
-        <p class="text-xs text-slate-600 leading-relaxed mb-3"><?= h($openAnnouncement['message']) ?></p>
-        <div class="space-y-1.5 text-xs text-slate-700 mb-4">
-          <div><strong>Date Open:</strong> <?= h($openAnnouncement['opened']) ?></div>
-          <div><strong>Deadline:</strong> <?= h($openAnnouncement['deadline']) ?></div>
-        </div>
-        <a href="driver-renewal.php" class="w-full mt-2 py-3 px-4 bg-amber-400 hover:bg-amber-500 active:scale-[0.98] text-slate-900 font-extrabold text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2">
-          <span>Submit Renewal</span>
-          <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
-          </svg>
-        </a>
-
-      <?php elseif ($state === 'upcoming'): ?>
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h2 class="text-base font-black text-slate-900 tracking-tight">Current Status</h2>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Renewal Period Upcoming</p>
-          </div>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
-            Upcoming
-          </span>
-        </div>
-        <p class="text-xs text-slate-600 leading-relaxed mb-3"><?= h($upcomingAnnouncement['message']) ?></p>
-        <div class="space-y-1.5 text-xs text-slate-700">
-          <div><strong>Opens:</strong> <?= h($upcomingAnnouncement['opened']) ?></div>
-          <div><strong>Deadline:</strong> <?= h($upcomingAnnouncement['deadline']) ?></div>
-        </div>
-
-      <?php elseif ($state === 'submitted'): ?>
-        <!-- Status Header -->
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h2 class="text-base font-black text-slate-900 tracking-tight">Current Status</h2>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1 font-mono">
-              Application No. <span class="text-slate-800 font-bold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"><?= h($currentAppNo) ?></span>
-            </p>
-          </div>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-            In Progress
-          </span>
-        </div>
-
-        <!-- 4-Step Tracker Flow -->
-        <div class="py-2 px-1">
-          <div class="relative flex items-center justify-between">
-            <!-- Connecting Line Background -->
-            <div class="absolute left-4 right-4 top-4 h-[2px] bg-slate-200 -z-0"></div>
-            <!-- Active Progress Line -->
-            <div class="absolute left-4 <?= $currentAppStatus === 'Pending' ? 'w-1/6' : ($currentAppStatus === 'Validated' ? 'w-2/6' : 'w-full') ?> top-4 h-[2px] bg-amber-500 -z-0"></div>
-
-            <!-- Step 1: Submitted -->
-            <div class="flex flex-col items-center relative z-10">
-              <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-md font-bold text-xs ring-4 ring-amber-100">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
-                </svg>
-              </div>
-              <span class="text-[11px] font-bold text-slate-800 mt-1.5">Submitted</span>
-              <span class="text-[9px] font-medium text-slate-400"><?= !empty($currentDetail['submitted_at']) ? h(date('M j, Y', strtotime($currentDetail['submitted_at']))) : '' ?></span>
-            </div>
-
-            <!-- Step 2: Validated -->
-            <div class="flex flex-col items-center relative z-10">
-              <div class="w-8 h-8 rounded-full <?= $currentAppStatus !== 'Pending' ? 'bg-amber-500 text-white ring-4 ring-amber-100' : 'bg-slate-100 text-slate-500 border border-slate-300' ?> flex items-center justify-center font-bold text-xs">
-                <?= $currentAppStatus !== 'Pending' ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/></svg>' : '2' ?>
-              </div>
-              <span class="text-[11px] <?= $currentAppStatus !== 'Pending' ? 'font-bold text-slate-800' : 'font-medium text-slate-500' ?> mt-1.5">Validated</span>
-              <span class="text-[9px] font-medium text-slate-400"><?= !empty($currentDetail['validated_at']) ? h(date('M j, Y', strtotime($currentDetail['validated_at']))) : '' ?></span>
-            </div>
-
-            <!-- Step 3: Approved -->
-            <div class="flex flex-col items-center relative z-10">
-              <div class="w-8 h-8 rounded-full <?= $currentAppStatus === 'Approved' ? 'bg-amber-500 text-white ring-4 ring-amber-100' : 'bg-slate-100 text-slate-500 border border-slate-300' ?> flex items-center justify-center font-bold text-xs">
-                <?= $currentAppStatus === 'Approved' ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/></svg>' : '3' ?>
-              </div>
-              <span class="text-[11px] <?= $currentAppStatus === 'Approved' ? 'font-bold text-slate-800' : 'font-medium text-slate-500' ?> mt-1.5">Approved</span>
-              <span class="text-[9px] font-medium text-slate-400"><?= !empty($currentDetail['approved_at']) && $currentAppStatus === 'Approved' ? h(date('M j, Y', strtotime($currentDetail['approved_at']))) : '' ?></span>
-            </div>
-
-            <!-- Step 4: Done -->
-            <div class="flex flex-col items-center relative z-10">
-              <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 border border-slate-300 flex items-center justify-center font-bold text-xs">
-                4
-              </div>
-              <span class="text-[11px] font-medium text-slate-500 mt-1.5">Done</span>
-              <span class="text-[9px] font-normal text-transparent select-none">-</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action CTA Button -->
-        <a href="driver-view-application.php" class="w-full mt-4 py-3 px-4 bg-amber-400 hover:bg-amber-500 active:scale-[0.98] text-slate-900 font-extrabold text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2">
-          <span>View Details</span>
-          <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
-          </svg>
-        </a>
-
-      <?php elseif ($state === 'approved'): ?>
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h2 class="text-base font-black text-slate-900 tracking-tight">Current Status</h2>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5 font-mono">Application No. <?= h($currentAppNo) ?></p>
-          </div>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Approved
-          </span>
-        </div>
-        <p class="text-xs text-slate-600 leading-relaxed mb-3">Your renewal for this cycle has been approved. There's nothing else to submit right now.</p>
-        <a href="driver-view-application.php" class="w-full mt-2 py-3 px-4 bg-slate-700 hover:bg-slate-800 active:scale-[0.98] text-white font-extrabold text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2">
-          <span>View Details</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
-          </svg>
-        </a>
-
-      <?php elseif ($state === 'rejected'): ?>
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h2 class="text-base font-black text-slate-900 tracking-tight">Current Status</h2>
-            <p class="text-xs font-semibold text-slate-500 mt-0.5">Application Rejected</p>
-          </div>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
-            Rejected
-          </span>
-        </div>
-        <div class="bg-red-50 border-l-3 border-red-500 p-3 rounded mb-3">
-          <p class="text-sm font-bold text-red-900"><?= h($currentDetail['reject_reason'] ?? 'Application Rejected') ?></p>
-          <p class="text-xs text-red-700 mt-1"><?= h($currentDetail['reject_note'] ?: 'Please review and resubmit.') ?></p>
-        </div>
-        <?php if ($openAnnouncement): ?>
-        <div class="space-y-1.5 text-xs text-slate-700 mb-3">
-          <div><strong>Date Open:</strong> <?= h($openAnnouncement['opened']) ?></div>
-          <div><strong>Deadline:</strong> <?= h($openAnnouncement['deadline']) ?></div>
-        </div>
+    <div class="card">
+        <div class="card-title">Renewal History</div>
+        <?php $history = get_renewal_history($driver['driver_id']); ?>
+        <?php if (!$history): ?>
+            <p class="text-muted" style="font-size:13px;">No renewal history yet.</p>
         <?php endif; ?>
-        <a href="driver-renewal.php?start=1" class="w-full mt-2 py-3 px-4 bg-amber-400 hover:bg-amber-500 active:scale-[0.98] text-slate-900 font-extrabold text-sm rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2">
-          <span>Re-Apply Now</span>
-          <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
-          </svg>
-        </a>
-      <?php endif; ?>
-    </section>
-    <?php endif; ?>
-    <!-- END: CurrentStatusSection -->
-
-    <!-- BEGIN: RenewalHistorySection -->
-    <section class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-card" data-purpose="renewal-history-card">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base font-black text-slate-900 tracking-tight">Renewal History</h2>
-        <span class="text-xs text-slate-400 font-medium">Archive</span>
-      </div>
-
-      <?php $history = get_renewal_history($driver['driver_id']); ?>
-      <?php if (!$history): ?>
-      <!-- Empty State Container -->
-      <div class="py-5 px-3 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
-        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
-          </svg>
-        </div>
-        <p class="text-xs font-semibold text-slate-500">No renewal history yet.</p>
-        <p class="text-[11px] text-slate-400 mt-0.5">Prior records and expired permits will show here once completed.</p>
-      </div>
-      <?php else: ?>
-      <!-- History Items -->
-      <div class="space-y-2">
         <?php foreach ($history as $item): ?>
-        <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50/70 border border-slate-200">
-          <div class="flex items-center space-x-3">
-            <span class="text-lg font-black text-slate-900"><?= h($item['year']) ?></span>
-            <div>
-              <p class="text-xs font-semibold text-slate-700"><?= h($item['app_no']) ?></p>
-              <p class="text-[11px] text-slate-400"><?= h($item['date']) ?></p>
-            </div>
-          </div>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase <?= $item['status'] === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' ?>">
-            <?= h($item['status']) ?>
-          </span>
+        <div class="history-item">
+            <span class="history-year"><?php echo h($item['year']); ?></span>
+            <span class="history-app"><?php echo h($item['app_no']); ?></span>
+            <span class="history-date"><?php echo h($item['date']); ?></span>
+            <span class="badge <?php echo $item['status'] === 'APPROVED' ? 'badge--approved' : 'badge--rejected'; ?>"><?php echo h($item['status']); ?></span>
         </div>
         <?php endforeach; ?>
-      </div>
-      <?php endif; ?>
-    </section>
-    <!-- END: RenewalHistorySection -->
-
-  </main>
-
-  <!-- BEGIN: FloatingChatButton -->
-  <div class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] z-40">
-    <button type="button" onclick="toggleChat()" aria-label="Open chat" class="w-13 h-13 p-3.5 bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-900 rounded-full shadow-floating flex items-center justify-center transition-all duration-200 ring-4 ring-white">
-      <svg class="w-6 h-6 fill-slate-950" viewBox="0 0 24 24">
-        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-      </svg>
-    </button>
-  </div>
-  <!-- END: FloatingChatButton -->
-
-  <!-- BEGIN: ChatWidget -->
-  <div id="chatWidget" class="fixed bottom-20 right-4 md:right-[calc(50%-190px)] w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 hidden">
-    <!-- Chat Header -->
-    <div class="bg-gradient-to-r from-amber-400 to-amber-500 p-4 rounded-t-2xl flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-          <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-white font-bold text-sm">TODA Support</h3>
-          <p class="text-amber-100 text-xs">We're here to help</p>
-        </div>
-      </div>
-      <button onclick="toggleChat()" class="text-white hover:bg-white/20 rounded-full p-1 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-        </svg>
-      </button>
     </div>
-
-    <!-- Chat Messages Area -->
-    <div class="h-80 overflow-y-auto p-4 space-y-3 bg-slate-50">
-      <!-- Welcome Message -->
-      <div class="flex items-start space-x-2">
-        <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-        </div>
-        <div class="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm max-w-[70%]">
-          <p class="text-sm text-slate-700">Hello! How can we help you today?</p>
-          <span class="text-xs text-slate-400 mt-1 block">Just now</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="p-3 bg-white border-t border-slate-100">
-      <p class="text-xs font-semibold text-slate-500 mb-2">Quick Actions</p>
-      <div class="space-y-2">
-        <a href="driver-messages.php" class="block w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors">
-          💬 View all messages
-        </a>
-        <a href="driver-notifications.php" class="block w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors">
-          🔔 Check notifications
-        </a>
-        <a href="driver-profile.php" class="block w-full text-left px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-sm text-slate-700 transition-colors">
-          👤 Contact support
-        </a>
-      </div>
-    </div>
-  </div>
-  <!-- END: ChatWidget -->
-
-  <!-- BEGIN: BottomNavigationBar -->
-  <nav class="fixed bottom-0 left-0 right-0 max-w-[420px] mx-auto bg-[#070b14] text-slate-400 border-t border-slate-800 z-50 px-2 py-2 shadow-nav">
-    <div class="grid grid-cols-4 items-center">
-      <!-- Tab: Home (Active) -->
-      <a href="driver-home.php" class="flex flex-col items-center justify-center py-1 group text-amber-400">
-        <div class="relative">
-          <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewBox="0 0 24 24">
-            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <span class="text-[11px] font-bold mt-1 tracking-tight">Home</span>
-      </a>
-
-      <!-- Tab: Submit -->
-      <a href="driver-renewal.php" class="flex flex-col items-center justify-center py-1 group hover:text-slate-200 transition-colors">
-        <svg class="w-5 h-5 stroke-current stroke-2 text-slate-400 group-hover:text-slate-200" fill="none" viewBox="0 0 24 24">
-          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="text-[11px] font-medium mt-1 tracking-tight">Submit</span>
-      </a>
-
-      <!-- Tab: Notifications -->
-      <a href="driver-notifications.php" class="flex flex-col items-center justify-center py-1 group hover:text-slate-200 transition-colors relative">
-        <div class="relative">
-          <svg class="w-5 h-5 stroke-current stroke-2 text-slate-400 group-hover:text-slate-200" fill="none" viewBox="0 0 24 24">
-            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <?php 
-          $unreadCount = get_unread_notification_count($driver['driver_id']);
-          if ($unreadCount > 0): 
-          ?>
-          <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-slate-900"></span>
-          <?php endif; ?>
-        </div>
-        <span class="text-[11px] font-medium mt-1 tracking-tight">Notifications</span>
-      </a>
-
-      <!-- Tab: Profile -->
-      <a href="driver-profile.php" class="flex flex-col items-center justify-center py-1 group hover:text-slate-200 transition-colors">
-        <svg class="w-5 h-5 stroke-current stroke-2 text-slate-400 group-hover:text-slate-200" fill="none" viewBox="0 0 24 24">
-          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="text-[11px] font-medium mt-1 tracking-tight">Profile</span>
-      </a>
-    </div>
-  </nav>
-  <!-- END: BottomNavigationBar -->
 
 </div>
 
 <script>
 function toggleMessage(annId) {
-  const msgEl = document.getElementById('msg-' + annId);
-  const fullEl = document.getElementById('full-' + annId);
-  const toggleBtn = document.getElementById('toggle-' + annId);
-  
-  if (fullEl.classList.contains('hidden')) {
-    // Expand - show full message
-    msgEl.style.display = 'none';
-    fullEl.classList.remove('hidden');
-    fullEl.style.display = 'block';
-    toggleBtn.textContent = 'Show less';
-  } else {
-    // Collapse - show truncated message
-    msgEl.style.display = 'block';
-    fullEl.classList.add('hidden');
-    fullEl.style.display = 'none';
-    toggleBtn.textContent = 'Read more...';
-  }
+    const truncatedMsg = document.getElementById('msg-' + annId);
+    const fullMsg = document.getElementById('full-' + annId);
+    const toggleBtn = document.getElementById('toggle-' + annId);
+    
+    if (fullMsg.classList.contains('is-expanded')) {
+        // Collapse
+        truncatedMsg.style.display = 'block';
+        fullMsg.classList.remove('is-expanded');
+        toggleBtn.textContent = 'Read more...';
+    } else {
+        // Expand
+        truncatedMsg.style.display = 'none';
+        fullMsg.classList.add('is-expanded');
+        toggleBtn.textContent = 'Show less';
+    }
 }
-
-function toggleChat() {
-  const chatWidget = document.getElementById('chatWidget');
-  if (chatWidget.classList.contains('hidden')) {
-    chatWidget.classList.remove('hidden');
-    // Add animation
-    chatWidget.style.animation = 'slideUp 0.3s ease-out';
-  } else {
-    chatWidget.style.animation = 'slideDown 0.3s ease-out';
-    setTimeout(() => {
-      chatWidget.classList.add('hidden');
-    }, 250);
-  }
-}
-
-// Close chat when clicking outside
-document.addEventListener('click', function(event) {
-  const chatWidget = document.getElementById('chatWidget');
-  const chatButton = event.target.closest('[onclick="toggleChat()"]');
-  const clickedInsideChat = chatWidget && chatWidget.contains(event.target);
-  
-  if (!chatButton && !clickedInsideChat && chatWidget && !chatWidget.classList.contains('hidden')) {
-    toggleChat();
-  }
-});
 </script>
-
-<style>
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-}
-</style>
-
-</body>
-</html>
+    
+<?php render_footer('home'); ?>
