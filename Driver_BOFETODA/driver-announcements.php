@@ -125,8 +125,7 @@ render_header([
 </style>
 
 <!-- Main Content -->
-<div class="min-h-screen bg-gray-50 pb-24">
-    <div class="max-w-4xl mx-auto px-4 py-6">
+<div class="px-4 py-6 pb-24">
         
         <!-- Header -->
         <div class="flex items-center justify-between mb-6">
