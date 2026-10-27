@@ -92,7 +92,7 @@ render_header([
           </span>
           <h2 class="text-base font-bold text-slate-800 tracking-tight">Announcements</h2>
         </div>
-        <a href="driver-notifications.php" class="text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 transition-colors">
+        <a href="driver-announcements.php" class="text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 transition-colors">
           View All
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
