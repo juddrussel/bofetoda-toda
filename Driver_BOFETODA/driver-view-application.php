@@ -41,7 +41,6 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
                 </svg>
             </a>
             <div>
-                <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-tight">Current Status</h1>
                 <?php if ($app_no): ?>
                 <p class="text-xs font-semibold text-slate-400 tracking-wider"><?php echo h($app_no); ?></p>
                 <?php endif; ?>
@@ -253,10 +252,16 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
                     
                     <!-- Step 4: Done -->
                     <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 border border-slate-200 flex items-center justify-center font-semibold text-xs ring-4 ring-white">
-                            4
+                        <div class="w-8 h-8 rounded-full <?php echo $status === 'Approved' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400 border border-slate-200'; ?> flex items-center justify-center font-semibold text-xs ring-4 ring-white">
+                            <?php if ($status === 'Approved'): ?>
+                                <svg class="w-4 h-4 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            <?php else: ?>
+                                4
+                            <?php endif; ?>
                         </div>
-                        <span class="text-[11px] font-medium text-slate-400 mt-2">Done</span>
+                        <span class="text-[11px] <?php echo $status === 'Approved' ? 'font-bold text-slate-800' : 'font-medium text-slate-400'; ?> mt-2">Done</span>
                     </div>
                 </div>
             </div>
