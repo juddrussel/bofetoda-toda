@@ -459,18 +459,19 @@ function db_add_driver(array $in) {
         'INSERT INTO drivers (driver_id, name, age, birthday, contact_no, address,
                                barangay_id, body_no, color_id, renewal_status, password)
          VALUES (:driver_id, :name, :age, :birthday, :contact_no, :address,
-                 :barangay_id, :body_no, :color_id, "-", :password)'
+                 :barangay_id, :body_no, :color_id, :renewal_status, :password)'
     )->execute([
-        'driver_id'   => $driverId,
-        'name'        => $in['name'],
-        'age'         => $in['age'],
-        'birthday'    => date('Y-m-d', strtotime($in['birthday'])),
-        'contact_no'  => $in['contact'],
-        'address'     => $in['address'],
-        'barangay_id' => $barangayId,
-        'body_no'     => $in['body_no'],
-        'color_id'    => $colorId,
-        'password'    => $in['password'],
+        'driver_id'      => $driverId,
+        'name'           => $in['name'],
+        'age'            => $in['age'],
+        'birthday'       => date('Y-m-d', strtotime($in['birthday'])),
+        'contact_no'     => $in['contact'],
+        'address'        => $in['address'],
+        'barangay_id'    => $barangayId,
+        'body_no'        => $in['body_no'],
+        'color_id'       => $colorId,
+        'renewal_status' => '-',
+        'password'       => $in['password'],
     ]);
 
     $officer = current_officer();
