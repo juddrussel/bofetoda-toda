@@ -95,91 +95,33 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pdo = get_pdo();
-
-// Get search and pagination params
+// Get view mode and search params
+$isArchived = (($_GET['view'] ?? 'active') === 'archived');
 $searchQuery = trim($_GET['q'] ?? '');
+
+// Get drivers list
+$allDrivers = d($isArchived ? 'archived_drivers' : 'drivers');
+if ($searchQuery !== '') {
+    $searchLower = strtolower($searchQuery);
+    $allDrivers = array_filter($allDrivers, function($driver) use ($searchLower) {
+        return strpos(strtolower($driver['driver_id']), $searchLower) !== false
+            || strpos(strtolower($driver['name']), $searchLower) !== false
+            || strpos(strtolower($driver['barangay'] ?? ''), $searchLower) !== false
+            || strpos(strtolower($driver['status'] ?? ''), $searchLower) !== false
+            || strpos(strtolower($driver['body_no'] ?? ''), $searchLower) !== false
+            || strpos(strtolower($driver['contact'] ?? ''), $searchLower) !== false;
+    });
+}
+
+// Pagination
 $page = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = 10;
-$isArchived = (($_GET['view'] ?? 'active') === 'archived');
-
-// Build SQL query with search
-$cycleStart = db_get_cycle_start();
-if ($cycleStart) {
-    $statusExpr = "CASE
-            WHEN d.renewal_status IN ('Approved Renewal', 'Rejected Renewal')
-                 AND NOT EXISTS (
-                     SELECT 1 FROM applications a2
-                     WHERE a2.driver_id = d.driver_id AND a2.submitted_at > :cycle_start
-                 )
-            THEN '-'
-            ELSE d.renewal_status
-        END AS status";
-} else {
-    $statusExpr = 'd.renewal_status AS status';
-}
-
-$whereClauses = ['d.is_archived = :archived'];
-$params = ['archived' => $isArchived ? 1 : 0];
-
-if ($searchQuery !== '') {
-    $whereClauses[] = "(d.driver_id LIKE :search OR d.name LIKE :search OR b.name LIKE :search 
-                        OR d.body_no LIKE :search OR d.contact_no LIKE :search OR d.renewal_status LIKE :search)";
-    $params['search'] = '%' . $searchQuery . '%';
-}
-
-if ($cycleStart) {
-    $params['cycle_start'] = $cycleStart;
-}
-
-$whereSQL = implode(' AND ', $whereClauses);
-
-// Get total count for pagination
-$countSQL = "SELECT COUNT(*) FROM drivers d
-             JOIN barangays b ON b.barangay_id = d.barangay_id
-             WHERE $whereSQL";
-$countStmt = $pdo->prepare($countSQL);
-
-// Use the same params for count (it will ignore cycle_start since it's not in the SQL)
-$countParams = [];
-$countParams['archived'] = $isArchived ? 1 : 0;
-if ($searchQuery !== '') {
-    $countParams['search'] = '%' . $searchQuery . '%';
-}
-
-$countStmt->execute($countParams);
-$totalItems = (int) $countStmt->fetchColumn();
+$totalItems = count($allDrivers);
 $totalPages = max(1, (int) ceil($totalItems / $perPage));
 $page = min($page, $totalPages);
-
-// Get paginated results
 $offset = ($page - 1) * $perPage;
-$dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS contact, d.address,
-                   b.name AS barangay, d.body_no, c.name AS color, $statusExpr,
-                   d.password
-            FROM drivers d
-            JOIN barangays b ON b.barangay_id = d.barangay_id
-            JOIN colors    c ON c.color_id    = d.color_id
-            WHERE $whereSQL
-            ORDER BY d.name
-            LIMIT $perPage OFFSET $offset";
 
-// Execute with the correct parameters
-$dataStmt = $pdo->prepare($dataSQL);
-
-// Debug: Log the SQL and params (remove this after fixing)
-error_log("Data SQL: " . $dataSQL);
-error_log("Data Params: " . print_r($params, true));
-
-$dataStmt->execute($params);
-$drivers = $dataStmt->fetchAll();
-
-// Format birthday dates
-foreach ($drivers as &$r) {
-    if (!empty($r['birthday'])) {
-        $r['birthday'] = date('m/d/Y', strtotime($r['birthday']));
-    }
-}
+$drivers = array_slice($allDrivers, $offset, $perPage);
 
 $paginatedList = [
     'items' => $drivers,
