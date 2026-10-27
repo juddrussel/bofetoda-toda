@@ -2350,9 +2350,6 @@ function get_general_announcements($filters = []) {
     $where = [];
     $params = [];
     
-    // Debug logging
-    error_log("get_general_announcements called with filters: " . print_r($filters, true));
-    
     if (isset($filters['category']) && $filters['category'] !== '') {
         $where[] = 'ga.category = :category';
         $params['category'] = $filters['category'];
@@ -2369,8 +2366,10 @@ function get_general_announcements($filters = []) {
     }
     
     if (isset($filters['search']) && trim($filters['search']) !== '') {
-        $where[] = '(ga.title LIKE :search OR ga.message LIKE :search)';
-        $params['search'] = '%' . $filters['search'] . '%';
+        $searchValue = '%' . $filters['search'] . '%';
+        $where[] = '(ga.title LIKE :search1 OR ga.message LIKE :search2)';
+        $params['search1'] = $searchValue;
+        $params['search2'] = $searchValue;
     }
     
     $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -2386,20 +2385,8 @@ function get_general_announcements($filters = []) {
                 CASE WHEN ga.priority = 'urgent' THEN 0 ELSE 1 END,
                 ga.created_at DESC";
     
-    // Debug logging
-    error_log("SQL: " . $sql);
-    error_log("Params: " . print_r($params, true));
-    
     $stmt = $pdo->prepare($sql);
-    
-    try {
-        $stmt->execute($params);
-    } catch (PDOException $e) {
-        error_log("PDO Error: " . $e->getMessage());
-        error_log("SQL: " . $sql);
-        error_log("Params: " . print_r($params, true));
-        throw $e;
-    }
+    $stmt->execute($params);
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
