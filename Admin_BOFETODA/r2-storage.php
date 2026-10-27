@@ -326,18 +326,25 @@ if (!function_exists('upload_driver_avatar_r2')) {
     $allowedExt = ['jpg', 'jpeg', 'png'];
     $maxSize = 10 * 1024 * 1024; // 10MB
     
+    error_log("upload_driver_avatar_r2 called for driver: $driverId");
+    
     if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        error_log("File validation failed - empty or error code: " . ($file['error'] ?? 'unknown'));
         return false;
     }
     
     if ($file['size'] > $maxSize) {
+        error_log("File size exceeded: " . $file['size'] . " > " . $maxSize);
         return false;
     }
     
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($extension, $allowedExt, true)) {
+        error_log("Invalid extension: $extension");
         return false;
     }
+    
+    error_log("File validation passed, extension: $extension, size: " . $file['size']);
     
     // Delete old avatars first (all extensions)
     foreach ($allowedExt as $ext) {

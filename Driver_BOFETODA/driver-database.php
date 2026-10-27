@@ -211,13 +211,20 @@ function save_driver_avatar(string $driverId, array $file): bool {
     // Use R2 storage with fallback to local
     // Note: r2-storage.php must be included before calling this function
     
+    // Log upload attempt for debugging
+    error_log("Avatar upload attempt for driver: $driverId, file size: " . ($file['size'] ?? 'unknown'));
+    error_log("File error code: " . ($file['error'] ?? 'unknown'));
+    error_log("File name: " . ($file['name'] ?? 'unknown'));
+    
     $uploadResult = upload_driver_avatar_r2($driverId, $file);
     
     if ($uploadResult) {
         // Avatar uploaded successfully (either to R2 or local storage)
+        error_log("Avatar upload SUCCESS for driver: $driverId");
         return true;
     }
     
+    error_log("Avatar upload FAILED for driver: $driverId");
     return false;
 }
 
