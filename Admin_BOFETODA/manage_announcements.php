@@ -101,13 +101,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $filters = [
     'category' => $_GET['category'] ?? '',
     'priority' => $_GET['priority'] ?? '',
-    'is_active' => isset($_GET['status']) ? ($_GET['status'] === 'active' ? 1 : 0) : null,
     'search' => trim($_GET['search'] ?? '')
 ];
 
-// Remove empty filters
+// Handle status separately to preserve 0 value
+if (isset($_GET['status'])) {
+    if ($_GET['status'] === 'active') {
+        $filters['is_active'] = 1;
+    } elseif ($_GET['status'] === 'inactive') {
+        $filters['is_active'] = 0;
+    }
+}
+
+// Remove empty string filters only (preserve 0)
 $filters = array_filter($filters, function($value) {
-    return $value !== '' && $value !== null;
+    return $value !== '' && !is_null($value);
 });
 
 // Get announcements
