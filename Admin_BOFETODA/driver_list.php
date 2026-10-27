@@ -134,22 +134,25 @@ if ($cycleStart) {
 
 $whereSQL = implode(' AND ', $whereClauses);
 
-// Get total count for pagination (doesn't need cycle_start)
-$countParams = ['archived' => $isArchived ? 1 : 0];
-if ($searchQuery !== '') {
-    $countParams['search'] = '%' . $searchQuery . '%';
-}
-
+// Get total count for pagination
 $countSQL = "SELECT COUNT(*) FROM drivers d
              JOIN barangays b ON b.barangay_id = d.barangay_id
              WHERE $whereSQL";
 $countStmt = $pdo->prepare($countSQL);
+
+// Use the same params for count (it will ignore cycle_start since it's not in the SQL)
+$countParams = [];
+$countParams['archived'] = $isArchived ? 1 : 0;
+if ($searchQuery !== '') {
+    $countParams['search'] = '%' . $searchQuery . '%';
+}
+
 $countStmt->execute($countParams);
 $totalItems = (int) $countStmt->fetchColumn();
 $totalPages = max(1, (int) ceil($totalItems / $perPage));
 $page = min($page, $totalPages);
 
-// Get paginated results (needs all params including cycle_start)
+// Get paginated results
 $offset = ($page - 1) * $perPage;
 $dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS contact, d.address,
                    b.name AS barangay, d.body_no, c.name AS color, $statusExpr,
@@ -159,17 +162,11 @@ $dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS conta
             JOIN colors    c ON c.color_id    = d.color_id
             WHERE $whereSQL
             ORDER BY d.name
-            LIMIT :limit OFFSET :offset";
+            LIMIT $perPage OFFSET $offset";
+
+// Execute without parameters - use direct values in SQL for limit/offset
 $dataStmt = $pdo->prepare($dataSQL);
-
-// Bind all parameters for the data query
-foreach ($params as $key => $val) {
-    $dataStmt->bindValue(":$key", $val);
-}
-$dataStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-$dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
-$dataStmt->execute();
+$dataStmt->execute($params);
 $drivers = $dataStmt->fetchAll();
 
 // Format birthday dates
