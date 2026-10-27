@@ -599,6 +599,18 @@ function db_update_driver($driverId, array $in) {
         return false;
     }
 
+    // Check if barangay or body_no changed - need to regenerate driver_id
+    $current = $pdo->prepare('SELECT body_no, barangay_id FROM drivers WHERE driver_id = :id');
+    $current->execute(['id' => $driverId]);
+    $current = $current->fetch();
+    
+    $needsNewId = false;
+    $newDriverId = $driverId;
+    
+    if ($current && ($current['body_no'] !== $in['body_no'] || $current['barangay_id'] != $barangayId)) {
+        $needsNewId = true;
+        $newDriverId = next_driver_id($pdo, $in['barangay'], $in['body_no']);
+    }
 
     $dupe = $pdo->prepare(
         'SELECT body_no, contact_no FROM drivers
@@ -630,27 +642,68 @@ function db_update_driver($driverId, array $in) {
     }
     $newBirthday = date('Y-m-d', strtotime($in['birthday']));
 
-    $pdo->prepare(
-        'UPDATE drivers SET
-            name = :name, age = :age, birthday = :birthday, contact_no = :contact_no,
-            address = :address, barangay_id = :barangay_id, body_no = :body_no,
-            color_id = :color_id
-         WHERE driver_id = :driver_id'
-    )->execute([
-        'name'        => $in['name'],
-        'age'         => $in['age'],
-        'birthday'    => $newBirthday,
-        'contact_no'  => $in['contact'],
-        'address'     => $in['address'],
-        'barangay_id' => $barangayId,
+    // If driver_id needs to change, update it first
+    if ($needsNewId) {
+        // Update driver_id in drivers table and related tables
+        $pdo->beginTransaction();
+        try {
+            // Update applications table
+            $pdo->prepare('UPDATE applications SET driver_id = :new WHERE driver_id = :old')
+                ->execute(['new' => $newDriverId, 'old' => $driverId]);
+            
+            // Update activity_logs table
+            $pdo->prepare('UPDATE activity_logs SET driver_id = :new WHERE driver_id = :old')
+                ->execute(['new' => $newDriverId, 'old' => $driverId]);
+            
+            // Update the driver_id in drivers table along with other fields
+            $pdo->prepare(
+                'UPDATE drivers SET
+                    driver_id = :new_driver_id,
+                    name = :name, age = :age, birthday = :birthday, contact_no = :contact_no,
+                    address = :address, barangay_id = :barangay_id, body_no = :body_no,
+                    color_id = :color_id
+                 WHERE driver_id = :old_driver_id'
+            )->execute([
+                'new_driver_id' => $newDriverId,
+                'name'          => $in['name'],
+                'age'           => $in['age'],
+                'birthday'      => $newBirthday,
+                'contact_no'    => $in['contact'],
+                'address'       => $in['address'],
+                'barangay_id'   => $barangayId,
+                'body_no'       => $in['body_no'],
+                'color_id'      => $colorId,
+                'old_driver_id' => $driverId,
+            ]);
+            
+            $pdo->commit();
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    } else {
+        // No driver_id change, just update fields normally
+        $pdo->prepare(
+            'UPDATE drivers SET
+                name = :name, age = :age, birthday = :birthday, contact_no = :contact_no,
+                address = :address, barangay_id = :barangay_id, body_no = :body_no,
+                color_id = :color_id
+             WHERE driver_id = :driver_id'
+        )->execute([
+            'name'        => $in['name'],
+            'age'         => $in['age'],
+            'birthday'    => $newBirthday,
+            'contact_no'  => $in['contact'],
+            'address'     => $in['address'],
+            'barangay_id' => $barangayId,
         'body_no'     => $in['body_no'],
         'color_id'    => $colorId,
         'driver_id'   => $driverId,
     ]);
-
+    }
 
     $officer = current_officer();
-    log_activity('Update', $driverId, $officer['id'] ?? null, $officer['role'] ?? 'secretary');
+    log_activity('Update', $needsNewId ? $newDriverId : $driverId, $officer['id'] ?? null, $officer['role'] ?? 'secretary');
 
     $fieldLabels = [
         'name'       => 'Name',
