@@ -1742,26 +1742,53 @@ function render_header(array $opts = []) {
 </head>
 <body>
 <div class="app-shell">
-<div class="header-bar">
-  <span class="header-bar__meta">&copy; <?php echo date('Y'); ?> Bocaue TODA Inc.</span>
+<!-- Top Brand Bar (Tailwind) -->
+<div class="px-5 pt-3 pb-2 flex items-center justify-between text-[11px] text-slate-500 font-medium tracking-tight bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
+  <div class="flex items-center space-x-1.5">
+    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+    <span class="font-semibold text-slate-700">TODA Link Mobile</span>
+  </div>
+  <div>&copy; <?php echo date('Y'); ?> Bocaue TODA Inc.</div>
 </div>
 <?php if ($topbar_mode !== 'none'): ?>
-<header class="topbar">
     <?php if ($topbar_mode === 'home'): ?>
-        <div class="greeting">Good Day!</div>
-        <div class="username"><?php echo h($topbar_heading); ?></div>
+        <!-- User Greeting Header (Tailwind) -->
+        <section class="px-5 pt-3 pb-4">
+            <div>
+                <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Good Day!</p>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+                    <?php echo h($topbar_heading); ?>
+                </h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-700">
+                        Active Member
+                    </span>
+                </div>
+            </div>
+        </section>
     <?php elseif ($topbar_mode === 'page'): ?>
-        <div class="page-title"><?php echo h($topbar_heading); ?></div>
-        <div class="app-number"><?php echo h($topbar_sub); ?></div>
+        <!-- Page Header with Subtitle (Tailwind) -->
+        <header class="px-5 pt-4 pb-3 bg-white border-b border-slate-100">
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 leading-tight"><?php echo h($topbar_heading); ?></h1>
+                <?php if ($topbar_sub): ?>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5"><?php echo h($topbar_sub); ?></p>
+                <?php endif; ?>
+            </div>
+        </header>
     <?php elseif ($topbar_mode === 'simple'): ?>
-        <div class="topbar-row">
-            <div class="page-title" style="font-size:20px;font-weight:700;color:var(--color-text);margin-bottom:0;"><?php echo h($topbar_heading); ?></div>
-            <?php if ($topbar_action): ?>
-                <a href="#" class="topbar-action" data-modal-open="<?php echo h($topbar_action['modal']); ?>"><?php echo h($topbar_action['label']); ?></a>
-            <?php endif; ?>
-        </div>
+        <!-- Simple Page Header (Tailwind) -->
+        <header class="px-5 pt-4 pb-3 bg-white border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight"><?php echo h($topbar_heading); ?></h1>
+                </div>
+                <?php if ($topbar_action): ?>
+                    <a href="#" class="text-xs font-semibold text-amber-600 hover:text-amber-700 transition" data-modal-open="<?php echo h($topbar_action['modal']); ?>"><?php echo h($topbar_action['label']); ?></a>
+                <?php endif; ?>
+            </div>
+        </header>
     <?php endif; ?>
-</header>
 <?php endif;
 }
 
