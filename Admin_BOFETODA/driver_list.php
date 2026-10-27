@@ -164,8 +164,13 @@ $dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS conta
             ORDER BY d.name
             LIMIT $perPage OFFSET $offset";
 
-// Execute without parameters - use direct values in SQL for limit/offset
+// Execute with the correct parameters
 $dataStmt = $pdo->prepare($dataSQL);
+
+// Debug: Log the SQL and params (remove this after fixing)
+error_log("Data SQL: " . $dataSQL);
+error_log("Data Params: " . print_r($params, true));
+
 $dataStmt->execute($params);
 $drivers = $dataStmt->fetchAll();
 
