@@ -1736,6 +1736,8 @@ function render_header(array $opts = []) {
 <meta name="vapid-public-key" content="<?php echo h($vapidPublicKey); ?>">
 <?php endif; ?>
 <link rel="stylesheet" href="/assets/css/toast-notifications.css">
+<!-- Tailwind CSS CDN for navigation bar -->
+<script src="https://cdn.tailwindcss.com"></script>
 <style><?php echo APP_CSS; ?></style>
 </head>
 <body>
@@ -1784,28 +1786,58 @@ function get_unread_notification_count(): int {
 }
 
 function render_bottom_nav($active_page) {
+    // Get notification count
+    $notifCount = 0;
+    try {
+        $driver = current_driver();
+        if ($driver) {
+            $pdo = get_pdo();
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM notifications WHERE driver_id = :driver_id AND is_read = 0');
+            $stmt->execute(['driver_id' => $driver['driver_id']]);
+            $notifCount = (int)$stmt->fetchColumn();
+        }
+    } catch (Exception $e) {}
     ?>
-<nav class="bottom-nav">
-    <a href="driver-home.php" class="nav-item <?php echo $active_page === 'home' ? 'active' : ''; ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-        <span>Home</span>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-[420px] mx-auto bg-[#070b14] text-slate-400 border-t border-slate-800 z-50 px-2 py-2 shadow-nav">
+  <div class="grid grid-cols-4 items-center">
+    <!-- Tab: Home -->
+    <a class="flex flex-col items-center justify-center py-1 group <?php echo $active_page === 'home' ? 'text-amber-400' : 'hover:text-slate-200'; ?> transition-colors" href="driver-home.php">
+      <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewBox="0 0 24 24">
+        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[11px] <?php echo $active_page === 'home' ? 'font-bold' : 'font-medium'; ?> mt-1 tracking-tight">Home</span>
     </a>
-    <a href="driver-renewal.php" class="nav-item <?php echo $active_page === 'submit' ? 'active' : ''; ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h2"/></svg>
-        <span>Submit</span>
+    
+    <!-- Tab: Submit -->
+    <a class="flex flex-col items-center justify-center py-1 group <?php echo $active_page === 'submit' ? 'text-amber-400' : 'hover:text-slate-200'; ?> transition-colors" href="driver-renewal.php">
+      <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewBox="0 0 24 24">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[11px] <?php echo $active_page === 'submit' ? 'font-bold' : 'font-medium'; ?> mt-1 tracking-tight">Submit</span>
     </a>
-    <a href="driver-notifications.php" class="nav-item <?php echo $active_page === 'notif' ? 'active' : ''; ?>">
-        <?php $unreadCount = get_unread_notification_count(); ?>
-        <?php if ($unreadCount > 0): ?>
-            <span class="notif-badge"><?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?></span>
+    
+    <!-- Tab: Notifications -->
+    <a class="flex flex-col items-center justify-center py-1 group <?php echo $active_page === 'notif' ? 'text-amber-400' : 'hover:text-slate-200'; ?> transition-colors relative" href="driver-notifications.php">
+      <div class="relative">
+        <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewBox="0 0 24 24">
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <?php if ($notifCount > 0): ?>
+        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-slate-900"></span>
         <?php endif; ?>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span>Notifications</span>
+      </div>
+      <span class="text-[11px] <?php echo $active_page === 'notif' ? 'font-bold' : 'font-medium'; ?> mt-1 tracking-tight">Notifications</span>
     </a>
-    <a href="driver-profile.php" class="nav-item <?php echo $active_page === 'profile' ? 'active' : ''; ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Profile</span>
+    
+    <!-- Tab: Profile -->
+    <a class="flex flex-col items-center justify-center py-1 group <?php echo $active_page === 'profile' ? 'text-amber-400' : 'hover:text-slate-200'; ?> transition-colors" href="driver-profile.php">
+      <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewBox="0 0 24 24">
+        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-[11px] <?php echo $active_page === 'profile' ? 'font-bold' : 'font-medium'; ?> mt-1 tracking-tight">Profile</span>
     </a>
+  </div>
 </nav>
     <?php
 }
