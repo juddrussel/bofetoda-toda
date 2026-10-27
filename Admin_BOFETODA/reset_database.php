@@ -16,11 +16,10 @@ if (!isset($_SESSION['officer_id']) || $_SESSION['role'] !== 'admin') {
     die('Access denied. Admin access required.');
 }
 
-$confirmed = isset($_GET['confirm']) && $_GET['confirm'] === 'yes';
 $executed = false;
 $results = [];
 
-if ($confirmed && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo = get_pdo();
         
@@ -249,7 +248,7 @@ if ($confirmed && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 </ul>
             </div>
             
-            <form method="POST" action="?confirm=yes" id="resetForm">
+            <form method="POST" action="" id="resetForm">
                 <div class="checkbox-group">
                     <input type="checkbox" id="understand" name="understand" required>
                     <label for="understand">I understand this will delete all data</label>
