@@ -95,37 +95,88 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$drivers   = d('drivers');
-$archived  = d('archived_drivers');
+$pdo = get_pdo();
 
-// Server-side search
+// Get search and pagination params
 $searchQuery = trim($_GET['q'] ?? '');
-if ($searchQuery !== '') {
-    $searchLower = strtolower($searchQuery);
-    $drivers = array_filter($drivers, function($driver) use ($searchLower) {
-        return strpos(strtolower($driver['driver_id']), $searchLower) !== false
-            || strpos(strtolower($driver['name']), $searchLower) !== false
-            || strpos(strtolower($driver['barangay']), $searchLower) !== false
-            || strpos(strtolower($driver['status']), $searchLower) !== false
-            || strpos(strtolower($driver['body_no']), $searchLower) !== false
-            || strpos(strtolower($driver['contact']), $searchLower) !== false;
-    });
-    
-    $archived = array_filter($archived, function($driver) use ($searchLower) {
-        return strpos(strtolower($driver['driver_id']), $searchLower) !== false
-            || strpos(strtolower($driver['name']), $searchLower) !== false
-            || strpos(strtolower($driver['barangay']), $searchLower) !== false
-            || strpos(strtolower($driver['body_no']), $searchLower) !== false
-            || strpos(strtolower($driver['contact']), $searchLower) !== false;
-    });
+$page = max(1, (int) ($_GET['page'] ?? 1));
+$perPage = 10;
+$isArchived = (($_GET['view'] ?? 'active') === 'archived');
+
+// Build SQL query with search
+$cycleStart = db_get_cycle_start();
+if ($cycleStart) {
+    $statusExpr = "CASE
+            WHEN d.renewal_status IN ('Approved Renewal', 'Rejected Renewal')
+                 AND NOT EXISTS (
+                     SELECT 1 FROM applications a2
+                     WHERE a2.driver_id = d.driver_id AND a2.submitted_at > :cycle_start
+                 )
+            THEN '-'
+            ELSE d.renewal_status
+        END AS status";
+} else {
+    $statusExpr = 'd.renewal_status AS status';
 }
 
-// Pagination
-$page = max(1, (int) ($_GET['page'] ?? 1));
-$perPage = 10; // Items per page
-$isArchived = (($_GET['view'] ?? 'active') === 'archived');
-$listToShow = $isArchived ? $archived : $drivers;
-$paginatedList = paginate_array($listToShow, $page, $perPage);
+$whereClauses = ['d.is_archived = :archived'];
+$params = ['archived' => $isArchived ? 1 : 0];
+
+if ($searchQuery !== '') {
+    $whereClauses[] = "(d.driver_id LIKE :search OR d.name LIKE :search OR b.name LIKE :search 
+                        OR d.body_no LIKE :search OR d.contact_no LIKE :search OR d.renewal_status LIKE :search)";
+    $params['search'] = '%' . $searchQuery . '%';
+}
+
+if ($cycleStart) {
+    $params['cycle_start'] = $cycleStart;
+}
+
+$whereSQL = implode(' AND ', $whereClauses);
+
+// Get total count for pagination
+$countSQL = "SELECT COUNT(*) FROM drivers d
+             JOIN barangays b ON b.barangay_id = d.barangay_id
+             WHERE $whereSQL";
+$countStmt = $pdo->prepare($countSQL);
+$countStmt->execute($params);
+$totalItems = (int) $countStmt->fetchColumn();
+$totalPages = max(1, (int) ceil($totalItems / $perPage));
+$page = min($page, $totalPages);
+
+// Get paginated results
+$offset = ($page - 1) * $perPage;
+$dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS contact, d.address,
+                   b.name AS barangay, d.body_no, c.name AS color, $statusExpr,
+                   d.password
+            FROM drivers d
+            JOIN barangays b ON b.barangay_id = d.barangay_id
+            JOIN colors    c ON c.color_id    = d.color_id
+            WHERE $whereSQL
+            ORDER BY d.name
+            LIMIT :limit OFFSET :offset";
+$dataStmt = $pdo->prepare($dataSQL);
+foreach ($params as $key => $val) {
+    $dataStmt->bindValue($key, $val);
+}
+$dataStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+$dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$dataStmt->execute();
+$drivers = $dataStmt->fetchAll();
+
+// Format birthday dates
+foreach ($drivers as &$r) {
+    if (!empty($r['birthday'])) {
+        $r['birthday'] = date('m/d/Y', strtotime($r['birthday']));
+    }
+}
+
+$paginatedList = [
+    'items' => $drivers,
+    'page' => $page,
+    'total_pages' => $totalPages,
+    'total_items' => $totalItems
+];
 
 $barangays = array_keys(d('barangays'));
 sort($barangays);
@@ -310,7 +361,7 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
         <p class="page-subtitle">
           Organizes, updates, and maintains all driver information.
           <?php if ($searchQuery !== ''): ?>
-            <span style="color:var(--navy);font-weight:600;"> · Found <?= count($listToShow) ?> result(s) for "<?= e($searchQuery) ?>"</span>
+            <span style="color:var(--navy);font-weight:600;"> · Found <?= $paginatedList['total_items'] ?> result(s) for "<?= e($searchQuery) ?>"</span>
             <a href="<?= BASE_URL ?>/driver_list.php<?= $isArchived ? '?view=archived' : '' ?>" style="color:var(--accent);margin-left:8px;">Clear search</a>
           <?php endif; ?>
         </p>
@@ -494,7 +545,18 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
   </div>
 </div>
 
-<?php foreach ($isArchived ? $archived : $drivers as $drv): ?>
+<?php 
+// Load full driver list only for modals (lazy load)
+$allDrivers = null;
+if (!empty($_GET['load_modals'])) {
+    $allDrivers = d($isArchived ? 'archived_drivers' : 'drivers');
+} else {
+    // Use current page drivers for modals
+    $allDrivers = $paginatedList['items'];
+}
+?>
+
+<?php foreach ($allDrivers as $drv): ?>
 <div class="modal-backdrop" id="view-<?= e($drv['driver_id']) ?>">
   <div class="modal" style="max-width:680px;">
     <div class="modal__body" style="padding:20px 24px 4px;">
