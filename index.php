@@ -119,7 +119,7 @@
         </div>
         
         <h1>BOCAUE TODA INC.</h1>
-        <p class="subtitle">Tricycle Membership Permit Management System</p>
+        <p class="subtitle">Tricycle Federation Membership Permit Management System</p>
         
         <div class="portals">
             <a href="Admin_BOFETODA/login.php" class="portal-card">
