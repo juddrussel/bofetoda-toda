@@ -1887,7 +1887,7 @@ function render_floating_chat() {
     <div class="chat-header">
         <div>
             <div class="chat-header-title">Message Admin</div>
-            <div class="chat-header-sub">BOFETODA Support</div>
+            <div class="chat-header-sub">Bocaue Toda Inc</div>
         </div>
         <button type="button" class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2181,7 +2181,7 @@ function render_footer($active_page = '') {
     <div class="bg-amber-400 px-5 py-4 rounded-t-2xl flex items-center justify-between">
       <div>
         <div class="text-base font-bold text-slate-900">Message Admin</div>
-        <div class="text-[11px] text-slate-700">BOFETODA Support</div>
+        <div class="text-[11px] text-slate-700">Bocaue Toda Inc</div>
       </div>
       <button type="button" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 transition-colors" id="chatCloseBtn" aria-label="Close chat">
         <svg class="w-5 h-5 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
