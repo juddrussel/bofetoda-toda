@@ -134,17 +134,22 @@ if ($cycleStart) {
 
 $whereSQL = implode(' AND ', $whereClauses);
 
-// Get total count for pagination
+// Get total count for pagination (doesn't need cycle_start)
+$countParams = ['archived' => $isArchived ? 1 : 0];
+if ($searchQuery !== '') {
+    $countParams['search'] = '%' . $searchQuery . '%';
+}
+
 $countSQL = "SELECT COUNT(*) FROM drivers d
              JOIN barangays b ON b.barangay_id = d.barangay_id
              WHERE $whereSQL";
 $countStmt = $pdo->prepare($countSQL);
-$countStmt->execute($params);
+$countStmt->execute($countParams);
 $totalItems = (int) $countStmt->fetchColumn();
 $totalPages = max(1, (int) ceil($totalItems / $perPage));
 $page = min($page, $totalPages);
 
-// Get paginated results
+// Get paginated results (needs all params including cycle_start)
 $offset = ($page - 1) * $perPage;
 $dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS contact, d.address,
                    b.name AS barangay, d.body_no, c.name AS color, $statusExpr,
@@ -157,18 +162,12 @@ $dataSQL = "SELECT d.driver_id, d.name, d.age, d.birthday, d.contact_no AS conta
             LIMIT :limit OFFSET :offset";
 $dataStmt = $pdo->prepare($dataSQL);
 
-// Bind all parameters including limit and offset
-$dataParams = $params;
-$dataParams['limit'] = $perPage;
-$dataParams['offset'] = $offset;
-
-foreach ($dataParams as $key => $val) {
-    if ($key === 'limit' || $key === 'offset') {
-        $dataStmt->bindValue(":$key", $val, PDO::PARAM_INT);
-    } else {
-        $dataStmt->bindValue(":$key", $val);
-    }
+// Bind all parameters for the data query
+foreach ($params as $key => $val) {
+    $dataStmt->bindValue(":$key", $val);
 }
+$dataStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+$dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
 $dataStmt->execute();
 $drivers = $dataStmt->fetchAll();
