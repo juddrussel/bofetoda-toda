@@ -610,6 +610,13 @@ function db_update_driver($driverId, array $in) {
     if ($current && ($current['body_no'] !== $in['body_no'] || $current['barangay_id'] != $barangayId)) {
         $needsNewId = true;
         $newDriverId = next_driver_id($pdo, $in['barangay'], $in['body_no']);
+        
+        // Check if the new driver_id already exists
+        $existingDriver = $pdo->prepare('SELECT driver_id FROM drivers WHERE driver_id = :id AND driver_id != :current_id');
+        $existingDriver->execute(['id' => $newDriverId, 'current_id' => $driverId]);
+        if ($existingDriver->fetch()) {
+            throw new DriverValidationException('Cannot change to this barangay/body number combination. Driver ID "' . $newDriverId . '" already exists.');
+        }
     }
 
     $dupe = $pdo->prepare(
