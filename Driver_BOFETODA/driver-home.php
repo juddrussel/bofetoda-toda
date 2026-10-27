@@ -176,7 +176,7 @@ render_header([
         <div>
           <h2 class="text-base font-black text-slate-900 tracking-tight">Current Status</h2>
           <p class="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1 font-mono">
-            Application No. <span class="text-slate-800 font-bold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"><?= h($currentAppNo) ?></span>
+            Application No. <span class="text-slate-800 font-bold"><?= h($currentAppNo) ?></span>
           </p>
         </div>
         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider 
