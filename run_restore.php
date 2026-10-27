@@ -110,6 +110,8 @@ require_once __DIR__ . '/Admin_BOFETODA/db.php';
 
 try {
     $pdo = get_pdo();
+    // Enable buffered queries to avoid "unbuffered queries" error
+    $pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 } catch (Exception $e) {
     die('<h1 style="color:red;">❌ Database Connection Error: ' . htmlspecialchars($e->getMessage()) . '</h1>');
 }
@@ -188,12 +190,22 @@ $successCount = 0;
 $errorCount = 0;
 $errors = [];
 
+// Disable foreign key checks first
+try {
+    $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+    echo '<div class="info">🔓 Foreign key checks disabled</div>';
+} catch (PDOException $e) {
+    echo '<div class="error">⚠️ Warning: ' . htmlspecialchars($e->getMessage()) . '</div>';
+}
+
 foreach ($statements as $index => $statement) {
     $statement = trim($statement);
     if (empty($statement)) continue;
     
-    // Don't display USE statements
-    if (stripos($statement, 'USE ') === 0) {
+    // Skip USE, SET, and SELECT statements
+    if (stripos($statement, 'USE ') === 0 || 
+        stripos($statement, 'SET ') === 0 ||
+        stripos($statement, 'SELECT ') === 0) {
         continue;
     }
     
@@ -211,8 +223,20 @@ foreach ($statements as $index => $statement) {
         $errorCount++;
         $error = $e->getMessage();
         $errors[] = "Statement " . ($index + 1) . ": " . $error;
-        echo '<div class="error">❌ Error: ' . htmlspecialchars($error) . '</div>';
+        
+        // Only show error if it's not a duplicate entry (which is OK on re-run)
+        if (strpos($error, 'Duplicate entry') === false) {
+            echo '<div class="error">❌ Error: ' . htmlspecialchars($error) . '</div>';
+        }
     }
+}
+
+// Re-enable foreign key checks
+try {
+    $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+    echo '<div class="info">🔒 Foreign key checks re-enabled</div>';
+} catch (PDOException $e) {
+    echo '<div class="error">⚠️ Warning: ' . htmlspecialchars($e->getMessage()) . '</div>';
 }
 
 // Final summary
@@ -223,8 +247,17 @@ echo '<p><strong>Successful:</strong> <span style="color:#059669;">' . $successC
 echo '<p><strong>Errors:</strong> <span style="color:#dc2626;">' . $errorCount . '</span></p>';
 
 // Get counts from database
-$officerCount = $pdo->query("SELECT COUNT(*) as cnt FROM officers")->fetchColumn();
-$driverCount = $pdo->query("SELECT COUNT(*) as cnt FROM drivers")->fetchColumn();
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM officers");
+    $officerCount = $stmt->fetchColumn();
+    
+    $stmt = $pdo->query("SELECT COUNT(*) as cnt FROM drivers");
+    $driverCount = $stmt->fetchColumn();
+} catch (PDOException $e) {
+    $officerCount = 0;
+    $driverCount = 0;
+    echo '<div class="error">⚠️ Could not retrieve counts: ' . htmlspecialchars($e->getMessage()) . '</div>';
+}
 
 echo '<hr style="margin: 20px 0;">';
 echo '<p><strong>👔 Officers in Database:</strong> ' . $officerCount . '</p>';
