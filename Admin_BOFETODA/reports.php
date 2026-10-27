@@ -482,12 +482,13 @@ if (isset($_GET['print']) && $_GET['print'] === '1') {
             </table>
           </div>
           <?php 
-          $activityUrl = BASE_URL . '/reports.php?activity_page=';
-          if ($filterCycle !== '') $activityUrl .= '&cycle=' . urlencode($filterCycle);
-          if ($filterBarangay !== '') $activityUrl .= '&barangay=' . urlencode($filterBarangay);
-          // Remove the trailing =
-          $activityUrl = rtrim($activityUrl, '=');
-          render_pagination($paginatedActivity['page'], $paginatedActivity['total_pages'], $activityUrl); 
+          $activityUrl = BASE_URL . '/reports.php?';
+          $queryParams = [];
+          if ($filterCycle !== '') $queryParams[] = 'cycle=' . urlencode($filterCycle);
+          if ($filterBarangay !== '') $queryParams[] = 'barangay=' . urlencode($filterBarangay);
+          if (!empty($queryParams)) $activityUrl .= implode('&', $queryParams) . '&';
+          $activityUrl .= 'activity_page=';
+          render_pagination($paginatedActivity['page'], $paginatedActivity['total_pages'], $activityUrl, 'activity_page'); 
           ?>
         </div>
       </div>
@@ -516,12 +517,13 @@ if (isset($_GET['print']) && $_GET['print'] === '1') {
             </table>
           </div>
           <?php 
-          $accessUrl = BASE_URL . '/reports.php?access_page=';
-          if ($filterCycle !== '') $accessUrl .= '&cycle=' . urlencode($filterCycle);
-          if ($filterBarangay !== '') $accessUrl .= '&barangay=' . urlencode($filterBarangay);
-          // Remove the trailing =
-          $accessUrl = rtrim($accessUrl, '=');
-          render_pagination($paginatedAccess['page'], $paginatedAccess['total_pages'], $accessUrl); 
+          $accessUrl = BASE_URL . '/reports.php?';
+          $queryParams = [];
+          if ($filterCycle !== '') $queryParams[] = 'cycle=' . urlencode($filterCycle);
+          if ($filterBarangay !== '') $queryParams[] = 'barangay=' . urlencode($filterBarangay);
+          if (!empty($queryParams)) $accessUrl .= implode('&', $queryParams) . '&';
+          $accessUrl .= 'access_page=';
+          render_pagination($paginatedAccess['page'], $paginatedAccess['total_pages'], $accessUrl, 'access_page'); 
           ?>
         </div>
       </div>

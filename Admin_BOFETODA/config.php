@@ -1278,7 +1278,7 @@ function paginate_array($items, $page = 1, $perPage = 25) {
 /**
  * Render pagination controls
  */
-function render_pagination($currentPage, $totalPages, $baseUrl) {
+function render_pagination($currentPage, $totalPages, $baseUrl, $pageParam = 'page') {
     if ($totalPages <= 1) return;
     
     echo '<div class="pagination-wrap">';
@@ -1286,7 +1286,7 @@ function render_pagination($currentPage, $totalPages, $baseUrl) {
     
     // Previous button
     if ($currentPage > 1) {
-        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($currentPage - 1)) . '" class="pagination__btn">&larr; Previous</a>';
+        echo '<a href="' . e($baseUrl . ($currentPage - 1)) . '" class="pagination__btn">&larr; Previous</a>';
     } else {
         echo '<span class="pagination__btn pagination__btn--disabled">&larr; Previous</span>';
     }
@@ -1299,7 +1299,7 @@ function render_pagination($currentPage, $totalPages, $baseUrl) {
     $end = min($totalPages, $currentPage + $range);
     
     if ($start > 1) {
-        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=1') . '" class="pagination__number">1</a>';
+        echo '<a href="' . e($baseUrl . '1') . '" class="pagination__number">1</a>';
         if ($start > 2) {
             echo '<span class="pagination__ellipsis">...</span>';
         }
@@ -1309,7 +1309,7 @@ function render_pagination($currentPage, $totalPages, $baseUrl) {
         if ($i == $currentPage) {
             echo '<span class="pagination__number pagination__number--active">' . $i . '</span>';
         } else {
-            echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $i) . '" class="pagination__number">' . $i . '</a>';
+            echo '<a href="' . e($baseUrl . $i) . '" class="pagination__number">' . $i . '</a>';
         }
     }
     
@@ -1317,14 +1317,14 @@ function render_pagination($currentPage, $totalPages, $baseUrl) {
         if ($end < $totalPages - 1) {
             echo '<span class="pagination__ellipsis">...</span>';
         }
-        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $totalPages) . '" class="pagination__number">' . $totalPages . '</a>';
+        echo '<a href="' . e($baseUrl . $totalPages) . '" class="pagination__number">' . $totalPages . '</a>';
     }
     
     echo '</div>';
     
     // Next button
     if ($currentPage < $totalPages) {
-        echo '<a href="' . e($baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($currentPage + 1)) . '" class="pagination__btn">Next &rarr;</a>';
+        echo '<a href="' . e($baseUrl . ($currentPage + 1)) . '" class="pagination__btn">Next &rarr;</a>';
     } else {
         echo '<span class="pagination__btn pagination__btn--disabled">Next &rarr;</span>';
     }
