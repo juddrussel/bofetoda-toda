@@ -71,6 +71,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_cleanup'])) {
 // Get current duplicate count for preview
 try {
     $pdo = get_pdo();
+    
+    // First, let's see all notifications to debug
+    $debugSql = "
+        SELECT id, driver_id, app_no, title, message, created_at
+        FROM notifications
+        WHERE app_no = 'APP-20260007'
+        ORDER BY created_at DESC
+    ";
+    $debugStmt = $pdo->query($debugSql);
+    $allNotifications = $debugStmt->fetchAll(PDO::FETCH_ASSOC);
+    
     $countSql = "
         SELECT COUNT(*) as duplicate_count
         FROM notifications n1
@@ -84,6 +95,7 @@ try {
     $currentDuplicates = $countStmt->fetchColumn();
 } catch (Exception $e) {
     $currentDuplicates = 0;
+    $allNotifications = [];
 }
 ?>
 <!DOCTYPE html>
@@ -143,6 +155,39 @@ try {
             </div>
             <?php endif; ?>
         </div>
+
+        <!-- Debug: Show all APP-20260007 notifications -->
+        <?php if (!empty($allNotifications)): ?>
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Debug: APP-20260007 Notifications</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left">ID</th>
+                            <th class="px-3 py-2 text-left">Driver ID</th>
+                            <th class="px-3 py-2 text-left">App No</th>
+                            <th class="px-3 py-2 text-left">Title</th>
+                            <th class="px-3 py-2 text-left">Message</th>
+                            <th class="px-3 py-2 text-left">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($allNotifications as $notif): ?>
+                        <tr class="border-t border-slate-200">
+                            <td class="px-3 py-2"><?= htmlspecialchars($notif['id']) ?></td>
+                            <td class="px-3 py-2"><?= htmlspecialchars($notif['driver_id']) ?></td>
+                            <td class="px-3 py-2"><?= htmlspecialchars($notif['app_no']) ?></td>
+                            <td class="px-3 py-2"><?= htmlspecialchars($notif['title']) ?></td>
+                            <td class="px-3 py-2 text-xs"><?= htmlspecialchars($notif['message']) ?></td>
+                            <td class="px-3 py-2 text-xs"><?= htmlspecialchars($notif['created_at']) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Action Form -->
         <?php if ($currentDuplicates > 0): ?>
