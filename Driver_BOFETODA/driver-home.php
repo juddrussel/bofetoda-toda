@@ -109,11 +109,7 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
 <div class="w-full max-w-[420px] bg-slate-50 min-h-screen flex flex-col relative shadow-2xl border-x border-slate-200">
 
   <!-- Top Brand Bar -->
-  <header class="pt-3 px-5 pb-1 flex items-center justify-between text-[11px] text-slate-400 font-medium tracking-wide">
-    <div class="flex items-center space-x-1.5">
-      <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span class="text-slate-600 font-semibold">TODA Link Mobile</span>
-    </div>
+  <header class="pt-3 px-5 pb-1 flex items-center justify-end text-[11px] text-slate-400 font-medium tracking-wide">
     <span>© 2026 Bocaue TODA Inc.</span>
   </header>
 
@@ -133,13 +129,12 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
       </div>
       
       <!-- Profile Avatar -->
-      <div class="relative flex-shrink-0 ml-3">
+      <div class="flex-shrink-0 ml-3">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 p-0.5 shadow-sm">
           <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center font-bold text-amber-600 text-lg">
             <?= h($driverInitial) ?>
           </div>
         </div>
-        <div class="absolute -bottom-1 -right-1 bg-emerald-500 w-3.5 h-3.5 rounded-full border-2 border-white"></div>
       </div>
     </div>
   </section>
