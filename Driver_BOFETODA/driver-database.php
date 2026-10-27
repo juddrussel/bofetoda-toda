@@ -439,10 +439,12 @@ function get_upcoming_announcement() {
 function get_application_detail($app_no) {
     $pdo = get_pdo();
     $stmt = $pdo->prepare(
-        'SELECT a.*, rr.reason AS reject_reason, b.name AS barangay
+        'SELECT a.*, rr.reason AS reject_reason, b.name AS barangay,
+                o.name AS rejected_by_name
          FROM applications a
          LEFT JOIN reject_reasons rr ON rr.reject_reason_id = a.reject_reason_id
          LEFT JOIN barangays b ON b.barangay_id = a.barangay_id
+         LEFT JOIN officers o ON o.officer_id = a.rejected_by
          WHERE a.app_no = :app_no
          LIMIT 1'
     );

@@ -82,7 +82,7 @@ $statusStyle = $statusColors[$status] ?? $statusColors['Pending'];
                     <div class="timeline-right"><?php echo h(date('M j, Y', strtotime($app['submitted_at']))); ?></div>
                 </div>
                 <div class="timeline-row">
-                    <div class="timeline-left"><strong>Rejected</strong><span>By: <?php echo h(ucfirst($app['rejected_by'] ? 'Officer ' . $app['rejected_by'] : '')); ?></span></div>
+                    <div class="timeline-left"><strong>Rejected</strong><span>By: <?php echo h($app['rejected_by_name'] ?: ($app['rejected_by'] ? 'Officer ' . $app['rejected_by'] : 'N/A')); ?></span></div>
                     <div class="timeline-right"><?php echo $app['rejected_at'] ? h(date('M j, Y', strtotime($app['rejected_at']))) : '&mdash;'; ?></div>
                 </div>
             </div>
