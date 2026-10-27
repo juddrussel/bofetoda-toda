@@ -75,13 +75,18 @@ $driverInitial = strtoupper(substr($driver['name'], 0, 1));
         <!-- Avatar with Edit Badge -->
         <form id="avatarForm" method="post" action="driver-profile.php" enctype="multipart/form-data" class="relative">
             <label for="avatarInput" class="cursor-pointer block" title="Tap to change photo">
-                <div class="w-20 h-20 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-2xl border-4 border-white shadow-md">
-                    <?php if ($avatarUrl): ?>
-                    <img src="<?= h($avatarUrl) ?>" alt="Profile photo" class="w-full h-full rounded-full object-cover">
-                    <?php else: ?>
-                    <?= h($driverInitial) ?>
-                    <?php endif; ?>
+                <?php if ($avatarUrl): ?>
+                <!-- Show image with fallback to initials on error -->
+                <div class="w-20 h-20 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-2xl border-4 border-white shadow-md overflow-hidden">
+                    <img src="<?= h($avatarUrl) ?>" alt="Profile photo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="w-full h-full flex items-center justify-center" style="display:none;"><?= h($driverInitial) ?></div>
                 </div>
+                <?php else: ?>
+                <!-- Show initials when no avatar -->
+                <div class="w-20 h-20 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-2xl border-4 border-white shadow-md">
+                    <?= h($driverInitial) ?>
+                </div>
+                <?php endif; ?>
                 <!-- Edit button badge -->
                 <button type="button" aria-label="Edit Profile Picture" class="absolute bottom-0 right-0 w-7 h-7 bg-slate-900 text-white rounded-full flex items-center justify-center shadow border-2 border-white hover:bg-slate-800 transition pointer-events-none">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
