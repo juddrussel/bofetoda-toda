@@ -1820,8 +1820,9 @@ function render_sidebar($active) {
 <aside class="sidebar">
  <div class="sidebar__inner">
   <button type="button" class="sidebar__officer" data-open-modal="profile-modal">
-    <?php if (!empty($officer['profile_picture'])): ?>
-      <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" style="width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+    <?php if (!empty($officer['profile_picture']) && file_exists(__DIR__ . str_replace(BASE_URL, '', $officer['profile_picture']))): ?>
+      <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" style="width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="sidebar__avatar" style="display:none;"><?= e($officer['initials'] ?? '??') ?></div>
     <?php else: ?>
       <div class="sidebar__avatar"><?= e($officer['initials'] ?? '??') ?></div>
     <?php endif; ?>
@@ -1881,8 +1882,9 @@ function render_sidebar($active) {
     </div>
     <div class="modal__body profile-modal__body">
       <div class="profile-modal__avatar-wrapper" style="position:relative; display:inline-block;">
-        <?php if (!empty($officer['profile_picture'])): ?>
-          <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" style="width:64px; height:64px; border-radius:16px; object-fit:cover; display:block;">
+        <?php if (!empty($officer['profile_picture']) && file_exists(__DIR__ . str_replace(BASE_URL, '', $officer['profile_picture']))): ?>
+          <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" style="width:64px; height:64px; border-radius:16px; object-fit:cover; display:block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="profile-modal__avatar" style="display:none;"><?= e($officer['initials'] ?? '??') ?></div>
         <?php else: ?>
           <div class="profile-modal__avatar"><?= e($officer['initials'] ?? '??') ?></div>
         <?php endif; ?>
