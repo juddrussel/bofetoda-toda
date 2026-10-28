@@ -795,64 +795,241 @@ if ($isArchived) {
 
 <?php if ($canManage): ?>
 <div class="modal-backdrop" id="add-driver-modal">
-  <div class="modal" style="max-width:680px;">
-    <form id="add-driver-form" method="post" action="<?= BASE_URL ?>/driver_list.php">
-      <input type="hidden" name="action" value="add_driver">
-      <input type="hidden" name="status" value="-">
-      <div class="modal__body" style="padding:20px 24px 4px;">
-        <div class="form-section-title" style="margin-top:0;">Driver's Profile</div>
-        <div class="form-grid-3">
-          <div class="field"><label for="d_id">Driver ID</label><input type="text" id="d_id" placeholder="Auto-Generated" disabled></div>
-          <div class="field"><label for="d_name">Name <span class="req">*</span></label><input type="text" id="d_name" name="name" placeholder="Full Name" required></div>
-          <div class="field"><label for="d_birthday">Birthday <span class="req">*</span></label><input type="date" id="d_birthday" name="birthday" max="<?= e(date('Y-m-d')) ?>" required></div>
+  <div style="position:fixed; inset:0; z-50; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); overflow-y:auto;">
+    <div style="background:white; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid rgba(226,232,240,0.9); width:100%; max-width:700px; overflow:hidden; margin:auto; transform:scale(1); transition:all 0.2s;">
+      
+      <!-- Modal Header -->
+      <div style="padding:20px 28px; background:linear-gradient(to right, #f8fafc, white, #f8fafc); border-bottom:1px solid #e2e8f0; display:flex; align-items:start; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <!-- Icon Badge -->
+          <div style="width:44px; height:44px; border-radius:12px; background:#eff6ff; border:1px solid rgba(191,219,254,0.8); display:flex; align-items:center; justify-content:center; color:#2563eb; box-shadow:0 1px 2px rgba(0,0,0,0.05); flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <line x1="19" y1="8" x2="19" y2="14" stroke-linecap="round" stroke-linejoin="round"></line>
+              <line x1="22" y1="11" x2="16" y2="11" stroke-linecap="round" stroke-linejoin="round"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:700; color:#0f172a; letter-spacing:-0.01em; margin:0; line-height:1.3;">Add Driver Account</h2>
+            <p style="font-size:12px; color:#64748b; margin:4px 0 0 0;">Register a new TODA member and create their driver portal credentials.</p>
+          </div>
         </div>
-        <div class="form-grid-3">
-          <div class="field"><label for="d_age">Age</label><input type="text" id="d_age" name="age" placeholder="Age" readonly></div>
-          <div class="field"><label for="d_contact">Contact No. <span class="req">*</span></label><input type="text" id="d_contact" name="contact" placeholder="09" required></div>
-        </div>
-        <p class="field-error" id="err-d_birthday" style="display:none;margin:-10px 0 14px;">Driver must be at least 18 years old.</p>
+        <!-- Close Button -->
+        <button type="button" data-close-modal="add-driver-modal" style="color:#94a3b8; background:transparent; border:none; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#475569';" onmouseout="this.style.background='transparent'; this.style.color='#94a3b8';">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
 
-        <div class="form-section-title">Address</div>
-        <div class="form-grid-3">
-          <div class="field"><label for="d_street">House No / Street <span class="req">*</span></label><input type="text" id="d_street" placeholder="House No / Street" required></div>
-          <div class="field"><label for="d_addr_barangay">Barangay <span class="req">*</span></label><input type="text" id="d_addr_barangay" placeholder="Barangay" required></div>
-          <div class="field">
-            <label>&nbsp;</label>
-            <div class="addr-fixed-group">
-              <span class="addr-pill">Bocaue</span>
-              <span class="addr-pill">Bulacan</span>
+      <form id="add-driver-form" method="post" action="<?= BASE_URL ?>/driver_list.php" style="padding:28px; max-height:calc(88vh - 130px); overflow-y:auto;">
+        <input type="hidden" name="action" value="add_driver">
+        <input type="hidden" name="status" value="-">
+        
+        <!-- SECTION 1: Driver's Profile -->
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:16px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#334155; margin:0;">Driver's Profile</h3>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+            <!-- Driver ID -->
+            <div>
+              <label for="d_id" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">DRIVER ID</label>
+              <div style="position:relative;">
+                <input type="text" id="d_id" placeholder="Auto-Generated" disabled style="width:100%; background:rgba(241,245,249,0.9); color:#94a3b8; border:1px solid #e2e8f0; border-radius:8px; padding:10px 36px 10px 14px; font-size:12px; font-weight:500; cursor:not-allowed; user-select:none; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">
+                <span style="position:absolute; inset-y:0; right:0; padding-right:10px; display:flex; align-items:center; color:#cbd5e1; pointer-events:none;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 11H5a2 2 0 00-2 2v10h18V13a2 2 0 00-2-2z"></path>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                  </svg>
+                </span>
+              </div>
+              <p style="font-size:10px; color:#94a3b8; margin:4px 0 0 0;">System-assigned upon save</p>
+            </div>
+
+            <!-- Full Name -->
+            <div>
+              <label for="d_name" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                NAME <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <input type="text" id="d_name" name="name" placeholder="Full Name" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+            </div>
+
+            <!-- Birthday -->
+            <div>
+              <label for="d_birthday" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                BIRTHDAY <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <input type="date" id="d_birthday" name="birthday" max="<?= e(date('Y-m-d')) ?>" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:16px; margin-top:16px;">
+            <!-- Age -->
+            <div>
+              <label for="d_age" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">AGE</label>
+              <input type="text" id="d_age" name="age" placeholder="Age" readonly style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+            </div>
+
+            <!-- Contact No. -->
+            <div>
+              <label for="d_contact" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                CONTACT NO. <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <div style="display:flex; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                <span style="display:inline-flex; align-items:center; padding:0 12px; border-radius-left:8px; border:1px solid #e2e8f0; border-right:0; background:#f1f5f9; color:#64748b; font-size:12px; font-weight:600;">+63</span>
+                <input type="text" id="d_contact" name="contact" placeholder="09XX XXX XXXX" required style="flex:1; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:0 8px 8px 0; padding:10px 14px; font-size:12px; transition:all 0.2s;" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.previousElementSibling.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.previousElementSibling.style.borderColor='#e2e8f0';">
+              </div>
+            </div>
+          </div>
+          <p class="field-error" id="err-d_birthday" style="display:none; margin:8px 0 0; font-size:12px; color:#dc2626;">Driver must be at least 18 years old.</p>
+        </div>
+
+        <!-- SECTION 2: Address -->
+        <div style="margin-bottom:24px; padding-top:4px;">
+          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:16px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#334155; margin:0;">Address</h3>
+          </div>
+
+          <div style="display:grid; grid-template-columns:5fr 3fr 4fr; gap:14px; align-items:start;">
+            <!-- House No / Street -->
+            <div>
+              <label for="d_street" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                HOUSE NO / STREET <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <input type="text" id="d_street" placeholder="House No / Street" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+            </div>
+
+            <!-- Barangay -->
+            <div>
+              <label for="d_addr_barangay" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                BARANGAY <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <input type="text" id="d_addr_barangay" placeholder="Barangay" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+            </div>
+
+            <!-- Fixed Municipality & Province -->
+            <div style="display:flex; gap:8px; padding-top:24px;">
+              <div style="flex:1; text-align:center;">
+                <span style="display:block; font-size:10px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Town</span>
+                <div style="width:100%; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:500; border-radius:8px; padding:10px 8px; font-size:12px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">Bocaue</div>
+              </div>
+              <div style="flex:1; text-align:center;">
+                <span style="display:block; font-size:10px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Province</span>
+                <div style="width:100%; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:500; border-radius:8px; padding:10px 8px; font-size:12px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">Bulacan</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Address Jurisdiction Footer -->
+          <div style="font-size:11px; color:#64748b; font-weight:500; display:flex; align-items:center; gap:6px; margin-top:12px;">
+            <span style="color:#94a3b8;">Address Jurisdiction:</span>
+            <span style="font-weight:600; color:#475569; background:#f1f5f9; padding:4px 8px; border-radius:4px; border:1px solid rgba(226,232,240,0.7);">Bocaue, Bulacan</span>
+          </div>
+          <div class="address-preview" style="display:none;">Address: <span id="d_address_preview">&mdash;</span></div>
+          <input type="hidden" id="d_address" name="address">
+        </div>
+
+        <!-- SECTION 3: Vehicle's Information -->
+        <div style="margin-bottom:24px; padding-top:4px;">
+          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; padding-bottom:8px; margin-bottom:16px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+              <path d="M5 17h14v-2.76a1 1 0 00-.5-.87l-6.5-3.73a1 1 0 00-1 0l-6.5 3.73a1 1 0 00-.5.87V17z"></path>
+              <circle cx="12" cy="9" r="3"></circle>
+            </svg>
+            <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#334155; margin:0;">Vehicle's Information</h3>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+            <!-- Body No. -->
+            <div>
+              <label for="d_body" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                BODY NO. <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <input type="text" id="d_body" name="body_no" placeholder="Body" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+            </div>
+
+            <!-- Barangay -->
+            <div>
+              <label for="d_barangay" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                BARANGAY <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <div style="position:relative;">
+                <select id="d_barangay" name="barangay" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 32px 10px 14px; font-size:12px; appearance:none; cursor:pointer; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+                  <option value="" disabled selected>Barangay</option>
+                  <?php foreach ($barangays as $b): ?><option value="<?= e($b) ?>"><?= e($b) ?></option><?php endforeach; ?>
+                </select>
+                <div style="pointer-events:none; position:absolute; inset-y:0; right:0; display:flex; align-items:center; padding:0 10px; color:#64748b; font-size:10px;">
+                  <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Color Code -->
+            <div>
+              <label for="d_color" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
+                COLOR CODE <span style="color:#dc2626; font-weight:900;">*</span>
+              </label>
+              <div style="position:relative;">
+                <select id="d_color" name="color" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 32px 10px 14px; font-size:12px; appearance:none; cursor:pointer; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+                  <option value="" disabled selected>Color</option>
+                  <?php foreach (d('colors') as $c): ?><option value="<?= e($c) ?>"><?= e($c) ?></option><?php endforeach; ?>
+                </select>
+                <div style="pointer-events:none; position:absolute; inset-y:0; right:0; display:flex; align-items:center; padding:0 10px; color:#64748b; font-size:10px;">
+                  <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="address-preview">Address: <span id="d_address_preview">&mdash;</span></div>
-        <input type="hidden" id="d_address" name="address">
 
-        <div class="form-section-title">Vehicle's Information</div>
-        <div class="form-grid-3">
-          <div class="field"><label for="d_body">Body No. <span class="req">*</span></label><input type="text" id="d_body" name="body_no" placeholder="Body" required></div>
-          <div class="field">
-            <label for="d_barangay">Barangay <span class="req">*</span></label>
-            <select id="d_barangay" name="barangay" required>
-              <option value="" disabled selected>Barangay</option>
-              <?php foreach ($barangays as $b): ?><option value="<?= e($b) ?>"><?= e($b) ?></option><?php endforeach; ?>
-            </select>
+        <!-- SECTION 4: Temporary Password Notice -->
+        <div style="border-radius:12px; background:rgba(239,246,255,0.8); border:1px solid #bfdbfe; padding:14px; display:flex; align-items:start; gap:12px; color:#334155; margin-bottom:16px;">
+          <div style="width:24px; height:24px; border-radius:6px; background:#2563eb; color:white; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; font-size:10px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <path d="M19 11H5a2 2 0 00-2 2v10h18V13a2 2 0 00-2-2z"></path>
+              <path d="M7 11V7a5 5 0 0110 0v4"></path>
+            </svg>
           </div>
-          <div class="field">
-            <label for="d_color">Color Code <span class="req">*</span></label>
-            <select id="d_color" name="color" required>
-              <option value="" disabled selected>Color</option>
-              <?php foreach (d('colors') as $c): ?><option value="<?= e($c) ?>"><?= e($c) ?></option><?php endforeach; ?>
-            </select>
-          </div>
+          <p style="font-size:12px; line-height:1.6; color:#64748b; margin:0;">
+            A default password will be generated automatically. The driver can change it after logging in for the first time.
+          </p>
         </div>
-        <p class="pw-auto-note">A default password will be generated automatically. The driver can change it after logging in for the first time.</p>
-      </div>
 
-      <div class="modal__foot-split" style="margin-top:18px;">
-        <button type="button" class="btn btn-danger" data-close-modal="add-driver-modal">Cancel</button>
-        <button type="button" class="btn btn-primary" data-open-modal="confirm-add-driver">Add Account</button>
-      </div>
-    </form>
+        <!-- Modal Footer -->
+        <div style="padding-top:16px; border-top:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between;">
+          <!-- Cancel Button -->
+          <button type="button" data-close-modal="add-driver-modal" style="padding:10px 24px; background:#dc2626; color:white; border:none; font-weight:600; font-size:12px; letter-spacing:0.02em; border-radius:8px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.15s; display:flex; align-items:center; gap:6px;" onmouseover="this.style.background='#b91c1c'; this.style.transform='scale(0.98)';" onmouseout="this.style.background='#dc2626'; this.style.transform='scale(1)';">
+            <span>Cancel</span>
+          </button>
+
+          <!-- Add Account Button -->
+          <button type="button" data-open-modal="confirm-add-driver" style="padding:10px 24px; background:#0B132B; color:white; border:none; font-weight:600; font-size:12px; letter-spacing:0.02em; border-radius:8px; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); transition:all 0.15s; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='#1C2541'; this.style.boxShadow='0 6px 8px rgba(0,0,0,0.15)'; this.style.transform='scale(0.98)';" onmouseout="this.style.background='#0B132B'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'; this.style.transform='scale(1)';">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 12h-6m3-3v6" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <span>Add Account</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
