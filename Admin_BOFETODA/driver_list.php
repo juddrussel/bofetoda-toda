@@ -1,79 +1,6 @@
 <?php
 
 require_once __DIR__ . '/config.php';
-
-// AJAX endpoint for checking body number availability - handle BEFORE any output
-if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
-    // Still need to check login for security
-    require_login();
-    
-    header('Content-Type: application/json');
-    $bodyNo = trim($_GET['body_no'] ?? '');
-    $currentDriverId = trim($_GET['current_driver_id'] ?? ''); // For edit modal
-    
-    // Log for debugging
-    error_log("Body number check: bodyNo='$bodyNo', currentDriverId='$currentDriverId'");
-    
-    if (empty($bodyNo)) {
-        echo json_encode(['available' => true, 'message' => 'No body number provided']);
-        exit;
-    }
-    
-    try {
-        $pdo = get_pdo();
-        // Use TRIM to ensure exact matching regardless of spaces
-        $query = 'SELECT driver_id, name FROM drivers WHERE TRIM(body_no) = :body_no AND archived = 0';
-        $params = ['body_no' => $bodyNo];
-        
-        // If editing, exclude the current driver
-        if (!empty($currentDriverId)) {
-            $query .= ' AND driver_id != :current_id';
-            $params['current_id'] = $currentDriverId;
-        }
-        
-        error_log("Query: $query, Params: " . json_encode($params));
-        
-        $stmt = $pdo->prepare($query);
-        $stmt->execute($params);
-        $exists = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        error_log("Result: " . json_encode($exists));
-        
-        if ($exists) {
-            $message = 'Body number is already in use by ' . $exists['name'] . ' (' . $exists['driver_id'] . ')';
-            echo json_encode([
-                'available' => false,
-                'message' => $message,
-                'driver_id' => $exists['driver_id'],
-                'driver_name' => $exists['name']
-            ]);
-        } else {
-            echo json_encode([
-                'available' => true,
-                'message' => 'Body number is available'
-            ]);
-        }
-    } catch (PDOException $e) {
-        error_log('Body number check PDO error: ' . $e->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            'available' => false, 
-            'error' => true,
-            'message' => 'Database error: ' . $e->getMessage()
-        ]);
-    } catch (Exception $e) {
-        error_log('Body number check error: ' . $e->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            'available' => false, 
-            'error' => true,
-            'message' => 'Server error: ' . $e->getMessage()
-        ]);
-    }
-    exit;
-}
-
-// Regular page processing
 require_login();
 require_once __DIR__ . '/admin-documents.php';
 
@@ -1494,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       addBodyCheckTimeout = setTimeout(function() {
-        fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo))
+        fetch('<?= BASE_URL ?>/check_body_number.php?body_no=' + encodeURIComponent(bodyNo))
           .then(function(res) { 
             if (!res.ok) {
               throw new Error('Network response was not ok');
@@ -1571,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
+      fetch('<?= BASE_URL ?>/check_body_number.php?body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
         .then(function(res) { 
           if (!res.ok) {
             throw new Error('Network response was not ok');
