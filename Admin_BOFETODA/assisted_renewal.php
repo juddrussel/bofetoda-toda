@@ -506,7 +506,7 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
                   type="text" 
                   id="driverSearch" 
                   class="search-input" 
-                  placeholder="ado"
+                  placeholder="Search by name, ID, or body number..."
                   autocomplete="off"
                   style="padding:12px 16px 12px 44px; font-size:15px;"
                 />
