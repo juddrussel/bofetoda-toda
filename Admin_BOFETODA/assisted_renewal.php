@@ -329,25 +329,6 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
         margin-left: 58px;
     }
 }
-.selected-driver-card {
-    background: #e3f2fd;
-    border: 2px solid #2196f3;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-}
-.readonly-field {
-    margin-bottom: 16px;
-}
-.readonly-label {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-}
-.readonly-value {
     font-size: 15px;
     font-weight: 600;
     color: var(--text);
@@ -671,99 +652,194 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
 
       <?php elseif ($step === 2 && $selected_driver): ?>
         <!-- Step 2: Driver's Profile (Read-only) -->
-        <div class="selected-driver-card">
-          <strong style="font-size:14px; color:#1976d2;">Selected Driver:</strong>
-          <div style="font-size:18px; font-weight:700; color:var(--navy); margin-top:4px;">
-            <?= e($selected_driver['name']) ?> (<?= e($selected_driver['driver_id']) ?>)
-          </div>
-          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=1" style="font-size:13px; color:#1976d2; text-decoration:underline; margin-top:8px; display:inline-block;">Change Driver</a>
-        </div>
-
-        <div class="card">
-          <div class="card__head">
-            <h3>Driver's Profile</h3>
-          </div>
-          <div class="card__body">
-            <div class="info-note">
-              This information is on file and shown here for review only — it can't be edited on this page.
-            </div>
-
-            <div class="readonly-field">
-              <div class="readonly-label">Driver ID</div>
-              <div class="readonly-value"><?= e($selected_driver['driver_id']) ?></div>
-            </div>
-
-            <div class="readonly-field">
-              <div class="readonly-label">Name</div>
-              <div class="readonly-value"><?= e($selected_driver['name']) ?></div>
-            </div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-              <div class="readonly-field">
-                <div class="readonly-label">Age</div>
-                <div class="readonly-value"><?= e($selected_driver['age']) ?></div>
+        
+        <!-- Selected Driver Banner -->
+        <div style="margin-bottom:20px; border-radius:12px; border:1px solid #bae6fd; background:#f0f9ff; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#0284c7; margin-bottom:2px;">Selected Driver:</div>
+              <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                <span style="font-size:16px; font-weight:700; color:#0f172a;"><?= e($selected_driver['name']) ?></span>
+                <span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;"><?= e($selected_driver['driver_id']) ?></span>
               </div>
-              <div class="readonly-field">
-                <div class="readonly-label">Birthday</div>
-                <div class="readonly-value"><?= e(date('M j, Y', strtotime($selected_driver['birthday']))) ?></div>
+              <div style="margin-top:8px;">
+                <a href="<?= BASE_URL ?>/assisted_renewal.php?step=1" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#2563eb; text-decoration:underline; text-underline-offset:2px; transition:color 0.2s;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                  Change Driver
+                </a>
               </div>
             </div>
-
-            <div class="readonly-field">
-              <div class="readonly-label">Contact Number</div>
-              <div class="readonly-value"><?= e($selected_driver['contact_no']) ?></div>
-            </div>
-
-            <div class="readonly-field">
-              <div class="readonly-label">Barangay</div>
-              <div class="readonly-value"><?= e($selected_driver['barangay']) ?></div>
-            </div>
-
-            <div class="readonly-field">
-              <div class="readonly-label">Address</div>
-              <div class="readonly-value"><?= e($selected_driver['address']) ?></div>
+            <div class="hidden sm:flex" style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:500; color:#64748b; background:rgba(255,255,255,0.7); padding:8px 12px; border-radius:8px; border:1px solid rgba(186,230,253,0.7);">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="color:#10b981;">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <span>Verified <?= e($selected_driver['barangay']) ?> TODA Member</span>
             </div>
           </div>
         </div>
 
-        <div class="btn-row">
-          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=1" class="btn btn-outline">Back</a>
-          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=3" class="btn btn-accent" style="flex:1;">Next</a>
+        <!-- Driver Profile Card -->
+        <div style="background:white; border-radius:12px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.02); overflow:hidden; margin-bottom:24px;">
+          <!-- Card Header -->
+          <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 style="font-size:14px; font-weight:700; color:#0f172a; letter-spacing:-0.01em; margin:0;">Driver's Profile</h3>
+              <span style="font-size:11px; background:#f1f5f9; color:#64748b; padding:4px 8px; border-radius:4px; font-weight:500;">Read-Only</span>
+            </div>
+            <span style="font-size:11px; color:#94a3b8; font-weight:500;">Synced with Member Records</span>
+          </div>
+
+          <div style="padding:24px;">
+            <!-- Information Notice Banner -->
+            <div style="border-radius:8px; background:#f0f9ff; border:1px solid#bae6fd; padding:12px 16px; font-size:12px; color:#0c4a6e; display:flex; align-items:start; gap:10px; margin-bottom:24px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px; color:#0284c7;">
+                <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <p style="line-height:1.5; margin:0;">This information is on file and shown here for review only — it can't be edited on this page.</p>
+            </div>
+
+            <!-- Form Fields -->
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <!-- Driver ID -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">DRIVER ID</label>
+                <input type="text" readonly value="<?= e($selected_driver['driver_id']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:600; color:#334155; cursor:not-allowed;" />
+              </div>
+
+              <!-- Name -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">NAME</label>
+                <input type="text" readonly value="<?= e($selected_driver['name']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+              </div>
+
+              <!-- Age & Birthday -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div>
+                  <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">AGE</label>
+                  <input type="text" readonly value="<?= e($selected_driver['age']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+                </div>
+                <div>
+                  <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">BIRTHDAY</label>
+                  <div style="position:relative;">
+                    <input type="text" readonly value="<?= e(date('M j, Y', strtotime($selected_driver['birthday']))) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; padding-right:36px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+                    <div style="position:absolute; right:0; top:0; bottom:0; display:flex; align-items:center; padding-right:12px; pointer-events:none; color:#94a3b8;">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact Number -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">CONTACT NUMBER</label>
+                <div style="position:relative;">
+                  <input type="text" readonly value="<?= e($selected_driver['contact_no']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; padding-right:36px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+                  <div style="position:absolute; right:0; top:0; bottom:0; display:flex; align-items:center; padding-right:12px; pointer-events:none; color:#94a3b8;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Barangay -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">BARANGAY</label>
+                <input type="text" readonly value="<?= e($selected_driver['barangay']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+              </div>
+
+              <!-- Address -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">ADDRESS</label>
+                <input type="text" readonly value="<?= e($selected_driver['address']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:8px; padding-bottom:48px;">
+          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=1" style="display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-size:12px; font-weight:600; color:#475569; text-decoration:none; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.2s;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+            Back
+          </a>
+          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=3" style="display:inline-flex; align-items:center; gap:6px; padding:10px 24px; border-radius:8px; background:#2563eb; font-size:12px; font-weight:600; color:white; text-decoration:none; box-shadow:0 4px 6px rgba(37,99,235,0.2); transition:all 0.2s;">
+            <span>Next: Vehicle Information</span>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+          </a>
         </div>
 
       <?php elseif ($step === 3 && $selected_driver): ?>
         <!-- Step 3: Vehicle Information (Read-only) -->
-        <div class="selected-driver-card">
-          <strong style="font-size:14px; color:#1976d2;">Selected Driver:</strong>
-          <div style="font-size:18px; font-weight:700; color:var(--navy); margin-top:4px;">
-            <?= e($selected_driver['name']) ?> (<?= e($selected_driver['driver_id']) ?>)
+        
+        <!-- Selected Driver Banner -->
+        <div style="margin-bottom:20px; border-radius:12px; border:1px solid #bae6fd; background:#f0f9ff; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#0284c7; margin-bottom:2px;">Selected Driver:</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+            <span style="font-size:16px; font-weight:700; color:#0f172a;"><?= e($selected_driver['name']) ?></span>
+            <span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;"><?= e($selected_driver['driver_id']) ?></span>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card__head">
-            <h3>Vehicle Information</h3>
+        <!-- Vehicle Information Card -->
+        <div style="background:white; border-radius:12px; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.02); overflow:hidden; margin-bottom:24px;">
+          <!-- Card Header -->
+          <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 style="font-size:14px; font-weight:700; color:#0f172a; letter-spacing:-0.01em; margin:0;">Vehicle Information</h3>
+              <span style="font-size:11px; background:#f1f5f9; color:#64748b; padding:4px 8px; border-radius:4px; font-weight:500;">Read-Only</span>
+            </div>
+            <span style="font-size:11px; color:#94a3b8; font-weight:500;">Synced with Member Records</span>
           </div>
-          <div class="card__body">
-            <div class="info-note">
-              Vehicle information on file, shown for confirmation.
+
+          <div style="padding:24px;">
+            <!-- Information Notice Banner -->
+            <div style="border-radius:8px; background:#f0f9ff; border:1px solid #bae6fd; padding:12px 16px; font-size:12px; color:#0c4a6e; display:flex; align-items:start; gap:10px; margin-bottom:24px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px; color:#0284c7;">
+                <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <p style="line-height:1.5; margin:0;">Vehicle information on file, shown for confirmation.</p>
             </div>
 
-            <div class="readonly-field">
-              <div class="readonly-label">Body Number</div>
-              <div class="readonly-value"><?= e($selected_driver['body_no']) ?></div>
-            </div>
+            <!-- Form Fields -->
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <!-- Body Number -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">BODY NUMBER</label>
+                <input type="text" readonly value="<?= e($selected_driver['body_no']) ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:600; color:#334155; cursor:not-allowed;" />
+              </div>
 
-            <div class="readonly-field">
-              <div class="readonly-label">Tricycle Color</div>
-              <div class="readonly-value"><?= e($selected_driver['color'] ?? '—') ?></div>
+              <!-- Tricycle Color -->
+              <div>
+                <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">TRICYCLE COLOR</label>
+                <input type="text" readonly value="<?= e($selected_driver['color'] ?? '—') ?>" style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; font-size:12px; font-weight:500; color:#334155; cursor:not-allowed;" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="btn-row">
-          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=2" class="btn btn-outline">Back</a>
-          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=4" class="btn btn-accent" style="flex:1;">Next</a>
+        <!-- Bottom Navigation -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:8px; padding-bottom:48px;">
+          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=2" style="display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-size:12px; font-weight:600; color:#475569; text-decoration:none; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.2s;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+            Back
+          </a>
+          <a href="<?= BASE_URL ?>/assisted_renewal.php?step=4" style="display:inline-flex; align-items:center; gap:6px; padding:10px 24px; border-radius:8px; background:#2563eb; font-size:12px; font-weight:600; color:white; text-decoration:none; box-shadow:0 4px 6px rgba(37,99,235,0.2); transition:all 0.2s;">
+            <span>Next: Upload Documents</span>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+          </a>
         </div>
 
       <?php elseif ($step === 4 && $selected_driver): ?>
