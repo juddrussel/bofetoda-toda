@@ -165,29 +165,8 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
 <title>Assisted Renewal · <?= e(APP_NAME) ?></title>
 <?php render_shared_styles(); ?>
 <style>
-.progress-bar {
-    width: 100%;
-    height: 6px;
-    background: var(--border);
-    border-radius: 999px;
-    margin-bottom: 8px;
-    overflow: hidden;
-}
-.progress-fill {
-    height: 100%;
-    background: var(--primary);
-    transition: width 0.3s ease;
-}
-.progress-label {
-    text-align: center;
-    font-size: 13px;
-    color: var(--text-muted);
-    font-weight: 600;
-    margin-bottom: 24px;
-}
 .search-box {
     position: relative;
-    margin-bottom: 20px;
 }
 .search-input {
     width: 100%;
@@ -475,33 +454,75 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
         </div>
       <?php endif; ?>
 
-      <!-- Progress Bar -->
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: <?= ($step / 5) * 100 ?>%;"></div>
+      <!-- Page Header with Progress -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+        <div>
+          <h2 style="font-size:28px; font-weight:900; color:#111827; margin:0 0 8px 0; letter-spacing:-0.02em;">Assisted Renewal</h2>
+          <p style="font-size:14px; color:#6b7280; margin:0;">
+            Assisting walk-in or offline TODA members with <span style="color:#4f46e5; font-weight:600;">filing</span>, <span style="color:#4f46e5; font-weight:600;">verifying</span>, and <span style="color:#4f46e5; font-weight:600;">submitting</span> renewal applications.
+          </p>
+        </div>
+        <div style="text-align:right;">
+          <?php
+          $stepLabels = [
+            1 => 'Member Lookup',
+            2 => 'Driver Profile',
+            3 => 'Vehicle Info',
+            4 => 'Upload Documents',
+            5 => 'Review & Submit'
+          ];
+          ?>
+          <div style="font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
+            STEP <?= $step ?> OF 5 <?= $stepLabels[$step] ?? '' ?>
+          </div>
+          <div style="height:3px; width:120px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-left:auto;">
+            <div style="height:100%; width:<?= ($step / 5) * 100 ?>%; background:#4f46e5;"></div>
+          </div>
+        </div>
       </div>
-      <div class="progress-label"><?= $step ?> out of 5</div>
 
       <?php if ($step === 1): ?>
         <!-- Step 1: Search & Select Member -->
-        <div class="card">
-          <div class="card__head">
-            <h3>Search for Member</h3>
+        <div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+            <div>
+              <h3 style="font-size:18px; font-weight:700; color:#111827; margin:0 0 6px 0;">Search for Member</h3>
+              <p style="font-size:13px; color:#6b7280; margin:0;">
+                Search by driver name, ID number, body number, or assigned barangay to find the member you want to assist.
+              </p>
+            </div>
+            <div id="foundCount" style="display:none; font-size:13px; color:#4f46e5; font-weight:600; white-space:nowrap; padding:4px 0;">
+              Found 5 matching drivers
+            </div>
           </div>
-          <div class="card__body">
-            <p style="margin-bottom:20px; color:var(--text-muted);">Search by driver name, ID, or body number to find the member you want to assist.</p>
             
-            <div class="search-box">
-              <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="M21 21l-4.35-4.35"></path>
-              </svg>
-              <input 
-                type="text" 
-                id="driverSearch" 
-                class="search-input" 
-                placeholder="Type driver name, ID (DRV-XXXXX), or body number..."
-                autocomplete="off"
-              />
+            <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px;">
+              <div class="search-box" style="flex:1; margin:0;">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input 
+                  type="text" 
+                  id="driverSearch" 
+                  class="search-input" 
+                  placeholder="ado"
+                  autocomplete="off"
+                  style="padding:12px 16px 12px 44px; font-size:15px;"
+                />
+                <button type="button" id="clearSearch" style="display:none; position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#9ca3af; padding:4px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <select style="padding:12px 14px; border:2px solid #e5e7eb; border-radius:8px; font-size:13px; color:#374151; font-weight:500; background:white; cursor:pointer;">
+                <option>All Barangays</option>
+              </select>
+              <select style="padding:12px 14px; border:2px solid #e5e7eb; border-radius:8px; font-size:13px; color:#374151; font-weight:500; background:white; cursor:pointer;">
+                <option>All Statuses</option>
+              </select>
             </div>
 
             <div id="searchResults" class="search-results" style="display:none;"></div>
@@ -520,21 +541,32 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
         const searchResults = document.getElementById('searchResults');
         const searchLoading = document.getElementById('searchLoading');
         const searchEmpty = document.getElementById('searchEmpty');
+        const clearSearch = document.getElementById('clearSearch');
+        const foundCount = document.getElementById('foundCount');
 
         searchInput.addEventListener('input', function() {
           clearTimeout(searchTimeout);
           const query = this.value.trim();
           
+          // Show/hide clear button
+          if (query.length > 0) {
+            clearSearch.style.display = 'block';
+          } else {
+            clearSearch.style.display = 'none';
+          }
+          
           if (query.length < 2) {
             searchResults.style.display = 'none';
             searchLoading.style.display = 'none';
             searchEmpty.style.display = 'none';
+            foundCount.style.display = 'none';
             return;
           }
 
           searchLoading.style.display = 'block';
           searchResults.style.display = 'none';
           searchEmpty.style.display = 'none';
+          foundCount.style.display = 'none';
 
           searchTimeout = setTimeout(() => {
             fetch('<?= BASE_URL ?>/api-search-drivers.php?q=' + encodeURIComponent(query))
@@ -545,8 +577,11 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
                 if (data.success && data.results.length > 0) {
                   renderResults(data.results);
                   searchResults.style.display = 'block';
+                  foundCount.style.display = 'block';
+                  foundCount.textContent = 'Found ' + data.results.length + ' matching driver' + (data.results.length !== 1 ? 's' : '');
                 } else {
                   searchEmpty.style.display = 'block';
+                  foundCount.style.display = 'none';
                 }
               })
               .catch(err => {
@@ -554,6 +589,16 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
                 console.error('Search error:', err);
               });
           }, 300);
+        });
+
+        clearSearch.addEventListener('click', function() {
+          searchInput.value = '';
+          searchInput.focus();
+          clearSearch.style.display = 'none';
+          searchResults.style.display = 'none';
+          searchLoading.style.display = 'none';
+          searchEmpty.style.display = 'none';
+          foundCount.style.display = 'none';
         });
 
         function renderResults(drivers) {
