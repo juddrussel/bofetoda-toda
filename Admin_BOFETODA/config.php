@@ -1214,17 +1214,18 @@ function current_officer() {
     $id = $_SESSION['officer_id'];
 
     $pdo = get_pdo();
-    $stmt = $pdo->prepare('SELECT officer_id, name, initials, role, password FROM officers WHERE officer_id = :id AND is_active = 1');
+    $stmt = $pdo->prepare('SELECT officer_id, name, initials, role, password, profile_picture FROM officers WHERE officer_id = :id AND is_active = 1');
     $stmt->execute(['id' => $id]);
     $row = $stmt->fetch();
     if (!$row) return null;
 
     return [
-        'id'       => $row['officer_id'],
-        'name'     => $row['name'],
-        'role'     => $row['role'],
-        'initials' => $row['initials'],
-        'password' => $row['password'],
+        'id'              => $row['officer_id'],
+        'name'            => $row['name'],
+        'role'            => $row['role'],
+        'initials'        => $row['initials'],
+        'password'        => $row['password'],
+        'profile_picture' => $row['profile_picture'],
     ];
 }
 
@@ -1809,7 +1810,11 @@ function render_sidebar($active) {
 <aside class="sidebar">
  <div class="sidebar__inner">
   <button type="button" class="sidebar__officer" data-open-modal="profile-modal">
-    <div class="sidebar__avatar"><?= e($officer['initials'] ?? '??') ?></div>
+    <?php if (!empty($officer['profile_picture'])): ?>
+      <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" class="sidebar__avatar" style="object-fit:cover;">
+    <?php else: ?>
+      <div class="sidebar__avatar"><?= e($officer['initials'] ?? '??') ?></div>
+    <?php endif; ?>
     <div>
       <div class="sidebar__officer-name"><?= e($officer['name'] ?? 'Officer') ?></div>
       <div class="sidebar__officer-role"><?= e($role) ?></div>
@@ -1859,18 +1864,32 @@ function render_sidebar($active) {
 </div>
 
 <div class="modal-backdrop" id="profile-modal">
-  <div class="modal" style="max-width:380px;">
+  <div class="modal" style="max-width:420px; max-height:90vh; overflow-y:auto;">
     <div class="modal__head profile-modal__head">
       <h3>Profile</h3>
       <button type="button" class="profile-modal__back" data-close-modal="profile-modal">&larr; Back</button>
     </div>
     <div class="modal__body profile-modal__body">
-      <div class="profile-modal__avatar"><?= e($officer['initials'] ?? '??') ?></div>
+      <div class="profile-modal__avatar-wrapper" style="position:relative; display:inline-block;">
+        <?php if (!empty($officer['profile_picture'])): ?>
+          <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" class="profile-modal__avatar" style="object-fit:cover; border-radius:16px; width:64px; height:64px;">
+        <?php else: ?>
+          <div class="profile-modal__avatar"><?= e($officer['initials'] ?? '??') ?></div>
+        <?php endif; ?>
+        <button type="button" class="profile-modal__avatar-edit" onclick="document.getElementById('profile-picture-input').click()" 
+                style="position:absolute; bottom:-4px; right:-4px; width:28px; height:28px; border-radius:50%; background:var(--navy); border:2px solid white; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px;">
+          📷
+        </button>
+      </div>
+      <form id="profile-picture-form" method="post" action="<?= BASE_URL ?>/upload_profile_picture.php" enctype="multipart/form-data" style="display:none;">
+        <input type="file" id="profile-picture-input" name="profile_picture" accept="image/*" onchange="document.getElementById('profile-picture-form').submit();">
+        <input type="hidden" name="action" value="upload_profile_picture">
+      </form>
       <div class="profile-modal__name"><?= e($officer['name'] ?? 'Officer') ?></div>
       <div class="profile-modal__role"><?= e($role) ?></div>
       <div class="profile-modal__meta">
         <div><span>Officer ID:</span> <?= e($officer['id'] ?? '') ?></div>
-        <div><span>Password:</span> <?= e($officer['password'] ?? '') ?></div>
+        <div style="word-break:break-all;"><span>Password:</span> <?= e($officer['password'] ?? '') ?></div>
       </div>
     </div>
     <div class="modal__foot profile-modal__foot">
