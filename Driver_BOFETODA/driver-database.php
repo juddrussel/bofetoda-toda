@@ -287,8 +287,7 @@ function get_latest_cycle_start() {
     $pdo = get_pdo();
     return $pdo->query(
         "SELECT opened_date FROM announcements
-         WHERE opened_date <= CURDATE() AND deadline_date >= CURDATE()
-         ORDER BY announcement_id DESC LIMIT 1"
+         ORDER BY opened_date DESC LIMIT 1"
     )->fetchColumn() ?: null;
 }
 
@@ -302,7 +301,7 @@ function application_is_current_cycle(?array $app): bool {
         return false;
     }
 
-    return strtotime($app['submitted_at']) > strtotime($cycleStart);
+    return strtotime($app['submitted_at']) >= strtotime($cycleStart);
 }
 
 function get_current_application($driver_id = null) {
