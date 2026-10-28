@@ -973,7 +973,7 @@ function db_add_announcement(array $in) {
 
     if ($startsNow) {
         $pdo->exec("UPDATE announcements SET status = 'CLOSED' WHERE status = 'OPEN'");
-        $pdo->exec("UPDATE drivers SET renewal_status = '-' WHERE renewal_status IN ('Approved Renewal', 'Rejected Renewal')");
+        $pdo->exec("UPDATE drivers SET renewal_status = '-' WHERE renewal_status != '-'");
     }
 
     $pdo->prepare(
