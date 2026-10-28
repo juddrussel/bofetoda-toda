@@ -36,6 +36,9 @@ $driverId = $driver['driver_id'];
 // Track last notification ID to avoid duplicates
 $lastNotificationId = isset($_GET['lastId']) ? (int)$_GET['lastId'] : 0;
 
+// Track sent status changes in memory (not session to avoid locks)
+$sentStatusChanges = [];
+
 // Function to send SSE message
 function sendSSE($id, $event, $data) {
     echo "id: $id\n";
@@ -106,17 +109,11 @@ while (true) {
         $stmt->execute(['driver_id' => $driverId]);
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Use session to track last sent status to prevent duplicates
-        session_start();
-        if (!isset($_SESSION['sse_last_status'])) {
-            $_SESSION['sse_last_status'] = [];
-        }
-        
         if ($application) {
             $statusKey = $application['app_no'] . '_' . $application['status'];
             
             // Only send if this status hasn't been sent before
-            if (!isset($_SESSION['sse_last_status'][$statusKey])) {
+            if (!isset($sentStatusChanges[$statusKey])) {
                 // Check if status changed recently (within last 30 seconds)
                 $updatedTime = strtotime($application['updated_at']);
                 if ((time() - $updatedTime) < 30) {
@@ -131,12 +128,12 @@ while (true) {
                     );
                     
                     // Mark this status as sent
-                    $_SESSION['sse_last_status'][$statusKey] = time();
+                    $sentStatusChanges[$statusKey] = time();
                     
                     // Clean up old entries (older than 1 hour)
-                    foreach ($_SESSION['sse_last_status'] as $key => $timestamp) {
+                    foreach ($sentStatusChanges as $key => $timestamp) {
                         if ((time() - $timestamp) > 3600) {
-                            unset($_SESSION['sse_last_status'][$key]);
+                            unset($sentStatusChanges[$key]);
                         }
                     }
                 }

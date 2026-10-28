@@ -31,6 +31,9 @@ set_time_limit(0);
 $officerId = $officer['id'];
 $lastNotificationId = isset($_GET['lastId']) ? (int)$_GET['lastId'] : 0;
 
+// Track sent notifications in memory
+$sentNotifications = [];
+
 function sendSSE($id, $event, $data) {
     echo "id: $id\n";
     echo "event: $event\n";
@@ -56,12 +59,6 @@ while (true) {
         $pdo = get_pdo();
         
         // Check for new applications (pending/for approval)
-        // Use session to track last notification to prevent duplicates
-        session_start();
-        if (!isset($_SESSION['sse_last_app_count'])) {
-            $_SESSION['sse_last_app_count'] = 0;
-        }
-        
         $stmt = $pdo->query(
             "SELECT COUNT(*) as count, MAX(submitted_at) as last_submitted
              FROM applications
@@ -70,11 +67,11 @@ while (true) {
         );
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($result && $result['count'] > 0) {
+        if ($result && $result['count'] > 0 && $result['last_submitted']) {
             // Create unique key based on count and last submission time
             $currentKey = $result['count'] . '_' . strtotime($result['last_submitted']);
             
-            if (!isset($_SESSION['sse_last_app_key']) || $_SESSION['sse_last_app_key'] !== $currentKey) {
+            if (!isset($sentNotifications[$currentKey])) {
                 sendSSE(
                     time(),
                     'newApplication',
@@ -85,13 +82,16 @@ while (true) {
                     ]
                 );
                 
-                $_SESSION['sse_last_app_key'] = $currentKey;
-                $_SESSION['sse_last_app_count'] = $result['count'];
+                $sentNotifications[$currentKey] = time();
+                
+                // Clean up old entries
+                foreach ($sentNotifications as $key => $timestamp) {
+                    if ((time() - $timestamp) > 3600) {
+                        unset($sentNotifications[$key]);
+                    }
+                }
             }
         }
-        
-        // Check for new messages (if you have a messaging system)
-        // ... add message checking logic here if needed
         
         // Heartbeat
         if (time() % 30 === 0) {
