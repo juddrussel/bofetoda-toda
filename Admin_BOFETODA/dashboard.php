@@ -10,7 +10,7 @@ $apps    = d('applications_current_cycle');
 $drivers = d('drivers');
 
 $total    = count($apps);
-$pending  = array_filter($apps, fn($a) => $a['status'] === 'Pending'); // Need validation
+$pending  = array_filter($apps, fn($a) => $a['status'] === 'Pending'); // Need validation (only Pending, not For Approval)
 $forApproval = array_filter($apps, fn($a) => $a['status'] === 'For Approval'); // Ready for president
 $approved = array_filter($apps, fn($a) => $a['status'] === 'Approved');
 $rejected = array_filter($apps, fn($a) => $a['status'] === 'Rejected');
@@ -24,7 +24,7 @@ $approvalRate = $totalDrivers > 0 ? round(($renewedDrivers / $totalDrivers) * 10
 $completionRate = $totalDrivers > 0 ? round(($total / $totalDrivers) * 100) : 0;
 $rejectionRate = $total > 0 ? round((count($rejected) / $total) * 100) : 0;
 
-// All items needing review (pending + for approval)
+// All items needing review (pending for validation + for approval by president)
 $needsReview = count($pending) + count($forApproval);
 
 // Calculate trends (mock data for now - in production, compare with previous cycle)
