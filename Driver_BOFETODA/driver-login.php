@@ -104,6 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="forgot-password-link">
                 <a href="driver-forgot-password.php">Forgot Password?</a>
             </div>
+            
+            <div style="text-align: center; margin-top: 16px;">
+                <a href="/" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; text-decoration: none; font-weight: 600; transition: color .15s;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
         </form>
 
     </div>
