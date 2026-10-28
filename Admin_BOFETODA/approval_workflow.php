@@ -296,12 +296,13 @@ if ($current) {
             <p>Are you sure you want to reject this application? Once rejected, the applicant will be notified and cannot proceed unless resubmitted.</p>
             <div class="form-grid" style="margin-top:14px;">
               <div class="field">
-                <label>Note</label>
-                <textarea rows="4" placeholder="Note..." name="note" form="reviewForm"></textarea>
+                <label>Note <span style="color:var(--red)">*</span></label>
+                <textarea rows="4" placeholder="Note..." name="note" id="approval-reject-note" form="reviewForm" required></textarea>
               </div>
               <div class="field">
-                <label>Reason</label>
-                <select name="reason" form="reviewForm">
+                <label>Reason <span style="color:var(--red)">*</span></label>
+                <select name="reason" form="reviewForm" required>
+                  <option value="">Select a reason</option>
                   <?php foreach (d('reject_reasons') as $r): ?><option><?= e($r) ?></option><?php endforeach; ?>
                 </select>
               </div>
@@ -309,7 +310,7 @@ if ($current) {
           </div>
           <div class="modal__foot">
             <button type="button" class="btn btn-outline" data-close-modal="reject-modal">Cancel</button>
-            <button type="submit" form="reviewForm" name="do_action" value="reject" class="btn btn-danger">Reject</button>
+            <button type="submit" form="reviewForm" name="do_action" value="reject" class="btn btn-danger" onclick="return validateApprovalRejectForm(event)">Reject</button>
           </div>
         </div>
       </div>
@@ -551,6 +552,44 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // Validate approval reject form - note is required
+  function validateApprovalRejectForm(event) {
+    var noteField = document.getElementById('approval-reject-note');
+    if (!noteField) return true;
+    
+    var noteValue = noteField.value.trim();
+    if (!noteValue) {
+      event.preventDefault();
+      noteField.focus();
+      noteField.style.borderColor = '#f56565';
+      
+      // Show error message
+      var existingError = noteField.parentNode.querySelector('.error-message');
+      if (!existingError) {
+        var errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.style.color = '#f56565';
+        errorMsg.style.fontSize = '12px';
+        errorMsg.style.marginTop = '4px';
+        errorMsg.textContent = 'Please provide a note explaining why this application is being rejected.';
+        noteField.parentNode.appendChild(errorMsg);
+      }
+      
+      // Remove error on input
+      noteField.addEventListener('input', function() {
+        noteField.style.borderColor = '';
+        var errorMsg = noteField.parentNode.querySelector('.error-message');
+        if (errorMsg) errorMsg.remove();
+      }, { once: true });
+      
+      return false;
+    }
+    return true;
+  }
+  
+  // Make validateApprovalRejectForm globally accessible
+  window.validateApprovalRejectForm = validateApprovalRejectForm;
 });
 </script>
 
