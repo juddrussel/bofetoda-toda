@@ -2480,7 +2480,8 @@ document.addEventListener('DOMContentLoaded', function() {
 console.log('[VAPID Debug]', <?php echo json_encode($vapidDebug); ?>);
 </script>
 <script src="/assets/js/notification-settings.js"></script>
-<script src="/assets/js/sse-client.js"></script>
+<!-- SSE temporarily disabled - causes session locking -->
+<!-- <script src="/assets/js/sse-client.js"></script> -->
 <?php if ($pushEnabled): ?>
 <script src="/register-sw.js"></script>
 <script src="/assets/js/notification-banner.js"></script>

@@ -2253,7 +2253,8 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 <script src="/assets/js/toast-notifications.js"></script>
 <script src="/assets/js/notification-settings.js"></script>
-<script src="/assets/js/sse-client.js"></script>
+<!-- SSE temporarily disabled - causes session locking -->
+<!-- <script src="/assets/js/sse-client.js"></script> -->
 <?php if (is_push_enabled()): ?>
 <script src="/register-sw.js"></script>
 <?php endif; ?>
