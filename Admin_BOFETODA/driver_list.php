@@ -1,19 +1,12 @@
 <?php
 
 require_once __DIR__ . '/config.php';
-require_login();
-require_once __DIR__ . '/admin-documents.php';
 
-$officer   = current_officer();
-$role      = $officer['role'] ?? 'secretary';
-$canManage = in_array($role, ['president', 'secretary'], true);
-
-$notice = null;
-$error  = null;
-$newDriverCredentials = null; 
-
-// AJAX endpoint for checking body number availability
+// AJAX endpoint for checking body number availability - handle BEFORE any output
 if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
+    // Still need to check login for security
+    require_login();
+    
     header('Content-Type: application/json');
     $bodyNo = trim($_GET['body_no'] ?? '');
     $currentDriverId = trim($_GET['current_driver_id'] ?? ''); // For edit modal
@@ -79,6 +72,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
     }
     exit;
 }
+
+// Regular page processing
+require_login();
+require_once __DIR__ . '/admin-documents.php';
+
+$officer   = current_officer();
+$role      = $officer['role'] ?? 'secretary';
+$canManage = in_array($role, ['president', 'secretary'], true);
+
+$notice = null;
+$error  = null;
+$newDriverCredentials = null;
 
 if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
