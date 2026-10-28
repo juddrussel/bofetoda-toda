@@ -288,11 +288,11 @@ $rejectFailed = isset($_GET['reject_failed']);
               <p>Are you sure you want to reject this application? The applicant will be notified and must resubmit before it can be reviewed again.</p>
               <div class="form-grid" style="margin-top:14px;">
                 <div class="field">
-                  <label>Note</label>
-                  <textarea name="note" rows="4" placeholder="Note..."></textarea>
+                  <label>Note <span style="color:var(--red)">*</span></label>
+                  <textarea name="note" id="reject-note" rows="4" placeholder="Note..." required></textarea>
                 </div>
                 <div class="field">
-                  <label>Reason</label>
+                  <label>Reason <span style="color:var(--red)">*</span></label>
                   <select name="reason" required>
                     <option value="">Select a reason</option>
                     <?php foreach (d('reject_reasons') as $r): ?><option value="<?= e($r) ?>"><?= e($r) ?></option><?php endforeach; ?>
@@ -302,7 +302,7 @@ $rejectFailed = isset($_GET['reject_failed']);
             </div>
             <div class="modal__foot">
               <button type="button" class="btn btn-outline" data-close-modal="return-modal">Cancel</button>
-              <button type="submit" class="btn btn-danger">Reject</button>
+              <button type="submit" class="btn btn-danger" onclick="return validateRejectForm(event)">Reject</button>
             </div>
           </form>
         </div>
@@ -562,6 +562,41 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // Validate reject form - note is required
+  function validateRejectForm(event) {
+    var noteField = document.getElementById('reject-note');
+    if (!noteField) return true;
+    
+    var noteValue = noteField.value.trim();
+    if (!noteValue) {
+      event.preventDefault();
+      noteField.focus();
+      noteField.style.borderColor = '#f56565';
+      
+      // Show error message
+      var existingError = noteField.parentNode.querySelector('.error-message');
+      if (!existingError) {
+        var errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.style.color = '#f56565';
+        errorMsg.style.fontSize = '12px';
+        errorMsg.style.marginTop = '4px';
+        errorMsg.textContent = 'Please provide a note explaining why this application is being rejected.';
+        noteField.parentNode.appendChild(errorMsg);
+      }
+      
+      // Remove error on input
+      noteField.addEventListener('input', function() {
+        noteField.style.borderColor = '';
+        var errorMsg = noteField.parentNode.querySelector('.error-message');
+        if (errorMsg) errorMsg.remove();
+      }, { once: true });
+      
+      return false;
+    }
+    return true;
+  }
 });
 </script>
 
