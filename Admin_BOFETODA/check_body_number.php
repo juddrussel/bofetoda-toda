@@ -25,7 +25,7 @@ try {
     
     $pdo = get_pdo();
     // Use TRIM to ensure exact matching regardless of spaces
-    $query = 'SELECT driver_id, name FROM drivers WHERE TRIM(body_no) = :body_no AND archived = 0';
+    $query = 'SELECT driver_id, name FROM drivers WHERE TRIM(body_no) = :body_no AND is_archived = 0';
     $params = ['body_no' => $bodyNo];
     
     // If editing, exclude the current driver
