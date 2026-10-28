@@ -290,10 +290,64 @@ function db_close_superseded_announcements() {
         return;
     }
 
+    // Check if this is a newly activated announcement
+    $stmt = $pdo->prepare(
+        "SELECT announcement_id, title, message, deadline_date, opened_date 
+         FROM announcements 
+         WHERE announcement_id = :id 
+         AND opened_date = CURDATE() 
+         AND status = 'OPEN'"
+    );
+    $stmt->execute(['id' => $current]);
+    $newlyActivated = $stmt->fetch();
+
+    // Close old announcements
     $pdo->exec(
         "UPDATE announcements SET status = 'CLOSED'
          WHERE status = 'OPEN' AND opened_date <= CURDATE() AND announcement_id != " . (int) $current
     );
+
+    // Send notifications for newly activated announcement
+    if ($newlyActivated) {
+        try {
+            require_once __DIR__ . '/notification-manager.php';
+            
+            // Get all active drivers
+            $stmt = $pdo->query("SELECT driver_id FROM drivers WHERE is_archived = 0");
+            $drivers = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            $deadlineDate = date('F j, Y', strtotime($newlyActivated['deadline_date']));
+            
+            $notificationTitle = '🔔 Renewal Period Now Open!';
+            $notificationBody = "{$newlyActivated['title']} - Apply now until {$deadlineDate}";
+            $notificationUrl = '/driver-home.php';
+            
+            $successCount = 0;
+            foreach ($drivers as $driverId) {
+                $result = send_push_notification(
+                    $driverId,
+                    'driver',
+                    $notificationTitle,
+                    $notificationBody,
+                    $notificationUrl,
+                    [
+                        'tag' => 'renewal-period-open',
+                        'requireInteraction' => true,
+                        'icon' => '/LOGO_TODA.png',
+                        'badge' => '/LOGO_TODA.png'
+                    ]
+                );
+                
+                if ($result['success'] > 0) {
+                    $successCount++;
+                }
+            }
+            
+            error_log("Newly activated renewal period notification sent to $successCount drivers");
+        } catch (Exception $e) {
+            error_log("Failed to send newly activated renewal period notifications: " . $e->getMessage());
+        }
+    }
 }
 
 function db_get_activity_logs() {
@@ -1003,6 +1057,49 @@ function db_add_announcement(array $in) {
         'deadline'   => $in['deadline'],
         'created_by' => $officer['id'] ?? null,
     ]);
+
+    // Send push notifications to all drivers about the new renewal period
+    if ($startsNow) {
+        try {
+            require_once __DIR__ . '/notification-manager.php';
+            
+            // Get all active drivers
+            $stmt = $pdo->query("SELECT driver_id FROM drivers WHERE is_archived = 0");
+            $drivers = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            $openedDate = date('F j, Y', strtotime($in['opened']));
+            $deadlineDate = date('F j, Y', strtotime($in['deadline']));
+            
+            $notificationTitle = '🔔 Renewal Period Now Open!';
+            $notificationBody = "{$in['title']} - Apply now until {$deadlineDate}";
+            $notificationUrl = '/driver-home.php';
+            
+            $successCount = 0;
+            foreach ($drivers as $driverId) {
+                $result = send_push_notification(
+                    $driverId,
+                    'driver',
+                    $notificationTitle,
+                    $notificationBody,
+                    $notificationUrl,
+                    [
+                        'tag' => 'renewal-period-open',
+                        'requireInteraction' => true,
+                        'icon' => '/LOGO_TODA.png',
+                        'badge' => '/LOGO_TODA.png'
+                    ]
+                );
+                
+                if ($result['success'] > 0) {
+                    $successCount++;
+                }
+            }
+            
+            error_log("Renewal period notification sent to $successCount drivers");
+        } catch (Exception $e) {
+            error_log("Failed to send renewal period notifications: " . $e->getMessage());
+        }
+    }
 
     return true;
 }
