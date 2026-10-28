@@ -283,27 +283,50 @@ function get_notifications($driver_id = null) {
 }
 
 
-function get_latest_cycle_start() {
+/**
+ * Get the current open announcement ID.
+ * Returns the announcement_id of the currently open announcement, or null if none exists.
+ */
+function get_current_announcement_id() {
     $pdo = get_pdo();
     return $pdo->query(
-        "SELECT opened_date FROM announcements
-         ORDER BY opened_date DESC LIMIT 1"
+        "SELECT announcement_id FROM announcements
+         WHERE status = 'OPEN' AND opened_date <= CURDATE() AND deadline_date >= CURDATE()
+         ORDER BY announcement_id DESC LIMIT 1"
     )->fetchColumn() ?: null;
 }
 
-function application_is_current_cycle(?array $app): bool {
-    if (!$app || empty($app['submitted_at'])) {
-        return false;
-    }
-    $cycleStart = get_latest_cycle_start();
-    if (!$cycleStart) {
-        
-        return false;
-    }
-
-    return strtotime($app['submitted_at']) >= strtotime($cycleStart);
+/**
+ * Legacy function - now returns announcement_id for compatibility
+ * @deprecated Use get_current_announcement_id() instead
+ */
+function get_latest_cycle_start() {
+    return get_current_announcement_id();
 }
 
+/**
+ * Check if an application belongs to the current renewal cycle.
+ * Uses announcement_id instead of date comparison.
+ */
+function application_is_current_cycle(?array $app): bool {
+    if (!$app) {
+        return false;
+    }
+    
+    $currentAnnouncementId = get_current_announcement_id();
+    if (!$currentAnnouncementId) {
+        // No active announcement - no applications can be current
+        return false;
+    }
+    
+    // Compare announcement IDs
+    return isset($app['announcement_id']) && (int)$app['announcement_id'] === (int)$currentAnnouncementId;
+}
+
+/**
+ * Get the current application for a driver in the active renewal cycle.
+ * Uses announcement_id to ensure only applications from the current cycle are returned.
+ */
 function get_current_application($driver_id = null) {
     $driver_id = $driver_id ?? ($_SESSION['driver_id'] ?? null);
     if (!$driver_id) {
@@ -312,40 +335,37 @@ function get_current_application($driver_id = null) {
     }
 
     $pdo = get_pdo();
-    $cycleStart = get_latest_cycle_start();
+    $currentAnnouncementId = get_current_announcement_id();
     
-    error_log("get_current_application: driver_id=$driver_id, cycleStart=$cycleStart");
+    error_log("get_current_application: driver_id=$driver_id, currentAnnouncementId=$currentAnnouncementId");
 
-    if ($cycleStart) {
+    if ($currentAnnouncementId) {
+        // Get application for the current announcement cycle only
         $stmt = $pdo->prepare(
-            'SELECT app_no, status, submitted_at FROM applications
-             WHERE driver_id = :id AND submitted_at >= :cycle_start
+            'SELECT app_no, status, submitted_at, announcement_id FROM applications
+             WHERE driver_id = :id AND announcement_id = :announcement_id
              ORDER BY submitted_at DESC
              LIMIT 1'
         );
-        $stmt->execute(['id' => $driver_id, 'cycle_start' => $cycleStart]);
+        $stmt->execute(['id' => $driver_id, 'announcement_id' => $currentAnnouncementId]);
     } else {
-        $stmt = $pdo->prepare(
-            'SELECT app_no, status, submitted_at FROM applications
-             WHERE driver_id = :id
-             ORDER BY submitted_at DESC
-             LIMIT 1'
-        );
-        $stmt->execute(['id' => $driver_id]);
+        // No active announcement - return null
+        error_log("get_current_application: No active announcement found");
+        return null;
     }
 
     $row = $stmt->fetch();
     
     if ($row) {
-        error_log("get_current_application: found=app_no={$row['app_no']}, status={$row['status']}, submitted_at={$row['submitted_at']}");
+        error_log("get_current_application: found=app_no={$row['app_no']}, status={$row['status']}, submitted_at={$row['submitted_at']}, announcement_id={$row['announcement_id']}");
     } else {
         // Check if ANY application exists for this driver
-        $checkStmt = $pdo->prepare('SELECT app_no, status, submitted_at FROM applications WHERE driver_id = :id ORDER BY submitted_at DESC LIMIT 1');
+        $checkStmt = $pdo->prepare('SELECT app_no, status, submitted_at, announcement_id FROM applications WHERE driver_id = :id ORDER BY submitted_at DESC LIMIT 1');
         $checkStmt->execute(['id' => $driver_id]);
         $anyApp = $checkStmt->fetch();
         
         if ($anyApp) {
-            error_log("get_current_application: found=NULL (but application EXISTS: app_no={$anyApp['app_no']}, submitted_at={$anyApp['submitted_at']}, cycleStart=$cycleStart)");
+            error_log("get_current_application: found=NULL (but application EXISTS: app_no={$anyApp['app_no']}, submitted_at={$anyApp['submitted_at']}, announcement_id={$anyApp['announcement_id']}, currentAnnouncementId=$currentAnnouncementId)");
         } else {
             error_log("get_current_application: found=NULL (NO applications exist for this driver)");
         }
@@ -355,7 +375,6 @@ function get_current_application($driver_id = null) {
         return null;
     }
 
-   
     return $row['app_no'];
 }
 

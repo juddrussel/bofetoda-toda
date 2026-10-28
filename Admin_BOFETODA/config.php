@@ -152,15 +152,25 @@ function db_get_applications() {
     return $out;
 }
 
+/**
+ * Get applications for the current renewal cycle.
+ * Uses announcement_id to filter applications instead of date comparisons.
+ */
 function db_get_applications_current_cycle() {
     $pdo = get_pdo();
 
-    $cycleStart = db_get_cycle_start();
+    // Get current open announcement ID
+    $currentAnnouncementId = $pdo->query(
+        "SELECT announcement_id FROM announcements
+         WHERE status = 'OPEN' AND opened_date <= CURDATE() AND deadline_date >= CURDATE()
+         ORDER BY announcement_id DESC LIMIT 1"
+    )->fetchColumn();
 
+    // Base query for applications with current announcement
     $sql = "SELECT a.app_no, a.driver_id, a.name, b.name AS barangay, a.body_no,
                 a.submitted_at, a.approved_at, a.rejected_at, a.age, a.birthday,
                 a.contact_no AS contact, a.address,
-                c.name AS color, a.status
+                c.name AS color, a.status, a.announcement_id
          FROM applications a
          JOIN barangays b ON b.barangay_id = a.barangay_id
          JOIN colors    c ON c.color_id    = a.color_id
@@ -168,13 +178,19 @@ function db_get_applications_current_cycle() {
              SELECT driver_id, MAX(submitted_at) AS latest
              FROM applications
              GROUP BY driver_id
-         ) m ON m.driver_id = a.driver_id AND m.latest = a.submitted_at
-         WHERE a.status IN ('Pending', 'For Approval')";
+         ) m ON m.driver_id = a.driver_id AND m.latest = a.submitted_at";
+    
     $params = [];
-    if ($cycleStart) {
-        $sql .= " OR (a.status IN ('Approved', 'Rejected') AND a.submitted_at > :cycle_start)";
-        $params['cycle_start'] = $cycleStart;
+    
+    if ($currentAnnouncementId) {
+        // Filter by current announcement_id for all statuses
+        $sql .= " WHERE a.announcement_id = :announcement_id";
+        $params['announcement_id'] = $currentAnnouncementId;
+    } else {
+        // No active announcement - show nothing or only pending/for approval
+        $sql .= " WHERE a.status IN ('Pending', 'For Approval')";
     }
+    
     $sql .= ' ORDER BY a.submitted_at DESC';
 
     $stmt = $pdo->prepare($sql);
@@ -198,22 +214,23 @@ function db_get_applications_current_cycle() {
         }
 
         $out[$r['app_no']] = [
-            'app_no'    => $r['app_no'],
-            'driver_id' => $r['driver_id'],
-            'name'      => $r['name'],
-            'barangay'  => $r['barangay'],
-            'body_no'   => $r['body_no'],
-            'submitted' => date('m/d/Y', strtotime($r['submitted_at'])),
-            'approved'  => !empty($r['approved_at']) ? date('m/d/Y', strtotime($r['approved_at'])) : '',
-            'rejected'  => !empty($r['rejected_at']) ? date('m/d/Y', strtotime($r['rejected_at'])) : '',
-            'age'       => $r['age'],
-            'birthday'  => !empty($r['birthday']) ? date('m/d/Y', strtotime($r['birthday'])) : '',
-            'contact'   => $r['contact'],
-            'address'   => $r['address'],
-            'color'     => $r['color'],
-            'status'    => $r['status'],
-            'docs'      => $docs,
-            'doc_paths' => $docPaths,
+            'app_no'          => $r['app_no'],
+            'driver_id'       => $r['driver_id'],
+            'name'            => $r['name'],
+            'barangay'        => $r['barangay'],
+            'body_no'         => $r['body_no'],
+            'submitted'       => date('m/d/Y', strtotime($r['submitted_at'])),
+            'approved'        => !empty($r['approved_at']) ? date('m/d/Y', strtotime($r['approved_at'])) : '',
+            'rejected'        => !empty($r['rejected_at']) ? date('m/d/Y', strtotime($r['rejected_at'])) : '',
+            'age'             => $r['age'],
+            'birthday'        => !empty($r['birthday']) ? date('m/d/Y', strtotime($r['birthday'])) : '',
+            'contact'         => $r['contact'],
+            'address'         => $r['address'],
+            'color'           => $r['color'],
+            'status'          => $r['status'],
+            'announcement_id' => $r['announcement_id'],
+            'docs'            => $docs,
+            'doc_paths'       => $docPaths,
         ];
     }
     return $out;
