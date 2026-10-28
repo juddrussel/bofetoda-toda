@@ -1214,9 +1214,19 @@ function current_officer() {
     $id = $_SESSION['officer_id'];
 
     $pdo = get_pdo();
-    $stmt = $pdo->prepare('SELECT officer_id, name, initials, role, password, profile_picture FROM officers WHERE officer_id = :id AND is_active = 1');
-    $stmt->execute(['id' => $id]);
-    $row = $stmt->fetch();
+    
+    // Check if profile_picture column exists
+    try {
+        $stmt = $pdo->prepare('SELECT officer_id, name, initials, role, password, profile_picture FROM officers WHERE officer_id = :id AND is_active = 1');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+    } catch (PDOException $e) {
+        // Column doesn't exist yet, query without it
+        $stmt = $pdo->prepare('SELECT officer_id, name, initials, role, password FROM officers WHERE officer_id = :id AND is_active = 1');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+    }
+    
     if (!$row) return null;
 
     return [
@@ -1225,7 +1235,7 @@ function current_officer() {
         'role'            => $row['role'],
         'initials'        => $row['initials'],
         'password'        => $row['password'],
-        'profile_picture' => $row['profile_picture'],
+        'profile_picture' => $row['profile_picture'] ?? null,
     ];
 }
 
