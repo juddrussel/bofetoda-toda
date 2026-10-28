@@ -4,13 +4,18 @@ require 'driver-database.php';
 require_login();
 require 'driver-template.php';
 
-
-try {
-    $pdo = get_pdo();
-    $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE driver_id = :id AND is_read = 0')
-        ->execute(['id' => $_SESSION['driver_id'] ?? '']);
-} catch (Throwable $e) {
-   
+// Handle AJAX mark all as read request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'mark_all_read') {
+    header('Content-Type: application/json');
+    try {
+        $pdo = get_pdo();
+        $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE driver_id = :id AND is_read = 0')
+            ->execute(['id' => $_SESSION['driver_id'] ?? '']);
+        echo json_encode(['success' => true]);
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
 }
 
 render_header([
@@ -38,14 +43,15 @@ foreach ($notifications as $n) {
         <div class="flex items-center space-x-2.5">
             <span class="text-base font-bold text-slate-800">Notifications</span>
             <?php if ($unreadCount > 0): ?>
-            <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200">
+            <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-200" id="unreadBadge">
                 <?php echo $unreadCount; ?> Unread
             </span>
             <?php endif; ?>
         </div>
         <?php if ($unreadCount > 0): ?>
-        <button type="button" id="markAllRead" class="text-xs font-semibold text-amber-600 hover:text-amber-700 active:opacity-70 transition-colors">
-            Mark all read
+        <button type="button" id="markAllRead" class="text-xs font-semibold text-amber-600 hover:text-amber-700 active:opacity-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <span class="mark-text">Mark all read</span>
+            <span class="marking-text hidden">Marking...</span>
         </button>
         <?php endif; ?>
     </div>
@@ -123,10 +129,67 @@ foreach ($notifications as $n) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const markAllBtn = document.getElementById('markAllRead');
+    
     if (markAllBtn) {
-        markAllBtn.addEventListener('click', function() {
-            // Reload page to trigger mark as read in PHP
-            window.location.reload();
+        markAllBtn.addEventListener('click', async function() {
+            // Disable button and show loading state
+            markAllBtn.disabled = true;
+            markAllBtn.querySelector('.mark-text').classList.add('hidden');
+            markAllBtn.querySelector('.marking-text').classList.remove('hidden');
+            
+            try {
+                // Send AJAX request to mark all as read
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'action=mark_all_read'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove all unread indicators
+                    const unreadDots = document.querySelectorAll('.bg-amber-500.rounded-full');
+                    unreadDots.forEach(dot => {
+                        dot.remove();
+                    });
+                    
+                    // Update notification card backgrounds
+                    const unreadCards = document.querySelectorAll('.bg-amber-50.text-amber-600');
+                    unreadCards.forEach(card => {
+                        card.classList.remove('bg-amber-50', 'text-amber-600');
+                        card.classList.add('bg-slate-50', 'text-slate-400');
+                    });
+                    
+                    // Remove unread badge
+                    const unreadBadge = document.getElementById('unreadBadge');
+                    if (unreadBadge) {
+                        unreadBadge.style.transition = 'opacity 0.3s ease';
+                        unreadBadge.style.opacity = '0';
+                        setTimeout(() => unreadBadge.remove(), 300);
+                    }
+                    
+                    // Hide the button itself
+                    markAllBtn.style.transition = 'opacity 0.3s ease';
+                    markAllBtn.style.opacity = '0';
+                    setTimeout(() => markAllBtn.remove(), 300);
+                    
+                } else {
+                    // Show error and re-enable button
+                    alert('Failed to mark notifications as read. Please try again.');
+                    markAllBtn.disabled = false;
+                    markAllBtn.querySelector('.mark-text').classList.remove('hidden');
+                    markAllBtn.querySelector('.marking-text').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error marking notifications as read:', error);
+                alert('An error occurred. Please try again.');
+                markAllBtn.disabled = false;
+                markAllBtn.querySelector('.mark-text').classList.remove('hidden');
+                markAllBtn.querySelector('.marking-text').classList.add('hidden');
+            }
         });
     }
 });
