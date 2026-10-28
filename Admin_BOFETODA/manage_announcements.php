@@ -655,31 +655,30 @@ $page_sub = 'Create and manage announcements for drivers';
     </div>
 
     <!-- Filters -->
-    <form class="ann-filters" method="GET" action="">
-      <input type="text" name="search" placeholder="Search announcements..." value="<?= e($_GET['search'] ?? '') ?>">
+    <form class="ann-filters" method="GET" action="" id="filterForm">
+      <input type="text" name="search" placeholder="Search announcements..." value="<?= e($_GET['search'] ?? '') ?>" id="searchInput">
       
-      <select name="category">
+      <select name="category" id="categoryFilter">
         <option value="">All Categories</option>
         <option value="Event" <?= ($_GET['category'] ?? '') === 'Event' ? 'selected' : '' ?>>Event</option>
         <option value="Reminder" <?= ($_GET['category'] ?? '') === 'Reminder' ? 'selected' : '' ?>>Reminder</option>
         <option value="Update" <?= ($_GET['category'] ?? '') === 'Update' ? 'selected' : '' ?>>Update</option>
-        <option value="News" <?= ($_GET['category'] ?? '') === 'News' ? 'selected' : '' ?>>News</option>
+        <option value="News" <?= ($_GET['news'] ?? '') === 'News' ? 'selected' : '' ?>>News</option>
         <option value="Other" <?= ($_GET['category'] ?? '') === 'Other' ? 'selected' : '' ?>>Other</option>
       </select>
       
-      <select name="priority">
+      <select name="priority" id="priorityFilter">
         <option value="">All Priorities</option>
         <option value="normal" <?= ($_GET['priority'] ?? '') === 'normal' ? 'selected' : '' ?>>Normal</option>
         <option value="urgent" <?= ($_GET['priority'] ?? '') === 'urgent' ? 'selected' : '' ?>>Urgent</option>
       </select>
       
-      <select name="status">
+      <select name="status" id="statusFilter">
         <option value="">All Status</option>
         <option value="active" <?= ($_GET['status'] ?? '') === 'active' ? 'selected' : '' ?>>Active</option>
         <option value="inactive" <?= ($_GET['status'] ?? '') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
       </select>
       
-      <button type="submit" class="btn btn-accent">Apply Filters</button>
       <a href="<?= BASE_URL ?>/manage_announcements.php" class="btn btn-outline">Clear</a>
     </form>
 
@@ -872,6 +871,45 @@ $page_sub = 'Create and manage announcements for drivers';
 </div>
 
 <script>
+// Auto-submit filters when changed
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filterForm');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const searchInput = document.getElementById('searchInput');
+    
+    // Auto-submit on select change
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    if (priorityFilter) {
+        priorityFilter.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    }
+    
+    // Debounce search input
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                filterForm.submit();
+            }, 500); // Wait 500ms after user stops typing
+        });
+    }
+});
+
 // Confirmation modal state
 let confirmCallback = null;
 
