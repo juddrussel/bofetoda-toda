@@ -18,6 +18,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
     $bodyNo = trim($_GET['body_no'] ?? '');
     $currentDriverId = trim($_GET['current_driver_id'] ?? ''); // For edit modal
     
+    // Log for debugging
+    error_log("Body number check: bodyNo='$bodyNo', currentDriverId='$currentDriverId'");
+    
     if (empty($bodyNo)) {
         echo json_encode(['available' => true]);
         exit;
@@ -25,7 +28,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
     
     try {
         $pdo = get_pdo();
-        $query = 'SELECT driver_id FROM drivers WHERE body_no = :body_no AND archived = 0';
+        // Use TRIM and COLLATE to ensure exact matching regardless of spaces and case
+        $query = 'SELECT driver_id, name FROM drivers WHERE TRIM(body_no) = :body_no AND archived = 0';
         $params = ['body_no' => $bodyNo];
         
         // If editing, exclude the current driver
@@ -34,16 +38,27 @@ if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
             $params['current_id'] = $currentDriverId;
         }
         
+        error_log("Query: $query, Params: " . json_encode($params));
+        
         $stmt = $pdo->prepare($query);
         $stmt->execute($params);
         $exists = $stmt->fetch(PDO::FETCH_ASSOC);
         
+        error_log("Result: " . json_encode($exists));
+        
+        if ($exists) {
+            $message = 'Body number is already in use by ' . $exists['name'] . ' (' . $exists['driver_id'] . ')';
+        } else {
+            $message = 'Body number is available';
+        }
+        
         echo json_encode([
             'available' => !$exists,
-            'message' => $exists ? 'Body number is already in use by another driver' : 'Body number is available'
+            'message' => $message
         ]);
     } catch (Exception $e) {
-        echo json_encode(['available' => true, 'error' => 'Could not check availability']);
+        error_log('Body number check error: ' . $e->getMessage());
+        echo json_encode(['available' => false, 'error' => 'Could not check availability', 'message' => 'Error checking body number']);
     }
     exit;
 }
@@ -1494,7 +1509,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Body number validation for Edit Driver modals
   document.querySelectorAll('[id^="e_body_"]').forEach(function(editBodyInput) {
     var driverId = editBodyInput.id.replace('e_body_', '');
-    var originalBodyNo = editBodyInput.value;
+    var originalBodyNo = editBodyInput.value.trim();
     var editBodyErr = null;
     var editBodyCheckTimeout = null;
     
@@ -1508,42 +1523,55 @@ document.addEventListener('DOMContentLoaded', function() {
     editBodyErr.textContent = 'Body number is already in use';
     editBodyInput.parentNode.appendChild(editBodyErr);
     
-    editBodyInput.addEventListener('input', function() {
-      clearTimeout(editBodyCheckTimeout);
-      var bodyNo = this.value.trim();
-      
-      // If unchanged from original, it's valid
-      if (bodyNo === originalBodyNo) {
+    // Function to check body number availability
+    function checkBodyNumber(bodyNo, isOnLoad) {
+      if (!bodyNo) {
         editBodyErr.style.display = 'none';
         editBodyInput.style.borderColor = '';
         editBodyInput.dataset.available = 'true';
         return;
       }
       
+      fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.available) {
+            editBodyErr.style.display = 'none';
+            if (!isOnLoad) {
+              editBodyInput.style.borderColor = '#10b981';
+            }
+            editBodyInput.dataset.available = 'true';
+          } else {
+            editBodyErr.style.display = 'block';
+            editBodyErr.textContent = data.message || 'Body number is already in use';
+            editBodyInput.style.borderColor = '#dc2626';
+            editBodyInput.dataset.available = 'false';
+          }
+        })
+        .catch(function(err) {
+          console.error('Body number check error:', err);
+        });
+    }
+    
+    // Check on page load if the current body number has duplicates
+    if (originalBodyNo) {
+      checkBodyNumber(originalBodyNo, true);
+    }
+    
+    editBodyInput.addEventListener('input', function() {
+      clearTimeout(editBodyCheckTimeout);
+      var bodyNo = this.value.trim();
+      
+      // Always check, even if unchanged (because duplicates might exist)
       if (!bodyNo) {
         editBodyErr.style.display = 'none';
         editBodyInput.style.borderColor = '';
+        editBodyInput.dataset.available = 'true';
         return;
       }
       
       editBodyCheckTimeout = setTimeout(function() {
-        fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
-          .then(function(res) { return res.json(); })
-          .then(function(data) {
-            if (data.available) {
-              editBodyErr.style.display = 'none';
-              editBodyInput.style.borderColor = '#10b981';
-              editBodyInput.dataset.available = 'true';
-            } else {
-              editBodyErr.style.display = 'block';
-              editBodyErr.textContent = data.message || 'Body number is already in use';
-              editBodyInput.style.borderColor = '#dc2626';
-              editBodyInput.dataset.available = 'false';
-            }
-          })
-          .catch(function(err) {
-            console.error('Body number check error:', err);
-          });
+        checkBodyNumber(bodyNo, false);
       }, 500);
     });
     
