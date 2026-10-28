@@ -1821,7 +1821,7 @@ function render_sidebar($active) {
  <div class="sidebar__inner">
   <button type="button" class="sidebar__officer" data-open-modal="profile-modal">
     <?php if (!empty($officer['profile_picture'])): ?>
-      <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" class="sidebar__avatar" style="object-fit:cover;">
+      <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" style="width:36px; height:36px; border-radius:50%; object-fit:cover; flex-shrink:0;">
     <?php else: ?>
       <div class="sidebar__avatar"><?= e($officer['initials'] ?? '??') ?></div>
     <?php endif; ?>
@@ -1882,7 +1882,7 @@ function render_sidebar($active) {
     <div class="modal__body profile-modal__body">
       <div class="profile-modal__avatar-wrapper" style="position:relative; display:inline-block;">
         <?php if (!empty($officer['profile_picture'])): ?>
-          <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" class="profile-modal__avatar" style="object-fit:cover; border-radius:16px; width:64px; height:64px;">
+          <img src="<?= e($officer['profile_picture']) ?>" alt="Profile" style="width:64px; height:64px; border-radius:16px; object-fit:cover; display:block;">
         <?php else: ?>
           <div class="profile-modal__avatar"><?= e($officer['initials'] ?? '??') ?></div>
         <?php endif; ?>
