@@ -37,14 +37,28 @@ if (!defined('DRIVER_UPLOADS_DIR')) {
 
 function get_pending_applications(): array {
     $pdo = get_pdo();
-    $stmt = $pdo->query(
+    
+    // Get current open announcement ID
+    $currentAnnouncementId = $pdo->query(
+        "SELECT announcement_id FROM announcements
+         WHERE status = 'OPEN' AND opened_date <= CURDATE() AND deadline_date >= CURDATE()
+         ORDER BY announcement_id DESC LIMIT 1"
+    )->fetchColumn();
+    
+    // If no current announcement, return empty array
+    if (!$currentAnnouncementId) {
+        return [];
+    }
+    
+    $stmt = $pdo->prepare(
         "SELECT a.app_no, a.driver_id, a.name, a.body_no, a.status, a.submitted_at,
                 b.name AS barangay
          FROM applications a
          LEFT JOIN barangays b ON b.barangay_id = a.barangay_id
-         WHERE a.status = 'Pending'
+         WHERE a.status = 'Pending' AND a.announcement_id = :announcement_id
          ORDER BY a.submitted_at ASC"
     );
+    $stmt->execute(['announcement_id' => $currentAnnouncementId]);
     return format_app_rows($stmt->fetchAll());
 }
 
@@ -56,14 +70,28 @@ function count_applications(): int {
 
 function get_for_approval_applications(): array {
     $pdo = get_pdo();
-    $stmt = $pdo->query(
+    
+    // Get current open announcement ID
+    $currentAnnouncementId = $pdo->query(
+        "SELECT announcement_id FROM announcements
+         WHERE status = 'OPEN' AND opened_date <= CURDATE() AND deadline_date >= CURDATE()
+         ORDER BY announcement_id DESC LIMIT 1"
+    )->fetchColumn();
+    
+    // If no current announcement, return empty array
+    if (!$currentAnnouncementId) {
+        return [];
+    }
+    
+    $stmt = $pdo->prepare(
         "SELECT a.app_no, a.driver_id, a.name, a.body_no, a.status, a.submitted_at, a.validated_at,
                 b.name AS barangay
          FROM applications a
          LEFT JOIN barangays b ON b.barangay_id = a.barangay_id
-         WHERE a.status = 'For Approval'
+         WHERE a.status = 'For Approval' AND a.announcement_id = :announcement_id
          ORDER BY a.validated_at ASC, a.submitted_at ASC"
     );
+    $stmt->execute(['announcement_id' => $currentAnnouncementId]);
     return format_app_rows($stmt->fetchAll());
 }
 
