@@ -1076,6 +1076,7 @@ function db_add_announcement(array $in) {
             
             $successCount = 0;
             foreach ($drivers as $driverId) {
+                // Send web push notification (for offline users)
                 $result = send_push_notification(
                     $driverId,
                     'driver',
@@ -1090,12 +1091,22 @@ function db_add_announcement(array $in) {
                     ]
                 );
                 
+                // Also create in-app notification in database
+                $pdo->prepare(
+                    "INSERT INTO notifications (driver_id, title, message, created_at)
+                     VALUES (:driver_id, :title, :message, NOW())"
+                )->execute([
+                    'driver_id' => $driverId,
+                    'title' => $notificationTitle,
+                    'message' => $notificationBody
+                ]);
+                
                 if ($result['success'] > 0) {
                     $successCount++;
                 }
             }
             
-            error_log("Renewal period notification sent to $successCount drivers");
+            error_log("Renewal period notification sent to $successCount drivers (push) and " . count($drivers) . " drivers (in-app)");
         } catch (Exception $e) {
             error_log("Failed to send renewal period notifications: " . $e->getMessage());
         }
