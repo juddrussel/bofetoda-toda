@@ -22,13 +22,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
     error_log("Body number check: bodyNo='$bodyNo', currentDriverId='$currentDriverId'");
     
     if (empty($bodyNo)) {
-        echo json_encode(['available' => true]);
+        echo json_encode(['available' => true, 'message' => 'No body number provided']);
         exit;
     }
     
     try {
         $pdo = get_pdo();
-        // Use TRIM and COLLATE to ensure exact matching regardless of spaces and case
+        // Use TRIM to ensure exact matching regardless of spaces
         $query = 'SELECT driver_id, name FROM drivers WHERE TRIM(body_no) = :body_no AND archived = 0';
         $params = ['body_no' => $bodyNo];
         
@@ -48,17 +48,34 @@ if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
         
         if ($exists) {
             $message = 'Body number is already in use by ' . $exists['name'] . ' (' . $exists['driver_id'] . ')';
+            echo json_encode([
+                'available' => false,
+                'message' => $message,
+                'driver_id' => $exists['driver_id'],
+                'driver_name' => $exists['name']
+            ]);
         } else {
-            $message = 'Body number is available';
+            echo json_encode([
+                'available' => true,
+                'message' => 'Body number is available'
+            ]);
         }
-        
+    } catch (PDOException $e) {
+        error_log('Body number check PDO error: ' . $e->getMessage());
+        http_response_code(500);
         echo json_encode([
-            'available' => !$exists,
-            'message' => $message
+            'available' => false, 
+            'error' => true,
+            'message' => 'Database error: ' . $e->getMessage()
         ]);
     } catch (Exception $e) {
         error_log('Body number check error: ' . $e->getMessage());
-        echo json_encode(['available' => false, 'error' => 'Could not check availability', 'message' => 'Error checking body number']);
+        http_response_code(500);
+        echo json_encode([
+            'available' => false, 
+            'error' => true,
+            'message' => 'Server error: ' . $e->getMessage()
+        ]);
     }
     exit;
 }
@@ -1467,14 +1484,27 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!bodyNo) {
         addBodyErr.style.display = 'none';
         addBodyNo.style.borderColor = '#e2e8f0';
+        addBodyNo.dataset.available = 'true';
         return;
       }
       
       addBodyCheckTimeout = setTimeout(function() {
         fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo))
-          .then(function(res) { return res.json(); })
+          .then(function(res) { 
+            if (!res.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return res.json(); 
+          })
           .then(function(data) {
-            if (data.available) {
+            console.log('Body number check response:', data);
+            if (data.error) {
+              // Server returned an error
+              addBodyErr.style.display = 'block';
+              addBodyErr.textContent = data.message || 'Error checking body number';
+              addBodyNo.style.borderColor = '#dc2626';
+              addBodyNo.dataset.available = 'false';
+            } else if (data.available) {
               addBodyErr.style.display = 'none';
               addBodyNo.style.borderColor = '#10b981';
               addBodyNo.dataset.available = 'true';
@@ -1487,6 +1517,10 @@ document.addEventListener('DOMContentLoaded', function() {
           })
           .catch(function(err) {
             console.error('Body number check error:', err);
+            addBodyErr.style.display = 'block';
+            addBodyErr.textContent = 'Error checking body number';
+            addBodyNo.style.borderColor = '#dc2626';
+            addBodyNo.dataset.available = 'false';
           });
       }, 500);
     });
@@ -1533,9 +1567,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
-        .then(function(res) { return res.json(); })
+        .then(function(res) { 
+          if (!res.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return res.json(); 
+        })
         .then(function(data) {
-          if (data.available) {
+          console.log('Body number check response:', data);
+          if (data.error) {
+            // Server returned an error
+            editBodyErr.style.display = 'block';
+            editBodyErr.textContent = data.message || 'Error checking body number';
+            editBodyInput.style.borderColor = '#dc2626';
+            editBodyInput.dataset.available = 'false';
+          } else if (data.available) {
             editBodyErr.style.display = 'none';
             if (!isOnLoad) {
               editBodyInput.style.borderColor = '#10b981';
@@ -1550,6 +1596,10 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(function(err) {
           console.error('Body number check error:', err);
+          editBodyErr.style.display = 'block';
+          editBodyErr.textContent = 'Error checking body number';
+          editBodyInput.style.borderColor = '#dc2626';
+          editBodyInput.dataset.available = 'false';
         });
     }
     
