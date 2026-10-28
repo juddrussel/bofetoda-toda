@@ -179,6 +179,7 @@ if ($current) {
 
       <form id="reviewForm" method="post" action="<?= BASE_URL ?>/approval_workflow.php?app=<?= urlencode($current['app_no']) ?>">
       <input type="hidden" name="app_no" value="<?= e($current['app_no']) ?>">
+      <input type="hidden" name="do_action" id="doActionInput" value="">
       <div class="card">
         <div class="review-card__head">
           <div>
@@ -284,7 +285,7 @@ if ($current) {
           </div>
           <div class="modal__foot">
             <button type="button" class="btn btn-outline" data-close-modal="approve-modal">Cancel</button>
-            <button type="submit" form="reviewForm" name="do_action" value="approve" class="btn btn-success">Confirm Approve</button>
+            <button type="button" class="btn btn-success" onclick="document.getElementById('doActionInput').value='approve'; document.getElementById('reviewForm').submit();">Confirm Approve</button>
           </div>
         </div>
       </div>
@@ -310,7 +311,7 @@ if ($current) {
           </div>
           <div class="modal__foot">
             <button type="button" class="btn btn-outline" data-close-modal="reject-modal">Cancel</button>
-            <button type="submit" form="reviewForm" name="do_action" value="reject" class="btn btn-danger" onclick="return validateApprovalRejectForm(event)">Reject</button>
+            <button type="button" class="btn btn-danger" onclick="if(validateApprovalRejectForm(event)) { document.getElementById('doActionInput').value='reject'; document.getElementById('reviewForm').submit(); }">Reject</button>
           </div>
         </div>
       </div>
