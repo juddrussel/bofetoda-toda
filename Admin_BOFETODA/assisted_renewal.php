@@ -213,41 +213,41 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
     margin-top: 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 .member-card {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #f8f9fb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
     transition: all 0.2s;
     width: 100%;
     cursor: pointer;
+    text-align: left;
 }
 .member-card:hover {
-    border-color: #16233d;
-    box-shadow: 0 4px 12px rgba(22,35,61,0.08);
+    background: #f1f3f9;
+    border-color: #d1d5db;
 }
 .member-card.disabled {
-    opacity: 0.6;
+    opacity: 0.65;
     cursor: not-allowed;
-    background: #f8fafc;
 }
 .member-card.disabled:hover {
-    border-color: #e2e8f0;
-    box-shadow: none;
+    background: #f8f9fb;
+    border-color: #e5e7eb;
 }
 .member-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: white;
     flex-shrink: 0;
@@ -260,88 +260,94 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     flex-wrap: wrap;
 }
 .driver-id-badge {
     display: inline-block;
-    padding: 4px 10px;
-    background: #f1f5f9;
-    color: #475569;
-    font-size: 12px;
-    font-weight: 700;
+    padding: 2px 8px;
+    background: #374151;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
     font-family: 'Courier New', monospace;
-    border-radius: 6px;
-    letter-spacing: 0.5px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
 }
 .member-name {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 6px;
+    color: #111827;
+    margin-bottom: 4px;
 }
 .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
 }
 .status-badge.eligible {
-    background: #dcfce7;
-    color: #15803d;
+    background: #d1fae5;
+    color: #065f46;
 }
 .status-badge.pending {
     background: #fef3c7;
-    color: #b45309;
+    color: #92400e;
 }
 .status-badge.incomplete {
     background: #fee2e2;
-    color: #b91c1c;
+    color: #991b1b;
 }
 .member-meta {
     font-size: 13px;
-    color: #64748b;
+    color: #6b7280;
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
 }
+.member-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
 .member-meta-separator {
-    width: 4px;
-    height: 4px;
-    background: #cbd5e1;
+    width: 3px;
+    height: 3px;
+    background: #9ca3af;
     border-radius: 50%;
 }
 .select-btn {
-    padding: 10px 20px;
-    background: #16233d;
+    padding: 8px 18px;
+    background: #4f46e5;
     color: white;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 .select-btn:hover {
-    background: #0f1829;
-    transform: translateY(-1px);
+    background: #4338ca;
 }
 .member-card.disabled .select-btn {
     display: none;
 }
 @media (max-width: 640px) {
     .member-card {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-wrap: wrap;
     }
     .select-btn {
         width: 100%;
+        justify-content: center;
+        margin-left: 58px;
     }
 }
 .selected-driver-card {
@@ -557,7 +563,7 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
             '#f59e0b', // amber
             '#8b5cf6', // purple
             '#ec4899', // pink
-            '#06b6d4', // cyan
+            '#14b8a6', // teal
             '#f97316', // orange
             '#6366f1', // indigo
           ];
@@ -571,18 +577,18 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
             let statusBadge = '';
             let statusClass = '';
             if (disabled) {
-              if (driver.status_message.includes('pending')) {
-                statusBadge = 'Pending';
+              if (driver.status_message.toLowerCase().includes('pending')) {
+                statusBadge = 'Pending Validation';
                 statusClass = 'pending';
-              } else if (driver.status_message.includes('incomplete')) {
-                statusBadge = 'Incomplete';
+              } else if (driver.status_message.toLowerCase().includes('incomplete')) {
+                statusBadge = 'Renewal Incomplete';
                 statusClass = 'incomplete';
               } else {
                 statusBadge = driver.status_message;
                 statusClass = 'incomplete';
               }
             } else {
-              statusBadge = 'Eligible';
+              statusBadge = 'Eligible for Renewal';
               statusClass = 'eligible';
             }
             
@@ -601,12 +607,24 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
                     </div>
                     <h4 class="member-name">${driver.name}</h4>
                     <div class="member-meta">
-                      <span>Body ${driver.body_no}</span>
+                      <span class="member-meta-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.5;">
+                          <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Body No. ${driver.body_no}
+                      </span>
                       <span class="member-meta-separator"></span>
-                      <span>${driver.barangay}</span>
+                      <span class="member-meta-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.5;">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                          <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        ${driver.barangay}
+                      </span>
                     </div>
                   </div>
-                  ${!disabled ? '<span class="select-btn">Select Member</span>' : ''}
+                  ${!disabled ? '<span class="select-btn">Select Member <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg></span>' : ''}
                 </button>
               </form>
             `;
