@@ -211,52 +211,138 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
 }
 .search-results {
     margin-top: 16px;
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
-    gap: 12px !important;
-}
-.driver-result {
-    padding: 16px;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
     display: flex;
-    justify-content: flex-start;
+    flex-direction: column;
+    gap: 12px;
+}
+.member-card {
+    display: flex;
     align-items: center;
     gap: 16px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s;
     width: 100%;
+    cursor: pointer;
 }
-.driver-result:hover {
-    border-color: var(--navy);
-    background: var(--bg);
+.member-card:hover {
+    border-color: #16233d;
+    box-shadow: 0 4px 12px rgba(22,35,61,0.08);
 }
-.driver-result.disabled {
-    opacity: 0.5;
+.member-card.disabled {
+    opacity: 0.6;
     cursor: not-allowed;
-    background: #f5f5f5;
+    background: #f8fafc;
 }
-.driver-result.disabled:hover {
-    border-color: var(--border);
+.member-card.disabled:hover {
+    border-color: #e2e8f0;
+    box-shadow: none;
 }
-.driver-info {
+.member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+.member-info {
     flex: 1;
+    min-width: 0;
 }
-.driver-id {
-    font-size: 14px;
+.member-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+.driver-id-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
     font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 4px;
+    font-family: 'Courier New', monospace;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
 }
-.driver-name {
-    font-size: 16px;
+.member-name {
+    font-size: 17px;
     font-weight: 700;
-    color: var(--text);
-    margin-bottom: 4px;
+    color: #0f172a;
+    margin-bottom: 6px;
 }
-.driver-meta {
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+}
+.status-badge.eligible {
+    background: #dcfce7;
+    color: #15803d;
+}
+.status-badge.pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+.status-badge.incomplete {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+.member-meta {
     font-size: 13px;
-    color: var(--text-muted);
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.member-meta-separator {
+    width: 4px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 50%;
+}
+.select-btn {
+    padding: 10px 20px;
+    background: #16233d;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.select-btn:hover {
+    background: #0f1829;
+    transform: translateY(-1px);
+}
+.member-card.disabled .select-btn {
+    display: none;
+}
+@media (max-width: 640px) {
+    .member-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .select-btn {
+        width: 100%;
+    }
 }
 .selected-driver-card {
     background: #e3f2fd;
@@ -465,22 +551,62 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
         });
 
         function renderResults(drivers) {
-          searchResults.innerHTML = drivers.map(driver => {
+          const avatarColors = [
+            '#3b82f6', // blue
+            '#10b981', // green
+            '#f59e0b', // amber
+            '#8b5cf6', // purple
+            '#ec4899', // pink
+            '#06b6d4', // cyan
+            '#f97316', // orange
+            '#6366f1', // indigo
+          ];
+          
+          searchResults.innerHTML = drivers.map((driver, index) => {
             const disabled = !driver.can_submit;
+            const initial = driver.name.charAt(0).toUpperCase();
+            const avatarColor = avatarColors[index % avatarColors.length];
+            
+            // Determine status badge
+            let statusBadge = '';
+            let statusClass = '';
+            if (disabled) {
+              if (driver.status_message.includes('pending')) {
+                statusBadge = 'Pending';
+                statusClass = 'pending';
+              } else if (driver.status_message.includes('incomplete')) {
+                statusBadge = 'Incomplete';
+                statusClass = 'incomplete';
+              } else {
+                statusBadge = driver.status_message;
+                statusClass = 'incomplete';
+              }
+            } else {
+              statusBadge = 'Eligible';
+              statusClass = 'eligible';
+            }
+            
             return `
               <form method="post" style="margin:0;">
                 <input type="hidden" name="driver_id" value="${driver.driver_id}">
                 <input type="hidden" name="select_driver" value="1">
-                <button type="submit" class="driver-result ${disabled ? 'disabled' : ''}" ${disabled ? 'disabled' : ''}>
-                  <div class="driver-info">
-                    <div class="driver-id">${driver.driver_id}</div>
-                    <div class="driver-name">${driver.name}</div>
-                    <div class="driver-meta">
-                      Body No: ${driver.body_no} • ${driver.barangay}
-                      ${disabled ? ' • <strong style="color:var(--red);">' + driver.status_message + '</strong>' : ''}
+                <button type="submit" class="member-card ${disabled ? 'disabled' : ''}" ${disabled ? 'disabled' : ''}>
+                  <div class="member-avatar" style="background: ${avatarColor};">
+                    ${initial}
+                  </div>
+                  <div class="member-info">
+                    <div class="member-header">
+                      <span class="driver-id-badge">${driver.driver_id}</span>
+                      <span class="status-badge ${statusClass}">${statusBadge}</span>
+                    </div>
+                    <h4 class="member-name">${driver.name}</h4>
+                    <div class="member-meta">
+                      <span>Body ${driver.body_no}</span>
+                      <span class="member-meta-separator"></span>
+                      <span>${driver.barangay}</span>
                     </div>
                   </div>
-                  ${!disabled ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>' : ''}
+                  ${!disabled ? '<span class="select-btn">Select Member</span>' : ''}
                 </button>
               </form>
             `;
