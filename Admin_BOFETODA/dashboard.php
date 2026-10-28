@@ -297,6 +297,47 @@ $page_sub     = "Decision Support & Performance Overview";
     </div>
     <?php endif; ?>
 
+    <!-- Approved Applications by Barangay - Pie Chart -->
+    <?php
+    $approvedByBarangay = [];
+    foreach ($approved as $app) {
+        $barangay = $app['barangay'] ?? 'Unknown';
+        if (!isset($approvedByBarangay[$barangay])) {
+            $approvedByBarangay[$barangay] = 0;
+        }
+        $approvedByBarangay[$barangay]++;
+    }
+    
+    // Sort by count descending
+    arsort($approvedByBarangay);
+    
+    $totalApproved = count($approved);
+    
+    // 19 distinct colors for barangays
+    $barangayColors = [
+        '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+        '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
+        '#06b6d4', '#f43f5e', '#22c55e', '#eab308', '#a855f7',
+        '#0ea5e9', '#fb923c', '#4ade80', '#facc15'
+    ];
+    ?>
+    
+    <div class="chart-card">
+      <div class="chart-card__title">📊 Approved Applications by Barangay</div>
+      <div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:center;">
+        <div style="position:relative; width:100%; max-width:400px; margin:0 auto;">
+          <canvas id="approvalPieChart" width="400" height="400"></canvas>
+          <div id="pieChartCenter" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none;">
+            <div style="font-size:40px; font-weight:800; color:var(--navy);"><?= $totalApproved ?></div>
+            <div style="font-size:13px; color:var(--text-muted); font-weight:600;">Total Approved</div>
+          </div>
+        </div>
+        <div id="barangayLegend" style="max-height:400px; overflow-y:auto; padding-right:8px;">
+          <!-- Legend will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
     <!-- Progress Tracking -->
     <div class="progress-section">
       <div class="progress-grid">
@@ -387,6 +428,111 @@ $page_sub     = "Decision Support & Performance Overview";
 
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Approved Applications by Barangay - Pie Chart
+  var barangayData = <?= json_encode(array_values($approvedByBarangay)) ?>;
+  var barangayLabels = <?= json_encode(array_keys($approvedByBarangay)) ?>;
+  var barangayColors = <?= json_encode($barangayColors) ?>;
+  var totalApproved = <?= $totalApproved ?>;
+  
+  var ctx = document.getElementById('approvalPieChart');
+  if (ctx && barangayData.length > 0) {
+    var pieChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: barangayLabels,
+        datasets: [{
+          data: barangayData,
+          backgroundColor: barangayColors.slice(0, barangayLabels.length),
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          hoverBorderWidth: 3,
+          hoverBorderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 13
+            },
+            callbacks: {
+              label: function(context) {
+                var value = context.parsed;
+                var percentage = totalApproved > 0 ? ((value / totalApproved) * 100).toFixed(1) : 0;
+                return context.label + ': ' + value + ' (' + percentage + '%)';
+              }
+            }
+          }
+        },
+        onClick: function(event, activeElements) {
+          if (activeElements.length > 0) {
+            var index = activeElements[0].index;
+            var barangay = barangayLabels[index];
+            var count = barangayData[index];
+            var percentage = totalApproved > 0 ? ((count / totalApproved) * 100).toFixed(1) : 0;
+            
+            // Update center display
+            var centerDiv = document.getElementById('pieChartCenter');
+            if (centerDiv) {
+              centerDiv.innerHTML = 
+                '<div style="font-size:40px; font-weight:800; color:' + barangayColors[index] + ';">' + count + '</div>' +
+                '<div style="font-size:13px; color:var(--text-muted); font-weight:600;">' + barangay + '</div>' +
+                '<div style="font-size:16px; color:var(--navy); font-weight:700; margin-top:4px;">' + percentage + '%</div>';
+            }
+          }
+        }
+      }
+    });
+    
+    // Generate legend
+    var legendDiv = document.getElementById('barangayLegend');
+    if (legendDiv) {
+      var legendHTML = '';
+      barangayLabels.forEach(function(label, index) {
+        var count = barangayData[index];
+        var percentage = totalApproved > 0 ? ((count / totalApproved) * 100).toFixed(1) : 0;
+        var color = barangayColors[index];
+        
+        legendHTML += 
+          '<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:6px; cursor:pointer; transition:background 0.15s;" ' +
+          'onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'transparent\'" ' +
+          'onclick="' +
+          'document.getElementById(\'pieChartCenter\').innerHTML = ' +
+          '\'<div style=\\\'font-size:40px; font-weight:800; color:' + color + ';\\\'>' + count + '</div>\' + ' +
+          '\'<div style=\\\'font-size:13px; color:var(--text-muted); font-weight:600;\\\'>' + label + '</div>\' + ' +
+          '\'<div style=\\\'font-size:16px; color:var(--navy); font-weight:700; margin-top:4px;\\\'>' + percentage + '%</div>\'' +
+          '">' +
+          '<div style="display:flex; align-items:center; gap:8px; flex:1;">' +
+          '<div style="width:16px; height:16px; border-radius:4px; background:' + color + '; flex-shrink:0;"></div>' +
+          '<div style="font-size:13px; font-weight:600; color:var(--text);">' + label + '</div>' +
+          '</div>' +
+          '<div style="display:flex; align-items:center; gap:12px;">' +
+          '<div style="font-size:13px; font-weight:700; color:var(--navy);">' + count + '</div>' +
+          '<div style="font-size:12px; color:var(--text-muted); min-width:45px; text-align:right;">' + percentage + '%</div>' +
+          '</div>' +
+          '</div>';
+      });
+      legendDiv.innerHTML = legendHTML;
+    }
+  }
+});
+</script>
 
 <?php render_shared_script(); ?>
 </body>
