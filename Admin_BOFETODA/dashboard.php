@@ -164,7 +164,6 @@ $page_sub     = "Decision Support & Performance Overview";
 .risk-item.is-low{ background:#f0fdf4; border-color:var(--green); }
 .risk-item__message{ font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
 .risk-item__recommendation{ font-size:12px; color:var(--text-muted); display:flex; align-items:flex-start; gap:6px; }
-.risk-item__recommendation::before{ content:"💡"; flex-shrink:0; }
 
 .chart-card{ background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-card); margin-bottom:20px; }
 .chart-card__title{ font-size:15px; font-weight:700; color:var(--navy); margin-bottom:16px; }
@@ -280,7 +279,7 @@ $page_sub     = "Decision Support & Performance Overview";
     <!-- Action Items -->
     <?php if (count($actionItems) > 0): ?>
     <div class="action-section">
-      <h3 class="action-header">⚡ Action Required</h3>
+      <h3 class="action-header">Action Required</h3>
       <div class="action-list">
         <?php foreach ($actionItems as $item): ?>
         <div class="action-item is-<?= $item['type'] ?>">
@@ -323,7 +322,7 @@ $page_sub     = "Decision Support & Performance Overview";
     ?>
     
     <div class="chart-card">
-      <div class="chart-card__title">📊 Approved Applications by Barangay</div>
+      <div class="chart-card__title">Approved Applications by Barangay</div>
       
       <?php if ($totalApproved > 0): ?>
       <div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:center;">
@@ -400,7 +399,7 @@ $page_sub     = "Decision Support & Performance Overview";
     <?php if (count($risks) > 0): ?>
     <div class="risk-section">
       <div class="risk-card">
-        <h3 class="risk-card__title">🎯 Insights & Recommendations</h3>
+        <h3 class="risk-card__title">Insights & Recommendations</h3>
         <?php foreach ($risks as $risk): ?>
         <div class="risk-item is-<?= $risk['level'] ?>">
           <div class="risk-item__message"><?= e($risk['message']) ?></div>
@@ -412,7 +411,7 @@ $page_sub     = "Decision Support & Performance Overview";
     <?php else: ?>
     <div class="risk-section">
       <div class="risk-card">
-        <h3 class="risk-card__title">🎯 Insights & Recommendations</h3>
+        <h3 class="risk-card__title">Insights & Recommendations</h3>
         <div class="empty-insights">
           <div class="empty-insights__icon">✨</div>
           <div class="empty-insights__text">All systems operating smoothly. No issues detected.</div>
@@ -423,7 +422,7 @@ $page_sub     = "Decision Support & Performance Overview";
 
     <!-- Barangay Submissions Chart -->
     <div class="chart-card">
-      <h3 class="chart-card__title">📊 Submissions by Barangay</h3>
+      <h3 class="chart-card__title">Submissions by Barangay</h3>
       <?php if (!$total): ?>
         <div class="empty-insights">
           <div class="empty-insights__icon">📭</div>
