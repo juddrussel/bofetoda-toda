@@ -318,7 +318,7 @@ function db_close_superseded_announcements() {
             
             $deadlineDate = date('F j, Y', strtotime($newlyActivated['deadline_date']));
             
-            $notificationTitle = '🔔 Renewal Period Now Open!';
+            $notificationTitle = 'Renewal Period Now Open!';
             $notificationBody = "{$newlyActivated['title']} - Apply now until {$deadlineDate}";
             $notificationUrl = '/driver-home.php';
             
@@ -1070,7 +1070,7 @@ function db_add_announcement(array $in) {
             $openedDate = date('F j, Y', strtotime($in['opened']));
             $deadlineDate = date('F j, Y', strtotime($in['deadline']));
             
-            $notificationTitle = '🔔 Renewal Period Now Open!';
+            $notificationTitle = 'Renewal Period Now Open!';
             $notificationBody = "{$in['title']} - Apply now until {$deadlineDate}";
             $notificationUrl = '/driver-home.php';
             

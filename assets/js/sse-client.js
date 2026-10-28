@@ -351,10 +351,10 @@
          */
         handleStatusChange(data) {
             const statusMessages = {
-                'Approved': '🎉 Your application has been approved!',
-                'Rejected': '⚠️ Your application needs attention',
-                'For Approval': '✓ Your documents have been validated',
-                'Validated': '✓ Your documents have been verified'
+                'Approved': 'Your application has been approved!',
+                'Rejected': 'Your application needs attention',
+                'For Approval': 'Your documents have been validated',
+                'Validated': 'Your documents have been verified'
             };
             
             const message = statusMessages[data.status] || 'Your application status has been updated';
