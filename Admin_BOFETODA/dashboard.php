@@ -324,6 +324,8 @@ $page_sub     = "Decision Support & Performance Overview";
     
     <div class="chart-card">
       <div class="chart-card__title">📊 Approved Applications by Barangay</div>
+      
+      <?php if ($totalApproved > 0): ?>
       <div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:center;">
         <div style="position:relative; width:100%; max-width:400px; margin:0 auto;">
           <canvas id="approvalPieChart" width="400" height="400"></canvas>
@@ -336,6 +338,21 @@ $page_sub     = "Decision Support & Performance Overview";
           <!-- Legend will be populated by JavaScript -->
         </div>
       </div>
+      <?php else: ?>
+      <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:64px; margin-bottom:16px; opacity:0.2;">📊</div>
+        <div style="font-size:18px; font-weight:700; color:var(--navy); margin-bottom:8px;">No Approved Applications Yet</div>
+        <p style="font-size:14px; color:var(--text-muted); max-width:400px; margin:0 auto; line-height:1.6;">
+          Once applications are approved, this chart will show the distribution across all barangays with interactive visualizations.
+        </p>
+        <?php if (count($forApproval) > 0): ?>
+        <a href="<?= BASE_URL ?>/approval_workflow.php" class="btn btn-primary" style="margin-top:20px; display:inline-flex; align-items:center; gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Review <?= count($forApproval) ?> Pending Application<?= count($forApproval) > 1 ? 's' : '' ?>
+        </a>
+        <?php endif; ?>
+      </div>
+      <?php endif; ?>
     </div>
 
     <!-- Progress Tracking -->
