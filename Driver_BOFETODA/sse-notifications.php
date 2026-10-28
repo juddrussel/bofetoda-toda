@@ -106,19 +106,40 @@ while (true) {
         $stmt->execute(['driver_id' => $driverId]);
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
         
+        // Use session to track last sent status to prevent duplicates
+        session_start();
+        if (!isset($_SESSION['sse_last_status'])) {
+            $_SESSION['sse_last_status'] = [];
+        }
+        
         if ($application) {
-            // Check if status changed recently (within last 10 seconds)
-            $updatedTime = strtotime($application['updated_at']);
-            if ((time() - $updatedTime) < 10) {
-                sendSSE(
-                    time(),
-                    'statusChange',
-                    [
-                        'app_no' => $application['app_no'],
-                        'status' => $application['status'],
-                        'timestamp' => time()
-                    ]
-                );
+            $statusKey = $application['app_no'] . '_' . $application['status'];
+            
+            // Only send if this status hasn't been sent before
+            if (!isset($_SESSION['sse_last_status'][$statusKey])) {
+                // Check if status changed recently (within last 30 seconds)
+                $updatedTime = strtotime($application['updated_at']);
+                if ((time() - $updatedTime) < 30) {
+                    sendSSE(
+                        time(),
+                        'statusChange',
+                        [
+                            'app_no' => $application['app_no'],
+                            'status' => $application['status'],
+                            'timestamp' => time()
+                        ]
+                    );
+                    
+                    // Mark this status as sent
+                    $_SESSION['sse_last_status'][$statusKey] = time();
+                    
+                    // Clean up old entries (older than 1 hour)
+                    foreach ($_SESSION['sse_last_status'] as $key => $timestamp) {
+                        if ((time() - $timestamp) > 3600) {
+                            unset($_SESSION['sse_last_status'][$key]);
+                        }
+                    }
+                }
             }
         }
         

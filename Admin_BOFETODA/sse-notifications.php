@@ -56,24 +56,38 @@ while (true) {
         $pdo = get_pdo();
         
         // Check for new applications (pending/for approval)
+        // Use session to track last notification to prevent duplicates
+        session_start();
+        if (!isset($_SESSION['sse_last_app_count'])) {
+            $_SESSION['sse_last_app_count'] = 0;
+        }
+        
         $stmt = $pdo->query(
-            "SELECT COUNT(*) as count
+            "SELECT COUNT(*) as count, MAX(submitted_at) as last_submitted
              FROM applications
              WHERE status IN ('Pending', 'For Approval')
-             AND submitted_at > DATE_SUB(NOW(), INTERVAL 10 SECOND)"
+             AND submitted_at > DATE_SUB(NOW(), INTERVAL 30 SECOND)"
         );
-        $newApps = $stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($newApps && $newApps['count'] > 0) {
-            sendSSE(
-                time(),
-                'newApplication',
-                [
-                    'count' => $newApps['count'],
-                    'message' => $newApps['count'] . ' new application(s) submitted',
-                    'timestamp' => time()
-                ]
-            );
+        if ($result && $result['count'] > 0) {
+            // Create unique key based on count and last submission time
+            $currentKey = $result['count'] . '_' . strtotime($result['last_submitted']);
+            
+            if (!isset($_SESSION['sse_last_app_key']) || $_SESSION['sse_last_app_key'] !== $currentKey) {
+                sendSSE(
+                    time(),
+                    'newApplication',
+                    [
+                        'count' => $result['count'],
+                        'message' => $result['count'] . ' new application(s) submitted',
+                        'timestamp' => time()
+                    ]
+                );
+                
+                $_SESSION['sse_last_app_key'] = $currentKey;
+                $_SESSION['sse_last_app_count'] = $result['count'];
+            }
         }
         
         // Check for new messages (if you have a messaging system)
