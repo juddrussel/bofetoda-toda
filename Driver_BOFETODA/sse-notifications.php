@@ -16,6 +16,12 @@ if (!$driver) {
     exit('Unauthorized');
 }
 
+// Get driver ID before closing session
+$driverId = $driver['driver_id'];
+
+// IMPORTANT: Close the session to prevent locking other requests
+session_write_close();
+
 // Set headers for SSE
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
@@ -29,9 +35,6 @@ ini_set('zlib.output_compression', false);
 
 // Disable time limit for this script
 set_time_limit(0);
-
-// Get driver ID
-$driverId = $driver['driver_id'];
 
 // Track last notification ID to avoid duplicates
 $lastNotificationId = isset($_GET['lastId']) ? (int)$_GET['lastId'] : 0;

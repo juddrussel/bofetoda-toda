@@ -15,6 +15,12 @@ if (!$officer) {
     exit('Unauthorized');
 }
 
+// Get officer ID before closing session
+$officerId = $officer['id'];
+
+// IMPORTANT: Close the session to prevent locking other requests
+session_write_close();
+
 // Set headers for SSE
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
@@ -28,7 +34,6 @@ ini_set('zlib.output_compression', false);
 
 set_time_limit(0);
 
-$officerId = $officer['id'];
 $lastNotificationId = isset($_GET['lastId']) ? (int)$_GET['lastId'] : 0;
 
 // Track sent notifications in memory
