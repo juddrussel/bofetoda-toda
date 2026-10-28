@@ -220,8 +220,9 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 16px;
 }
 .driver-result:hover {
     border-color: var(--navy);
