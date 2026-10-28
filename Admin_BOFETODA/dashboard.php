@@ -205,6 +205,42 @@ $page_sub     = "Decision Support & Performance Overview";
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
+        <div class="kpi-card__label">Total Applications</div>
+        <div class="kpi-card__value"><?= $total ?></div>
+        <div class="kpi-card__trend is-up">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          <?= $trends['applications'] ?> vs last cycle
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-card__label">Approval Rate</div>
+        <div class="kpi-card__value"><?= $approvalRate ?>%</div>
+        <div class="kpi-card__trend is-up">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          <?= $trends['approval_rate'] ?> vs last cycle
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-card__label">Completion Rate</div>
+        <div class="kpi-card__value"><?= $completionRate ?>%</div>
+        <div class="kpi-card__trend is-up">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          <?= $trends['completion'] ?> vs last cycle
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-card__label">Avg. Processing Time</div>
+        <div class="kpi-card__value">3.5d</div>
+        <div class="kpi-card__trend is-up">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+          <?= $trends['avg_processing'] ?> vs last cycle
+        </div>
+      </div>
+
+      <div class="kpi-card">
         <div class="kpi-card__label">Pending Applications</div>
         <div class="kpi-card__value"><?= count($pending) ?></div>
         <div class="kpi-card__trend is-neutral">
