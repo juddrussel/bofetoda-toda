@@ -496,33 +496,25 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
             </div>
           </div>
             
-            <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px;">
-              <div class="search-box" style="flex:1; margin:0;">
-                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="M21 21l-4.35-4.35"></path>
+            <div class="search-box" style="margin-bottom:20px;">
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+              </svg>
+              <input 
+                type="text" 
+                id="driverSearch" 
+                class="search-input" 
+                placeholder="Search by name, ID, or body number..."
+                autocomplete="off"
+                style="padding:12px 16px 12px 44px; font-size:15px;"
+              />
+              <button type="button" id="clearSearch" style="display:none; position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#9ca3af; padding:4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-                <input 
-                  type="text" 
-                  id="driverSearch" 
-                  class="search-input" 
-                  placeholder="Search by name, ID, or body number..."
-                  autocomplete="off"
-                  style="padding:12px 16px 12px 44px; font-size:15px;"
-                />
-                <button type="button" id="clearSearch" style="display:none; position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#9ca3af; padding:4px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-              <select style="padding:12px 14px; border:2px solid #e5e7eb; border-radius:8px; font-size:13px; color:#374151; font-weight:500; background:white; cursor:pointer;">
-                <option>All Barangays</option>
-              </select>
-              <select style="padding:12px 14px; border:2px solid #e5e7eb; border-radius:8px; font-size:13px; color:#374151; font-weight:500; background:white; cursor:pointer;">
-                <option>All Statuses</option>
-              </select>
+              </button>
             </div>
 
             <div id="searchResults" class="search-results" style="display:none;"></div>
