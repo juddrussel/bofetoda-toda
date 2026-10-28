@@ -79,16 +79,38 @@
                     const data = JSON.parse(e.data);
                     console.log('[SSE] Notification received:', data);
                     
+                    // Update lastEventId from the event
                     if (e.lastEventId) {
                         this.lastEventId = parseInt(e.lastEventId);
-                        // Save to localStorage to persist across sessions
                         localStorage.setItem('sse_last_notification_id', this.lastEventId);
+                        console.log('[SSE] Updated last notification ID:', this.lastEventId);
                     }
                     
-                    // Only show notification if it's newer than what we've seen
-                    if (data.id && data.id > this.lastEventId - 1) {
+                    // Also track by notification ID from data
+                    if (data.id) {
+                        const notifKey = 'sse_notif_' + data.id;
+                        
+                        // Check if we've already shown this notification
+                        if (localStorage.getItem(notifKey)) {
+                            console.log('[SSE] Notification already shown, skipping:', data.id);
+                            return; // Skip duplicate
+                        }
+                        
+                        // Mark as shown
+                        localStorage.setItem(notifKey, Date.now().toString());
+                        
+                        // Update lastEventId if this notification ID is higher
+                        if (data.id > this.lastEventId) {
+                            this.lastEventId = data.id;
+                            localStorage.setItem('sse_last_notification_id', this.lastEventId);
+                        }
+                        
+                        // Show the notification
                         this.trigger('notification', data);
                         this.showNotificationToast(data);
+                        
+                        // Clean up old notification tracking (keep last 100)
+                        this.cleanupNotificationTracking();
                     }
                 });
                 
@@ -251,6 +273,34 @@
                 this.startHeartbeatMonitor();
             } else {
                 this.reconnect();
+            }
+        }
+        
+        /**
+         * Clean up old notification tracking from localStorage
+         */
+        cleanupNotificationTracking() {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('sse_notif_')) {
+                    keys.push(key);
+                }
+            }
+            
+            // Keep only the most recent 100 notifications
+            if (keys.length > 100) {
+                const sorted = keys.sort((a, b) => {
+                    const timeA = parseInt(localStorage.getItem(a)) || 0;
+                    const timeB = parseInt(localStorage.getItem(b)) || 0;
+                    return timeA - timeB;
+                });
+                
+                // Remove oldest ones
+                const toRemove = sorted.slice(0, keys.length - 100);
+                toRemove.forEach(key => localStorage.removeItem(key));
+                
+                console.log('[SSE] Cleaned up', toRemove.length, 'old notification tracking entries');
             }
         }
         
