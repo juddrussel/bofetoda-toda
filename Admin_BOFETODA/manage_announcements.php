@@ -394,6 +394,80 @@ $page_sub = 'Create and manage announcements for drivers';
     display: flex;
 }
 
+/* Confirmation Modal */
+.confirm-modal {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.confirm-modal__body {
+    padding: 24px;
+}
+
+.confirm-modal__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 12px 0;
+}
+
+.confirm-modal__message {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.confirm-modal__actions {
+    padding: 16px 24px;
+    background: #f9fafb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.confirm-modal__actions .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.confirm-modal__actions .btn-cancel {
+    background: white;
+    color: var(--navy);
+    border: 1px solid var(--border);
+}
+
+.confirm-modal__actions .btn-cancel:hover {
+    background: #f3f4f6;
+}
+
+.confirm-modal__actions .btn-confirm {
+    background: var(--navy);
+    color: white;
+}
+
+.confirm-modal__actions .btn-confirm:hover {
+    background: var(--navy-light);
+}
+
+.confirm-modal__actions .btn-confirm.is-danger {
+    background: #dc2626;
+}
+
+.confirm-modal__actions .btn-confirm.is-danger:hover {
+    background: #b91c1c;
+}
+
 .modal {
     background: white;
     border-radius: var(--radius);
@@ -676,20 +750,12 @@ $page_sub = 'Create and manage announcements for drivers';
                         <button type="button" onclick="openModal('edit', <?= (int)$ann['id'] ?>)">
                             Edit
                         </button>
-                        <form method="POST" style="display: inline;" onsubmit="return confirm('Toggle active status?')">
-                            <input type="hidden" name="action" value="toggle_status">
-                            <input type="hidden" name="announcement_id" value="<?= (int)$ann['id'] ?>">
-                            <button type="submit">
-                                <?= $ann['is_active'] ? 'Deactivate' : 'Activate' ?>
-                            </button>
-                        </form>
-                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this announcement?')">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="announcement_id" value="<?= (int)$ann['id'] ?>">
-                            <button type="submit" class="btn-danger">
-                                Delete
-                            </button>
-                        </form>
+                        <button type="button" onclick="confirmToggleStatus(<?= (int)$ann['id'] ?>, <?= $ann['is_active'] ? 'true' : 'false' ?>)">
+                            <?= $ann['is_active'] ? 'Deactivate' : 'Activate' ?>
+                        </button>
+                        <button type="button" class="btn-danger" onclick="confirmDelete(<?= (int)$ann['id'] ?>)">
+                            Delete
+                        </button>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -697,6 +763,20 @@ $page_sub = 'Create and manage announcements for drivers';
     <?php endif; ?>
 
   </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-backdrop" id="confirm-modal">
+    <div class="confirm-modal">
+        <div class="confirm-modal__body">
+            <h3 class="confirm-modal__title" id="confirm-title">Confirm Action</h3>
+            <p class="confirm-modal__message" id="confirm-message">Are you sure?</p>
+        </div>
+        <div class="confirm-modal__actions">
+            <button type="button" class="btn btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+            <button type="button" class="btn btn-confirm" id="confirm-btn" onclick="executeConfirmAction()">OK</button>
+        </div>
+    </div>
 </div>
 
 <!-- Create/Edit Modal -->
@@ -792,6 +872,134 @@ $page_sub = 'Create and manage announcements for drivers';
 </div>
 
 <script>
+// Confirmation modal state
+let confirmCallback = null;
+
+function showConfirmModal(title, message, isDanger = false) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        const titleEl = document.getElementById('confirm-title');
+        const messageEl = document.getElementById('confirm-message');
+        const confirmBtn = document.getElementById('confirm-btn');
+        
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        
+        if (isDanger) {
+            confirmBtn.classList.add('is-danger');
+        } else {
+            confirmBtn.classList.remove('is-danger');
+        }
+        
+        confirmCallback = resolve;
+        modal.classList.add('is-open');
+    });
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    modal.classList.remove('is-open');
+    if (confirmCallback) {
+        confirmCallback(false);
+        confirmCallback = null;
+    }
+}
+
+function executeConfirmAction() {
+    if (confirmCallback) {
+        confirmCallback(true);
+        confirmCallback = null;
+    }
+    closeConfirmModal();
+}
+
+async function confirmToggleStatus(announcementId, isCurrentlyActive) {
+    const action = isCurrentlyActive ? 'deactivate' : 'activate';
+    const confirmed = await showConfirmModal(
+        'Toggle active status?',
+        `Are you sure you want to ${action} this announcement?`
+    );
+    
+    if (confirmed) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.style.display = 'none';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'toggle_status';
+        
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'announcement_id';
+        idInput.value = announcementId;
+        
+        form.appendChild(actionInput);
+        form.appendChild(idInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+async function confirmDelete(announcementId) {
+    const confirmed = await showConfirmModal(
+        'Delete announcement?',
+        'Are you sure you want to delete this announcement? This action cannot be undone.',
+        true
+    );
+    
+    if (confirmed) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.style.display = 'none';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete';
+        
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'announcement_id';
+        idInput.value = announcementId;
+        
+        form.appendChild(actionInput);
+        form.appendChild(idInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+async function deleteExistingImage(imageId) {
+    const confirmed = await showConfirmModal(
+        'Delete image?',
+        'Are you sure you want to delete this image?',
+        true
+    );
+    
+    if (confirmed) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.style.display = 'none';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete_image';
+        
+        const imageIdInput = document.createElement('input');
+        imageIdInput.type = 'hidden';
+        imageIdInput.name = 'image_id';
+        imageIdInput.value = imageId;
+        
+        form.appendChild(actionInput);
+        form.appendChild(imageIdInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
 function openModal(mode, announcementId = null) {
     if (mode === 'edit' && announcementId) {
         window.location.href = '<?= BASE_URL ?>/manage_announcements.php?edit=' + announcementId;
@@ -831,33 +1039,14 @@ function previewImages(input) {
     }
 }
 
-function deleteExistingImage(imageId) {
-    if (!confirm('Are you sure you want to delete this image?')) {
-        return;
+// Close confirmation modal when clicking outside
+document.getElementById('confirm-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeConfirmModal();
     }
-    
-    // Create a hidden form to submit the delete request
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.style.display = 'none';
-    
-    const actionInput = document.createElement('input');
-    actionInput.type = 'hidden';
-    actionInput.name = 'action';
-    actionInput.value = 'delete_image';
-    
-    const imageIdInput = document.createElement('input');
-    imageIdInput.type = 'hidden';
-    imageIdInput.name = 'image_id';
-    imageIdInput.value = imageId;
-    
-    form.appendChild(actionInput);
-    form.appendChild(imageIdInput);
-    document.body.appendChild(form);
-    form.submit();
-}
+});
 
-// Close modal when clicking outside
+// Close announcement modal when clicking outside
 document.getElementById('announcement-modal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeModalAndRedirect();
