@@ -844,10 +844,33 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
 
       <?php elseif ($step === 4 && $selected_driver): ?>
         <!-- Step 4: Upload Documents -->
-        <div class="selected-driver-card">
-          <strong style="font-size:14px; color:#1976d2;">Selected Driver:</strong>
-          <div style="font-size:18px; font-weight:700; color:var(--navy); margin-top:4px;">
-            <?= e($selected_driver['name']) ?> (<?= e($selected_driver['driver_id']) ?>)
+        
+        <!-- Selected Driver Banner -->
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:20px; box-shadow:0 1px 2px rgba(0,0,0,0.02); margin-bottom:24px;">
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#2563eb; margin-bottom:4px;">SELECTED DRIVER:</div>
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px;">
+                <span style="font-size:20px; font-weight:700; color:#0f172a;"><?= e($selected_driver['name']) ?></span>
+                <span style="display:inline-flex; align-items:center; padding:4px 10px; border-radius:4px; font-size:12px; font-weight:600; background:rgba(219,234,254,0.8); color:#1e40af; border:1px solid #93c5fd; font-family:'Courier New',monospace;">
+                  <?= e($selected_driver['driver_id']) ?>
+                </span>
+              </div>
+              <a href="<?= BASE_URL ?>/assisted_renewal.php?step=1" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#2563eb; text-decoration:none; margin-top:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                Change Driver
+              </a>
+            </div>
+            <div>
+              <div style="display:inline-flex; align-items:center; padding:6px 14px; background:white; border:1px solid #a7f3d0; border-radius:8px; color:#059669; font-size:12px; font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; color:#10b981;">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                Verified <?= e($selected_driver['barangay']) ?> TODA Member
+              </div>
+            </div>
           </div>
         </div>
 
@@ -855,91 +878,131 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
           <input type="hidden" name="driver_id" value="<?= e($selected_driver['driver_id']) ?>">
           <input type="hidden" name="submit_assisted_renewal" value="1">
           
-          <div class="card">
-            <div class="card__head">
-              <h3>Upload Documents</h3>
+          <!-- Upload Documents Card -->
+          <div style="background:white; border:1px solid rgba(226,232,240,0.9); border-radius:16px; box-shadow:0 1px 2px rgba(0,0,0,0.02); overflow:hidden; margin-bottom:24px;">
+            <!-- Card Header -->
+            <div style="padding:20px 28px; border-bottom:1px solid #f1f5f9; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <h3 style="font-size:16px; font-weight:700; color:#0f172a; letter-spacing:-0.01em; margin:0;">Upload Documents</h3>
+                  <span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0;">
+                    Mandatory Verification
+                  </span>
+                </div>
+                <span style="font-size:12px; color:#94a3b8; font-weight:500;">Clear scanned copies or camera photos</span>
+              </div>
+              <p style="font-size:12px; color:#64748b; margin:0;">Upload all 4 required documents. Accepted formats: JPG, PNG, PDF (max 4MB each)</p>
             </div>
-            <div class="card__body">
-              <p style="margin-bottom:20px; color:var(--text-muted);">Upload all 4 required documents. Accepted formats: JPG, PNG, PDF (max 4MB each)</p>
 
-              <div class="doc-grid">
+            <!-- Document Upload Grid -->
+            <div style="padding:28px;">
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
+                
                 <!-- Driver's License -->
-                <div class="doc-upload-box" id="box-license">
-                  <input type="file" name="license" id="file-license" accept="image/*,.pdf" required>
-                  <label for="file-license" class="doc-upload-label">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 8px; color:var(--primary);">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                <div style="position:relative; cursor:pointer; border:2px dashed #e2e8f0; border-radius:12px; padding:32px; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:180px;" class="doc-upload-card" id="box-license" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='rgba(59,130,246,0.02)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='transparent';">
+                  <input type="file" name="license" id="file-license" accept="image/*,.pdf" required style="position:absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                  <div style="width:48px; height:48px; border-radius:50%; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; margin-bottom:12px; transition:all 0.2s;" class="upload-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
-                    <div style="font-weight:600; margin-bottom:4px;">Driver's License</div>
-                    <div style="font-size:12px; color:var(--text-muted);">Click to upload</div>
-                  </label>
-                  <div id="preview-license" style="margin-top:12px;"></div>
+                  </div>
+                  <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 4px 0;">Driver's License</h4>
+                  <p style="font-size:12px; color:#94a3b8; font-weight:500; margin:0 0 12px 0;">Valid government-issued PRC/LTO license</p>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
+                    <span style="color:#3b82f6; font-weight:600;">Click to upload</span>
+                    <span style="color:#cbd5e1;">•</span>
+                    <span style="color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace; font-size:10px;">Max 4MB</span>
+                  </div>
+                  <div id="preview-license" style="margin-top:12px; width:100%;"></div>
                 </div>
 
                 <!-- OR/CR -->
-                <div class="doc-upload-box" id="box-or_cr">
-                  <input type="file" name="or_cr" id="file-or_cr" accept="image/*,.pdf" required>
-                  <label for="file-or_cr" class="doc-upload-label">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 8px; color:var(--primary);">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                <div style="position:relative; cursor:pointer; border:2px dashed #e2e8f0; border-radius:12px; padding:32px; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:180px;" class="doc-upload-card" id="box-or_cr" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='rgba(59,130,246,0.02)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='transparent';">
+                  <input type="file" name="or_cr" id="file-or_cr" accept="image/*,.pdf" required style="position:absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                  <div style="width:48px; height:48px; border-radius:50%; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; margin-bottom:12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
-                    <div style="font-weight:600; margin-bottom:4px;">OR/CR</div>
-                    <div style="font-size:12px; color:var(--text-muted);">Click to upload</div>
-                  </label>
-                  <div id="preview-or_cr" style="margin-top:12px;"></div>
+                  </div>
+                  <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 4px 0;">OR/CR</h4>
+                  <p style="font-size:12px; color:#94a3b8; font-weight:500; margin:0 0 12px 0;">Updated LGU / LTO registration receipt</p>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
+                    <span style="color:#3b82f6; font-weight:600;">Click to upload</span>
+                    <span style="color:#cbd5e1;">•</span>
+                    <span style="color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace; font-size:10px;">Max 4MB</span>
+                  </div>
+                  <div id="preview-or_cr" style="margin-top:12px; width:100%;"></div>
                 </div>
 
                 <!-- Payment Receipt -->
-                <div class="doc-upload-box" id="box-receipt">
-                  <input type="file" name="receipt" id="file-receipt" accept="image/*,.pdf" required>
-                  <label for="file-receipt" class="doc-upload-label">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 8px; color:var(--primary);">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                <div style="position:relative; cursor:pointer; border:2px dashed #e2e8f0; border-radius:12px; padding:32px; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:180px;" class="doc-upload-card" id="box-receipt" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='rgba(59,130,246,0.02)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='transparent';">
+                  <input type="file" name="receipt" id="file-receipt" accept="image/*,.pdf" required style="position:absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                  <div style="width:48px; height:48px; border-radius:50%; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; margin-bottom:12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
-                    <div style="font-weight:600; margin-bottom:4px;">Payment Receipt</div>
-                    <div style="font-size:12px; color:var(--text-muted);">Click to upload</div>
-                  </label>
-                  <div id="preview-receipt" style="margin-top:12px;"></div>
+                  </div>
+                  <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 4px 0;">Payment Receipt</h4>
+                  <p style="font-size:12px; color:#94a3b8; font-weight:500; margin:0 0 12px 0;">Official TODA renewal fee or treasury receipt</p>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
+                    <span style="color:#3b82f6; font-weight:600;">Click to upload</span>
+                    <span style="color:#cbd5e1;">•</span>
+                    <span style="color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace; font-size:10px;">Max 4MB</span>
+                  </div>
+                  <div id="preview-receipt" style="margin-top:12px; width:100%;"></div>
                 </div>
 
                 <!-- 1x1 Picture -->
-                <div class="doc-upload-box" id="box-photo">
-                  <input type="file" name="photo" id="file-photo" accept="image/*" required>
-                  <label for="file-photo" class="doc-upload-label">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin:0 auto 8px; color:var(--primary);">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                <div style="position:relative; cursor:pointer; border:2px dashed #e2e8f0; border-radius:12px; padding:32px; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:180px;" class="doc-upload-card" id="box-photo" onmouseover="this.style.borderColor='#3b82f6'; this.style.background='rgba(59,130,246,0.02)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='transparent';">
+                  <input type="file" name="photo" id="file-photo" accept="image/*" required style="position:absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                  <div style="width:48px; height:48px; border-radius:50%; background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#94a3b8; margin-bottom:12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round"></path>
                     </svg>
-                    <div style="font-weight:600; margin-bottom:4px;">1x1 Picture</div>
-                    <div style="font-size:12px; color:var(--text-muted);">Click to upload</div>
-                  </label>
-                  <div id="preview-photo" style="margin-top:12px;"></div>
+                  </div>
+                  <h4 style="font-size:14px; font-weight:700; color:#0f172a; margin:0 0 4px 0;">1x1 Picture</h4>
+                  <p style="font-size:12px; color:#94a3b8; font-weight:500; margin:0 0 12px 0;">Recent formal ID photo with white background</p>
+                  <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
+                    <span style="color:#3b82f6; font-weight:600;">Click to upload</span>
+                    <span style="color:#cbd5e1;">•</span>
+                    <span style="color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace; font-size:10px;">Max 4MB</span>
+                  </div>
+                  <div id="preview-photo" style="margin-top:12px; width:100%;"></div>
                 </div>
+
               </div>
             </div>
           </div>
 
-          <div class="consent-box">
-            <div class="consent-checkbox">
-              <input type="checkbox" name="consent" id="consentCheck" value="1" required>
-              <label for="consentCheck">
-                <strong>I confirm that <?= e($selected_driver['name']) ?> has provided verbal consent for me to submit these renewal documents on their behalf.</strong>
-                <br><br>
-                By checking this box, I acknowledge that I have personally verified the driver's identity and obtained their permission to process this assisted renewal.
-              </label>
-            </div>
+          <!-- Verbal Consent Box -->
+          <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:20px; box-shadow:0 1px 2px rgba(0,0,0,0.02); margin-bottom:24px;">
+            <label style="display:flex; align-items:start; gap:14px; cursor:pointer; user-select:none;">
+              <input type="checkbox" name="consent" id="consentCheck" value="1" required style="margin-top:4px; width:16px; height:16px; border-radius:4px; color:#2563eb; border:1px solid #d97706; cursor:pointer; flex-shrink:0;" />
+              <div style="font-size:14px;">
+                <span style="font-weight:700; color:#0f172a; display:block; margin-bottom:4px;">
+                  I confirm that <?= e($selected_driver['name']) ?> has provided verbal consent for me to submit these renewal documents on their behalf.
+                </span>
+                <p style="font-size:12px; color:#64748b; margin:0; line-height:1.6;">
+                  By checking this box, I acknowledge that I have personally verified the driver's identity and obtained their permission to process this assisted renewal.
+                </p>
+              </div>
+            </label>
           </div>
 
-          <div class="btn-row">
-            <a href="<?= BASE_URL ?>/assisted_renewal.php?step=3" class="btn btn-outline">Back</a>
-            <button type="submit" id="btnSubmit" class="btn btn-accent" style="flex:1;" disabled>Submit Application</button>
+          <!-- Bottom Navigation -->
+          <div style="padding-top:8px; display:flex; align-items:center; justify-content:space-between; padding-bottom:48px;">
+            <a href="<?= BASE_URL ?>/assisted_renewal.php?step=3" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:12px; font-size:14px; font-weight:600; text-decoration:none; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.2s;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#64748b;">
+                <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              Back
+            </a>
+            <button type="submit" id="btnSubmit" disabled style="display:inline-flex; align-items:center; gap:8px; padding:10px 24px; background:#2563eb; color:white; border:none; border-radius:12px; font-size:14px; font-weight:600; box-shadow:0 4px 6px rgba(37,99,235,0.3); transition:all 0.15s; cursor:not-allowed; opacity:0.5;">
+              <span>Next: Review & Submit</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
           </div>
         </form>
 
@@ -971,15 +1034,15 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
             if (file.type.startsWith('image/')) {
               const reader = new FileReader();
               reader.onload = function(e) {
-                preview.innerHTML = '<img src="' + e.target.result + '" class="doc-preview"><div style="font-size:12px; color:var(--green); margin-top:8px;">✓ ' + file.name + '</div>';
+                preview.innerHTML = '<img src="' + e.target.result + '" style="max-width:100%; max-height:100px; border-radius:8px; margin-top:8px;"><div style="font-size:11px; color:#10b981; margin-top:6px; font-weight:600;">✓ ' + file.name + '</div>';
               };
               reader.readAsDataURL(file);
             } else {
-              preview.innerHTML = '<div style="font-size:12px; color:var(--green); margin-top:8px;">✓ ' + file.name + '</div>';
+              preview.innerHTML = '<div style="font-size:11px; color:#10b981; margin-top:6px; font-weight:600;">✓ ' + file.name + '</div>';
             }
 
-            box.style.borderColor = 'var(--green)';
-            box.style.background = '#f0f9ff';
+            box.style.borderColor = '#10b981';
+            box.style.background = 'rgba(16,185,129,0.05)';
 
             // Check if can submit
             checkCanSubmit();
@@ -991,12 +1054,16 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
         function checkCanSubmit() {
           const allUploaded = fileInputs.every(docType => uploadedFiles[docType]);
           const consentGiven = consentCheck.checked;
-          btnSubmit.disabled = !(allUploaded && consentGiven);
+          const canSubmit = allUploaded && consentGiven;
+          
+          btnSubmit.disabled = !canSubmit;
+          btnSubmit.style.cursor = canSubmit ? 'pointer' : 'not-allowed';
+          btnSubmit.style.opacity = canSubmit ? '1' : '0.5';
         }
 
         document.getElementById('uploadForm').addEventListener('submit', function() {
           btnSubmit.disabled = true;
-          btnSubmit.textContent = 'Submitting...';
+          btnSubmit.innerHTML = '<span>Submitting...</span>';
         });
         </script>
 
