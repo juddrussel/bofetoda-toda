@@ -211,12 +211,14 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
 }
 .search-results {
     margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
 }
 .driver-result {
     padding: 16px;
     border: 2px solid var(--border);
     border-radius: 12px;
-    margin-bottom: 12px;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
