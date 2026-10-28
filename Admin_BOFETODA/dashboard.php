@@ -14,7 +14,7 @@ $pending  = array_filter($apps, fn($a) => $a['status'] === 'Pending'); // Need v
 $forApproval = array_filter($apps, fn($a) => $a['status'] === 'For Approval'); // Ready for president
 $approved = array_filter($apps, fn($a) => $a['status'] === 'Approved');
 $rejected = array_filter($apps, fn($a) => $a['status'] === 'Rejected');
-$validated = array_filter($apps, fn($a) => $a['status'] === 'Validated');
+$validated = array_filter($apps, fn($a) => $a['status'] === 'For Approval'); // Documents verified, ready for approval
 
 $totalDrivers     = count($drivers);
 $renewedDrivers = count(array_filter($drivers, fn($d) => $d['status'] === 'Approved Renewal'));
