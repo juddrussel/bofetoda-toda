@@ -467,9 +467,14 @@ render_header([
                                     <div class="text-xs text-slate-500 mt-0.5 file-name">Tap to upload file</div>
                                     <input type="file" id="doc_<?php echo h($field); ?>" name="<?php echo h($field); ?>" accept="image/*,.pdf" required class="hidden">
                                 </div>
-                                <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-slate-400 flex-shrink-0 upload-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round"></path>
                                 </svg>
+                                <button type="button" class="remove-file-btn hidden w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center flex-shrink-0 transition-colors" title="Remove file">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </button>
                             </label>
                             <p class="field-error text-xs text-red-600 mt-2" style="display:none;">File must be a photo or PDF, under 4MB.</p>
                         </div>
@@ -530,6 +535,9 @@ document.addEventListener('DOMContentLoaded', function () {
     input.addEventListener('change', function () {
       var tile = input.closest('.upload-tile-modern');
       var fileNameDisplay = tile ? tile.querySelector('.file-name') : null;
+      var uploadIcon = tile ? tile.querySelector('.upload-icon') : null;
+      var removeBtn = tile ? tile.querySelector('.remove-file-btn') : null;
+      
       if (input.files && input.files.length > 0) {
         var file = input.files[0];
         if (fileNameDisplay) {
@@ -540,6 +548,47 @@ document.addEventListener('DOMContentLoaded', function () {
           tile.classList.remove('border-slate-200');
           tile.classList.add('border-emerald-400', 'bg-emerald-50/30');
         }
+        // Hide upload icon and show remove button
+        if (uploadIcon) {
+          uploadIcon.classList.add('hidden');
+        }
+        if (removeBtn) {
+          removeBtn.classList.remove('hidden');
+        }
+      }
+    });
+  });
+
+  // Handle remove file button clicks
+  document.querySelectorAll('.remove-file-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var tile = btn.closest('.upload-tile-modern');
+      var input = tile ? tile.querySelector('input[type="file"]') : null;
+      var fileNameDisplay = tile ? tile.querySelector('.file-name') : null;
+      var uploadIcon = tile ? tile.querySelector('.upload-icon') : null;
+      
+      if (input) {
+        // Clear the file input
+        input.value = '';
+        
+        // Reset the display
+        if (fileNameDisplay) {
+          fileNameDisplay.textContent = 'Tap to upload file';
+          fileNameDisplay.classList.remove('text-emerald-600', 'font-semibold');
+          fileNameDisplay.classList.add('text-slate-500');
+        }
+        if (tile) {
+          tile.classList.remove('border-emerald-400', 'bg-emerald-50/30');
+          tile.classList.add('border-slate-200');
+        }
+        // Show upload icon and hide remove button
+        if (uploadIcon) {
+          uploadIcon.classList.remove('hidden');
+        }
+        btn.classList.add('hidden');
       }
     });
   });
