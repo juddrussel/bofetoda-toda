@@ -64,7 +64,13 @@ $officer = current_officer();
 <div class="page">
 
     <div class="info-banner">
-        <div class="info-banner__icon">💾</div>
+        <div class="info-banner__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+        </div>
         <div class="info-banner__content">
             <h3 class="info-banner__title">Backup Information</h3>
             <p class="info-banner__text">Manual backups download immediately to your computer. Automated backups are stored in cloud storage and run daily at midnight. The system automatically keeps the last 7 days of automated backups.</p>
@@ -76,7 +82,7 @@ $officer = current_officer();
         <div class="card">
             <div class="card__head">
                 <div>
-                    <h3>📥 Manual Backup</h3>
+                    <h3>Manual Backup</h3>
                     <p>Create an immediate backup and download it to your computer. Use before major changes.</p>
                 </div>
             </div>
@@ -99,7 +105,7 @@ $officer = current_officer();
         <div class="card">
             <div class="card__head">
                 <div>
-                    <h3>🔄 Automated Backups</h3>
+                    <h3>Automated Backups</h3>
                     <p>Daily backups run automatically at midnight and are stored securely in cloud storage.</p>
                 </div>
             </div>
@@ -118,12 +124,17 @@ $officer = current_officer();
     <!-- Automated Backups List -->
     <div class="card">
         <div class="card__head">
-            <h3>📦 Available Backups</h3>
+            <h3>Available Backups</h3>
         </div>
         <div class="card__body">
             <div id="backupsContainer">
                 <div class="empty-state">
-                    <div class="empty-state__icon">⏳</div>
+                    <div class="empty-state__icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
                     <div class="empty-state__text">Loading backups...</div>
                 </div>
             </div>
@@ -133,7 +144,7 @@ $officer = current_officer();
     <!-- Best Practices -->
     <div class="card">
         <div class="card__head">
-            <h3>📋 Best Practices</h3>
+            <h3>Best Practices</h3>
         </div>
         <div class="card__body">
             <ul style="margin:0; padding-left:20px; list-style:disc;">
@@ -173,7 +184,13 @@ async function loadBackupList() {
         if (!data.success) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state__icon">⚠️</div>
+                    <div class="empty-state__icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
                     <div class="empty-state__text">${data.error || 'Failed to load backups'}</div>
                 </div>
             `;
@@ -183,7 +200,11 @@ async function loadBackupList() {
         if (data.backups.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state__icon">📦</div>
+                    <div class="empty-state__icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        </svg>
+                    </div>
                     <div class="empty-state__text">No automated backups found yet. The first backup will be created at midnight.</div>
                 </div>
             `;
@@ -240,7 +261,13 @@ async function loadBackupList() {
         console.error('Error loading backups:', error);
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state__icon">❌</div>
+                <div class="empty-state__icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.3">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
                 <div class="empty-state__text">Error loading backups. Please refresh the page.</div>
             </div>
         `;
