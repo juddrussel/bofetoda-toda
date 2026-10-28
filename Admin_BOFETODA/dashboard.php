@@ -205,38 +205,38 @@ $page_sub     = "Decision Support & Performance Overview";
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-card__label">Total Applications</div>
-        <div class="kpi-card__value"><?= $total ?></div>
-        <div class="kpi-card__trend is-up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-          <?= $trends['applications'] ?> vs last cycle
+        <div class="kpi-card__label">Pending Applications</div>
+        <div class="kpi-card__value"><?= count($pending) ?></div>
+        <div class="kpi-card__trend is-neutral">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          Awaiting validation
         </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-card__label">Approval Rate</div>
-        <div class="kpi-card__value"><?= $approvalRate ?>%</div>
-        <div class="kpi-card__trend is-up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-          <?= $trends['approval_rate'] ?> vs last cycle
+        <div class="kpi-card__label">Validated Applications</div>
+        <div class="kpi-card__value"><?= count($validated) + count($forApproval) ?></div>
+        <div class="kpi-card__trend is-neutral">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          Documents verified
         </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-card__label">Completion Rate</div>
-        <div class="kpi-card__value"><?= $completionRate ?>%</div>
+        <div class="kpi-card__label">Approved Applications</div>
+        <div class="kpi-card__value"><?= count($approved) ?></div>
         <div class="kpi-card__trend is-up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-          <?= $trends['completion'] ?> vs last cycle
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Ready for renewal
         </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-card__label">Avg. Processing Time</div>
-        <div class="kpi-card__value">3.5d</div>
-        <div class="kpi-card__trend is-up">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-          <?= $trends['avg_processing'] ?> vs last cycle
+        <div class="kpi-card__label">Rejected Applications</div>
+        <div class="kpi-card__value"><?= count($rejected) ?></div>
+        <div class="kpi-card__trend is-down">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          <?= $total > 0 ? round((count($rejected) / $total) * 100) : 0 ?>% rejection rate
         </div>
       </div>
     </div>
