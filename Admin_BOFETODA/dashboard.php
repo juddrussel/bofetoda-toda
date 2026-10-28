@@ -242,7 +242,7 @@ $page_sub     = "Decision Support & Performance Overview";
 
       <div class="kpi-card">
         <div class="kpi-card__label">Pending Applications</div>
-        <div class="kpi-card__value"><?= count($pending) + count($forApproval) ?></div>
+        <div class="kpi-card__value"><?= count($pending) ?></div>
         <div class="kpi-card__trend is-neutral">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
           Needs review
