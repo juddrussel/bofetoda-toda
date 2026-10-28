@@ -324,8 +324,8 @@ $page_sub     = "Decision Support & Performance Overview";
     
     <div class="chart-card">
       <div class="chart-card__title">📊 Approved Applications by Barangay</div>
-      <div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:center;">
-        <div style="position:relative; width:100%; max-width:400px; margin:0 auto;">
+      <div style="display:grid; grid-template-columns:400px 1fr; gap:32px; align-items:center;">
+        <div style="position:relative; width:400px;">
           <canvas id="approvalPieChart" width="400" height="400"></canvas>
           <div id="pieChartCenter" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none;">
             <div style="font-size:40px; font-weight:800; color:var(--navy);"><?= $totalApproved ?></div>
