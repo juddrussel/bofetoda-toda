@@ -211,9 +211,9 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
 }
 .search-results {
     margin-top: 16px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 12px;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: 12px !important;
 }
 .driver-result {
     padding: 16px;
@@ -225,6 +225,7 @@ if (isset($_GET['success']) && isset($_GET['app_no'])) {
     justify-content: flex-start;
     align-items: center;
     gap: 16px;
+    width: 100%;
 }
 .driver-result:hover {
     border-color: var(--navy);
