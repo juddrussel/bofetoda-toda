@@ -795,8 +795,8 @@ if ($isArchived) {
 
 <?php if ($canManage): ?>
 <div class="modal-backdrop" id="add-driver-modal">
-  <div style="position:fixed; inset:0; z-50; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); overflow-y:auto;">
-    <div style="background:white; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid rgba(226,232,240,0.9); width:100%; max-width:700px; overflow:hidden; margin:auto; transform:scale(1); transition:all 0.2s;">
+  <div style="position:fixed; inset:0; z-50; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(15,23,42,0.75); overflow-y:auto;">
+    <div style="background:white; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid rgba(226,232,240,0.9); width:100%; max-width:700px; overflow:hidden; margin:auto;">
       
       <!-- Modal Header -->
       <div style="padding:20px 28px; background:linear-gradient(to right, #f8fafc, white, #f8fafc); border-bottom:1px solid #e2e8f0; display:flex; align-items:start; justify-content:space-between;">
@@ -816,7 +816,7 @@ if ($isArchived) {
           </div>
         </div>
         <!-- Close Button -->
-        <button type="button" data-close-modal="add-driver-modal" style="color:#94a3b8; background:transparent; border:none; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#475569';" onmouseout="this.style.background='transparent'; this.style.color='#94a3b8';">
+        <button type="button" data-close-modal="add-driver-modal" style="color:#94a3b8; background:transparent; border:none; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.15s, color 0.15s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#475569';" onmouseout="this.style.background='transparent'; this.style.color='#94a3b8';">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -824,7 +824,7 @@ if ($isArchived) {
         </button>
       </div>
 
-      <form id="add-driver-form" method="post" action="<?= BASE_URL ?>/driver_list.php" style="padding:28px; max-height:calc(88vh - 130px); overflow-y:auto;">
+      <form id="add-driver-form" method="post" action="<?= BASE_URL ?>/driver_list.php" style="padding:28px; max-height:calc(88vh - 130px); overflow-y:auto; -webkit-overflow-scrolling:touch;">
         <input type="hidden" name="action" value="add_driver">
         <input type="hidden" name="status" value="-">
         
@@ -859,7 +859,7 @@ if ($isArchived) {
               <label for="d_name" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
                 NAME <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
-              <input type="text" id="d_name" name="name" placeholder="Full Name" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+              <input type="text" id="d_name" name="name" placeholder="Full Name" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
             </div>
 
             <!-- Birthday -->
@@ -867,7 +867,7 @@ if ($isArchived) {
               <label for="d_birthday" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
                 BIRTHDAY <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
-              <input type="date" id="d_birthday" name="birthday" max="<?= e(date('Y-m-d')) ?>" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+              <input type="date" id="d_birthday" name="birthday" max="<?= e(date('Y-m-d')) ?>" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 14px; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
             </div>
           </div>
 
@@ -885,7 +885,7 @@ if ($isArchived) {
               </label>
               <div style="display:flex; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
                 <span style="display:inline-flex; align-items:center; padding:0 12px; border-radius-left:8px; border:1px solid #e2e8f0; border-right:0; background:#f1f5f9; color:#64748b; font-size:12px; font-weight:600;">+63</span>
-                <input type="text" id="d_contact" name="contact" placeholder="09XX XXX XXXX" required style="flex:1; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:0 8px 8px 0; padding:10px 14px; font-size:12px; transition:all 0.2s;" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.previousElementSibling.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.previousElementSibling.style.borderColor='#e2e8f0';">
+                <input type="text" id="d_contact" name="contact" placeholder="09XX XXX XXXX" required style="flex:1; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:0 8px 8px 0; padding:10px 14px; font-size:12px;" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.previousElementSibling.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.previousElementSibling.style.borderColor='#e2e8f0';">
               </div>
             </div>
           </div>
@@ -902,13 +902,13 @@ if ($isArchived) {
             <h3 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#334155; margin:0;">Address</h3>
           </div>
 
-          <div style="display:grid; grid-template-columns:5fr 3fr 4fr; gap:14px; align-items:start;">
+          <div style="display:grid; grid-template-columns:5fr 3fr 4fr; gap:14px; align-items:end;">
             <!-- House No / Street -->
             <div>
               <label for="d_street" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
                 HOUSE NO / STREET <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
-              <input type="text" id="d_street" placeholder="House No / Street" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+              <input type="text" id="d_street" placeholder="House No / Street" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
             </div>
 
             <!-- Barangay -->
@@ -916,11 +916,11 @@ if ($isArchived) {
               <label for="d_addr_barangay" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
                 BARANGAY <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
-              <input type="text" id="d_addr_barangay" placeholder="Barangay" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+              <input type="text" id="d_addr_barangay" placeholder="Barangay" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
             </div>
 
             <!-- Fixed Municipality & Province -->
-            <div style="display:flex; gap:8px; padding-top:24px;">
+            <div style="display:flex; gap:8px;">
               <div style="flex:1; text-align:center;">
                 <span style="display:block; font-size:10px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Town</span>
                 <div style="width:100%; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:500; border-radius:8px; padding:10px 8px; font-size:12px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">Bocaue</div>
@@ -957,7 +957,7 @@ if ($isArchived) {
               <label for="d_body" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#64748b; margin-bottom:6px;">
                 BODY NO. <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
-              <input type="text" id="d_body" name="body_no" placeholder="Body" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+              <input type="text" id="d_body" name="body_no" placeholder="Body" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#334155; border-radius:8px; padding:10px 14px; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
             </div>
 
             <!-- Barangay -->
@@ -966,7 +966,7 @@ if ($isArchived) {
                 BARANGAY <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
               <div style="position:relative;">
-                <select id="d_barangay" name="barangay" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 32px 10px 14px; font-size:12px; appearance:none; cursor:pointer; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+                <select id="d_barangay" name="barangay" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 32px 10px 14px; font-size:12px; appearance:none; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
                   <option value="" disabled selected>Barangay</option>
                   <?php foreach ($barangays as $b): ?><option value="<?= e($b) ?>"><?= e($b) ?></option><?php endforeach; ?>
                 </select>
@@ -984,7 +984,7 @@ if ($isArchived) {
                 COLOR CODE <span style="color:#dc2626; font-weight:900;">*</span>
               </label>
               <div style="position:relative;">
-                <select id="d_color" name="color" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 32px 10px 14px; font-size:12px; appearance:none; cursor:pointer; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';">
+                <select id="d_color" name="color" required style="width:100%; background:rgba(248,250,252,0.7); border:1px solid #e2e8f0; color:#475569; border-radius:8px; padding:10px 32px 10px 14px; font-size:12px; appearance:none; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.02);" onfocus="this.style.background='white'; this.style.borderColor='#3b82f6';" onblur="this.style.background='rgba(248,250,252,0.7)'; this.style.borderColor='#e2e8f0';">
                   <option value="" disabled selected>Color</option>
                   <?php foreach (d('colors') as $c): ?><option value="<?= e($c) ?>"><?= e($c) ?></option><?php endforeach; ?>
                 </select>
