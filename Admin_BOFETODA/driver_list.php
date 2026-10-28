@@ -1424,7 +1424,11 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('<?= BASE_URL ?>/check_body_number.php?body_no=' + encodeURIComponent(bodyNo))
           .then(function(res) { 
             if (!res.ok) {
-              throw new Error('Network response was not ok');
+              // Log the actual response to see what the error is
+              return res.text().then(function(text) {
+                console.error('Server error response:', text);
+                throw new Error('Network response was not ok: ' + res.status);
+              });
             }
             return res.json(); 
           })
@@ -1501,7 +1505,11 @@ document.addEventListener('DOMContentLoaded', function() {
       fetch('<?= BASE_URL ?>/check_body_number.php?body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
         .then(function(res) { 
           if (!res.ok) {
-            throw new Error('Network response was not ok');
+            // Log the actual response to see what the error is
+            return res.text().then(function(text) {
+              console.error('Server error response:', text);
+              throw new Error('Network response was not ok: ' + res.status);
+            });
           }
           return res.json(); 
         })
