@@ -2769,11 +2769,37 @@ function delete_general_announcement($id) {
     $pdo = get_pdo();
     
     try {
+        $pdo->beginTransaction();
+        
+        // First, get all images associated with this announcement
         $stmt = $pdo->prepare(
-            "UPDATE general_announcements SET is_active = 0 WHERE id = :id"
+            "SELECT image_path FROM announcement_images WHERE announcement_id = :id"
         );
-        return $stmt->execute(['id' => $id]);
+        $stmt->execute(['id' => $id]);
+        $images = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Delete images from R2 storage
+        foreach ($images as $imagePath) {
+            // Delete from R2 or local storage
+            delete_announcement_image_r2($imagePath);
+        }
+        
+        // Delete image records from database
+        $stmt = $pdo->prepare(
+            "DELETE FROM announcement_images WHERE announcement_id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+        
+        // Delete the announcement itself
+        $stmt = $pdo->prepare(
+            "DELETE FROM general_announcements WHERE id = :id"
+        );
+        $stmt->execute(['id' => $id]);
+        
+        $pdo->commit();
+        return true;
     } catch (Exception $e) {
+        $pdo->rollBack();
         error_log('delete_general_announcement failed: ' . $e->getMessage());
         return false;
     }
