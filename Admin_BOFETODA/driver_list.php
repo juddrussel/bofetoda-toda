@@ -12,6 +12,42 @@ $notice = null;
 $error  = null;
 $newDriverCredentials = null; 
 
+// AJAX endpoint for checking body number availability
+if (isset($_GET['action']) && $_GET['action'] === 'check_body_number') {
+    header('Content-Type: application/json');
+    $bodyNo = trim($_GET['body_no'] ?? '');
+    $currentDriverId = trim($_GET['current_driver_id'] ?? ''); // For edit modal
+    
+    if (empty($bodyNo)) {
+        echo json_encode(['available' => true]);
+        exit;
+    }
+    
+    try {
+        $pdo = get_pdo();
+        $query = 'SELECT driver_id FROM drivers WHERE body_no = :body_no AND archived = 0';
+        $params = ['body_no' => $bodyNo];
+        
+        // If editing, exclude the current driver
+        if (!empty($currentDriverId)) {
+            $query .= ' AND driver_id != :current_id';
+            $params['current_id'] = $currentDriverId;
+        }
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        $exists = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'available' => !$exists,
+            'message' => $exists ? 'Body number is already in use by another driver' : 'Body number is available'
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['available' => true, 'error' => 'Could not check availability']);
+    }
+    exit;
+}
+
 if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -1392,6 +1428,139 @@ document.addEventListener('DOMContentLoaded', function() {
   if (addStreet) addStreet.addEventListener('input', updateAddressPreview);
   if (addBarangay) addBarangay.addEventListener('input', updateAddressPreview);
   updateAddressPreview();
+
+  // Body number validation for Add Driver modal
+  var addBodyNo = document.getElementById('d_body');
+  var addBodyErr = null;
+  var addBodyCheckTimeout = null;
+  
+  if (addBodyNo) {
+    // Create error message element
+    addBodyErr = document.createElement('p');
+    addBodyErr.style.display = 'none';
+    addBodyErr.style.margin = '4px 0 0';
+    addBodyErr.style.fontSize = '12px';
+    addBodyErr.style.color = '#dc2626';
+    addBodyErr.style.fontWeight = '500';
+    addBodyErr.textContent = 'Body number is already in use';
+    addBodyNo.parentNode.appendChild(addBodyErr);
+    
+    addBodyNo.addEventListener('input', function() {
+      clearTimeout(addBodyCheckTimeout);
+      var bodyNo = this.value.trim();
+      
+      if (!bodyNo) {
+        addBodyErr.style.display = 'none';
+        addBodyNo.style.borderColor = '#e2e8f0';
+        return;
+      }
+      
+      addBodyCheckTimeout = setTimeout(function() {
+        fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo))
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.available) {
+              addBodyErr.style.display = 'none';
+              addBodyNo.style.borderColor = '#10b981';
+              addBodyNo.dataset.available = 'true';
+            } else {
+              addBodyErr.style.display = 'block';
+              addBodyErr.textContent = data.message || 'Body number is already in use';
+              addBodyNo.style.borderColor = '#dc2626';
+              addBodyNo.dataset.available = 'false';
+            }
+          })
+          .catch(function(err) {
+            console.error('Body number check error:', err);
+          });
+      }, 500);
+    });
+  }
+  
+  // Prevent form submission if body number is not available
+  if (addAccountBtn && addBodyNo) {
+    var originalAddClick = addAccountBtn.onclick;
+    addAccountBtn.addEventListener('click', function(e) {
+      if (addBodyNo.dataset.available === 'false') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        addBodyNo.focus();
+        addBodyErr.style.display = 'block';
+        return false;
+      }
+    });
+  }
+
+  // Body number validation for Edit Driver modals
+  document.querySelectorAll('[id^="e_body_"]').forEach(function(editBodyInput) {
+    var driverId = editBodyInput.id.replace('e_body_', '');
+    var originalBodyNo = editBodyInput.value;
+    var editBodyErr = null;
+    var editBodyCheckTimeout = null;
+    
+    // Create error message element
+    editBodyErr = document.createElement('p');
+    editBodyErr.style.display = 'none';
+    editBodyErr.style.margin = '4px 0 0';
+    editBodyErr.style.fontSize = '11px';
+    editBodyErr.style.color = '#dc2626';
+    editBodyErr.style.fontWeight = '500';
+    editBodyErr.textContent = 'Body number is already in use';
+    editBodyInput.parentNode.appendChild(editBodyErr);
+    
+    editBodyInput.addEventListener('input', function() {
+      clearTimeout(editBodyCheckTimeout);
+      var bodyNo = this.value.trim();
+      
+      // If unchanged from original, it's valid
+      if (bodyNo === originalBodyNo) {
+        editBodyErr.style.display = 'none';
+        editBodyInput.style.borderColor = '';
+        editBodyInput.dataset.available = 'true';
+        return;
+      }
+      
+      if (!bodyNo) {
+        editBodyErr.style.display = 'none';
+        editBodyInput.style.borderColor = '';
+        return;
+      }
+      
+      editBodyCheckTimeout = setTimeout(function() {
+        fetch('<?= BASE_URL ?>/driver_list.php?action=check_body_number&body_no=' + encodeURIComponent(bodyNo) + '&current_driver_id=' + encodeURIComponent(driverId))
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.available) {
+              editBodyErr.style.display = 'none';
+              editBodyInput.style.borderColor = '#10b981';
+              editBodyInput.dataset.available = 'true';
+            } else {
+              editBodyErr.style.display = 'block';
+              editBodyErr.textContent = data.message || 'Body number is already in use';
+              editBodyInput.style.borderColor = '#dc2626';
+              editBodyInput.dataset.available = 'false';
+            }
+          })
+          .catch(function(err) {
+            console.error('Body number check error:', err);
+          });
+      }, 500);
+    });
+    
+    // Prevent opening confirmation modal if body number is not available
+    var confirmBtn = document.querySelector('[data-open-modal="confirm-update-' + driverId + '"]');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function(e) {
+        if (editBodyInput.dataset.available === 'false') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          editBodyInput.focus();
+          editBodyErr.style.display = 'block';
+          return false;
+        }
+      });
+    }
+  });
 
   document.querySelectorAll('[data-validate-passwords]').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
