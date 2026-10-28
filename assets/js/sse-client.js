@@ -25,6 +25,13 @@
             this.isManualDisconnect = false;
             this.eventHandlers = {};
             
+            // Load last notification ID from localStorage to prevent re-showing old notifications
+            const storedLastId = localStorage.getItem('sse_last_notification_id');
+            if (storedLastId) {
+                this.lastEventId = parseInt(storedLastId);
+                console.log('[SSE] Loaded last notification ID from storage:', this.lastEventId);
+            }
+            
             // Auto-start connection
             this.connect();
             
@@ -74,10 +81,15 @@
                     
                     if (e.lastEventId) {
                         this.lastEventId = parseInt(e.lastEventId);
+                        // Save to localStorage to persist across sessions
+                        localStorage.setItem('sse_last_notification_id', this.lastEventId);
                     }
                     
-                    this.trigger('notification', data);
-                    this.showNotificationToast(data);
+                    // Only show notification if it's newer than what we've seen
+                    if (data.id && data.id > this.lastEventId - 1) {
+                        this.trigger('notification', data);
+                        this.showNotificationToast(data);
+                    }
                 });
                 
                 // Handle status change events
@@ -85,8 +97,19 @@
                     this.resetHeartbeatMonitor();
                     const data = JSON.parse(e.data);
                     console.log('[SSE] Status change:', data);
-                    this.trigger('statusChange', data);
-                    this.handleStatusChange(data);
+                    
+                    // Create unique key for this status change
+                    const statusKey = `status_${data.app_no}_${data.status}`;
+                    const lastShown = localStorage.getItem(statusKey);
+                    
+                    // Only show if we haven't shown this exact status before
+                    if (!lastShown) {
+                        localStorage.setItem(statusKey, Date.now().toString());
+                        this.trigger('statusChange', data);
+                        this.handleStatusChange(data);
+                    } else {
+                        console.log('[SSE] Status change already shown, skipping:', statusKey);
+                    }
                 });
                 
                 // Handle new application events (for officers)
