@@ -949,10 +949,6 @@ function db_delete_driver_permanently($driverId) {
         $pdo->prepare('DELETE FROM activity_logs WHERE driver_id = :id')
             ->execute(['id' => $driverId]);
         
-        // Delete access logs
-        $pdo->prepare('DELETE FROM access_logs WHERE driver_id = :id')
-            ->execute(['id' => $driverId]);
-        
         // Finally delete the driver
         $pdo->prepare('DELETE FROM drivers WHERE driver_id = :id')
             ->execute(['id' => $driverId]);
