@@ -277,6 +277,41 @@ input.has-error, select.has-error { border-color:var(--red) !important; backgrou
 .doc-preview__frame iframe { width:100%; height:100%; border:0; display:block; transition:width .12s ease, height .12s ease; }
 .doc-preview__frame.is-zoomed-in { cursor:grab; }
 .doc-preview__frame.is-dragging { cursor:grabbing; user-select:none; }
+
+/* Blur approved documents */
+.doc-preview__frame.is-blurred img,
+.doc-preview__frame.is-blurred iframe { filter: blur(12px); -webkit-filter: blur(12px); }
+.doc-preview__blur-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 24px 32px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+}
+.doc-preview__blur-overlay svg {
+    width: 48px;
+    height: 48px;
+    color: var(--green);
+    margin-bottom: 12px;
+}
+.doc-preview__blur-overlay h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 8px 0;
+}
+.doc-preview__blur-overlay p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 280px;
+}
 .doc-preview__placeholder { text-align:center; color:var(--text-muted); padding:30px; }
 .doc-preview__placeholder svg { width:44px; height:44px; margin-bottom:10px; color:#c3c8d1; }
 .doc-preview__placeholder p { font-size:13px; }
@@ -601,10 +636,16 @@ if ($isArchived) {
             $previewUrl = $hasFile ? (BASE_URL . '/doc-file.php?app=' . urlencode($drvDocsApp['app_no']) . '&doc=' . urlencode($key)) : '';
           
             $docExt = $hasFile ? strtolower(pathinfo($doc['file_path'], PATHINFO_EXTENSION)) : '';
+            $isApproved = ($drv['status'] === 'Approved Renewal');
           ?>
             <div class="doc-tile-view">
               <span><?= e($label) ?><?php if (!$hasFile): ?> <span style="color:var(--text-muted); font-weight:500; font-size:12px;">(not uploaded)</span><?php endif; ?></span>
-              <span class="doc-tile-view__expand" data-open-doc-preview="<?= e($label) ?>" data-doc-src="<?= e($previewUrl) ?>" data-doc-type="<?= $docExt === 'pdf' ? 'pdf' : 'image' ?>" title="View document">
+              <span class="doc-tile-view__expand" 
+                    data-open-doc-preview="<?= e($label) ?>" 
+                    data-doc-src="<?= e($previewUrl) ?>" 
+                    data-doc-type="<?= $docExt === 'pdf' ? 'pdf' : 'image' ?>"
+                    data-is-approved="<?= $isApproved ? '1' : '0' ?>"
+                    title="View document">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </span>
             </div>
@@ -1303,11 +1344,32 @@ document.addEventListener('DOMContentLoaded', function() {
       if (previewTitle) previewTitle.textContent = btn.getAttribute('data-open-doc-preview');
       var src = btn.getAttribute('data-doc-src');
       var isPdf = btn.getAttribute('data-doc-type') === 'pdf';
+      var isApproved = btn.getAttribute('data-is-approved') === '1';
+      
       baseSize = null; 
       currentPdfBaseSrc = isPdf ? src : null;
       if (previewFrame && previewContent) {
+        // Remove any existing blur overlay
+        var existingOverlay = document.querySelector('.doc-preview__blur-overlay');
+        if (existingOverlay) existingOverlay.remove();
+        
         if (src) {
           previewFrame.classList.remove('is-empty');
+          
+          // Apply blur if approved
+          if (isApproved) {
+            previewFrame.classList.add('is-blurred');
+            
+            // Add blur overlay message
+            var overlay = document.createElement('div');
+            overlay.className = 'doc-preview__blur-overlay';
+            overlay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' +
+                               '<h4>Application Approved</h4>' +
+                               '<p>This driver\'s renewal application has been approved. Documents are blurred for privacy.</p>';
+            document.getElementById('docPreviewWrap').appendChild(overlay);
+          } else {
+            previewFrame.classList.remove('is-blurred');
+          }
         
           previewContent.innerHTML = isPdf
             ? '<iframe src="about:blank"></iframe>'
@@ -1315,6 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (previewZoomBar) previewZoomBar.style.display = 'flex';
         } else {
           previewFrame.classList.add('is-empty');
+          previewFrame.classList.remove('is-blurred');
           previewContent.innerHTML = previewPlaceholderHTML;
           if (previewZoomBar) previewZoomBar.style.display = 'none';
         }
