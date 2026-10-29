@@ -26,7 +26,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Get filter parameters
+$searchQuery = trim($_GET['q'] ?? '');
+$filterBarangay = trim($_GET['barangay'] ?? '');
+
 $queue = get_for_approval_applications(); // Applications validated and ready for president approval
+
+// Server-side filtering
+if ($searchQuery !== '') {
+    $searchLower = strtolower($searchQuery);
+    $queue = array_filter($queue, function($app) use ($searchLower) {
+        return strpos(strtolower($app['app_no']), $searchLower) !== false
+            || strpos(strtolower($app['driver_id']), $searchLower) !== false
+            || strpos(strtolower($app['name']), $searchLower) !== false
+            || strpos(strtolower($app['barangay'] ?? ''), $searchLower) !== false;
+    });
+}
+
+if ($filterBarangay !== '') {
+    $queue = array_filter($queue, function($app) use ($filterBarangay) {
+        return ($app['barangay'] ?? '') === $filterBarangay;
+    });
+}
 
 // Pagination
 $page = max(1, (int) ($_GET['page'] ?? 1));
@@ -324,15 +345,15 @@ if ($current) {
       </div>
 
       <div class="card" style="overflow:hidden;">
-        <div class="filter-bar">
-          <input type="search" placeholder="Search name or ID..." id="apprSearch">
-          <select id="apprBarangay">
+        <form class="filter-bar" method="GET" action="<?= BASE_URL ?>/approval_workflow.php">
+          <input type="search" name="q" placeholder="Search name or ID..." value="<?= e($searchQuery) ?>" id="apprSearch">
+          <select name="barangay" id="apprBarangay">
             <option value="">All Barangay</option>
             <?php foreach ($barangays_list as $b): ?>
-              <option value="<?= e($b) ?>"><?= e($b) ?></option>
+              <option value="<?= e($b) ?>" <?= $b === $filterBarangay ? 'selected' : '' ?>><?= e($b) ?></option>
             <?php endforeach; ?>
           </select>
-        </div>
+        </form>
         <div class="table-wrap">
           <table class="appr-table" id="approvalTable">
             <thead>
@@ -363,7 +384,16 @@ if ($current) {
             </tbody>
           </table>
         </div>
-        <?php render_pagination($paginatedQueue['page'], $paginatedQueue['total_pages'], BASE_URL . '/approval_workflow.php'); ?>
+        <?php 
+        $baseUrl = BASE_URL . '/approval_workflow.php';
+        if ($searchQuery !== '') {
+            $baseUrl .= '?q=' . urlencode($searchQuery);
+        }
+        if ($filterBarangay !== '') {
+            $baseUrl .= ($searchQuery !== '' ? '&' : '?') . 'barangay=' . urlencode($filterBarangay);
+        }
+        render_pagination($paginatedQueue['page'], $paginatedQueue['total_pages'], $baseUrl); 
+        ?>
       </div>
 
     <?php endif; ?>
@@ -375,21 +405,24 @@ if ($current) {
 document.addEventListener('DOMContentLoaded', function() {
   var search = document.getElementById('apprSearch');
   var filter = document.getElementById('apprBarangay');
-  var table  = document.getElementById('approvalTable');
-  if (table) {
-    function applyFilters() {
-      var q = search ? search.value.trim().toLowerCase() : '';
-      var b = filter ? filter.value : '';
-      table.querySelectorAll('tbody tr').forEach(function(row) {
-        var text = row.textContent.toLowerCase();
-        var barangay = row.children[3] ? row.children[3].textContent.trim() : '';
-        var matchQ = !q || text.includes(q);
-        var matchB = !b || barangay === b;
-        row.style.display = (matchQ && matchB) ? '' : 'none';
-      });
-    }
-    if (search) search.addEventListener('input', applyFilters);
-    if (filter) filter.addEventListener('change', applyFilters);
+  var filterForm = search ? search.form : null;
+  
+  // Auto-submit on barangay change
+  if (filter && filterForm) {
+    filter.addEventListener('change', function() {
+      filterForm.submit();
+    });
+  }
+  
+  // Debounce search input
+  var searchTimeout;
+  if (search && filterForm) {
+    search.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(function() {
+        filterForm.submit();
+      }, 500); // Wait 500ms after user stops typing
+    });
   }
 
   var attest = document.getElementById('attestCheck');
